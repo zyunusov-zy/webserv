@@ -1,0 +1,23 @@
+Steps:
+1. create socket
+	int server_fd = socket(domain, type, protocol); // to create a socket (allows messages to be sent and received between applications)
+2. bind an address for socket(assigning a transport address)
+	int bind(int socket, const struct sockaddr *address, socklen_t address_len);
+	socket = created socket
+	sockaddr =  generic container that just allows the OS to be able to read the first couple of bytes that identify the address family. for IP used struct sockaddr_in in netinet/in.h header.
+	struct sockaddr_in 
+	{ 
+		__uint8_t         sin_len; 
+		sa_family_t       sin_family; 
+		in_port_t         sin_port; 
+		struct in_addr    sin_addr; 
+		char              sin_zero[8]; 
+	};
+	Before calling bind, we need to fill out this structure
+	sin_family
+	The address family we used when we set up the socket. In our case, it’s AF_INET
+	sin_port
+	The port number (the transport address)
+	sin_addr
+	The address for this socket
+
