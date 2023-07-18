@@ -70,18 +70,21 @@ std::vector<std::string> Config::configRead(std::string fileName)
 			tokens[i].erase(0, pos);
 		}
 		if (tokens[i].find("server") != std::string::npos)
-		{
-			for(size_t j = 0; j < tokens[i].size(); j++)
-			{
-				if (tokens[i][j] == ' ') {
-            		tokens[i].erase(j, 1);
-            		--j;
-       			}
-			}
-		}
+			trimSp(tokens[i]);
 	}
 	delete[] tmp;
 	return (tokens);
+}
+
+void trimSp(std::string& s)
+{
+	for(size_t j = 0; j < s.size(); j++)
+	{
+		if (s[j] == ' ') {
+    		s.erase(j, 1);
+			--j;
+       	}
+	}
 }
 
 void Config::initServer(t_serv &t)
@@ -99,10 +102,37 @@ size_t Config::findNth(const std::vector<std::string> s, size_t i)
 		if (s[i] == "server")
 		{
 			// std::cout << s[i] << std::endl;
-			return (i + 1);
+			return (i - 1);
 		}
 	}
 	return i;
+}
+
+void Config::valueForServer(std::vector<std::string> tokens, size_t end, size_t start, t_serv& t)
+{
+	for(; start < end; start++)
+	{
+		if (tokens[start].find("host:") != std::string::npos)
+		{
+			std::string v = tokens[start].substr(tokens[start].find("host:") + strlen("host:"));
+			trimSp(v);
+			t.host = v;
+		}
+		if (tokens[start].find("server_name:") != std::string::npos)
+		{
+			std::string v = tokens[start].substr(tokens[start].find("server_name:") + strlen("server_name:"));
+			trimSp(v);
+			t.name = v;
+		}
+		if (tokens[start].find("listen:") != std::string::npos)
+		{
+			std::string v = tokens[start].substr(tokens[start].find("listen:") + strlen("listen:"));
+			trimSp(v);
+			t.port = atoi(v.c_str());
+		}
+		/// fininsh'
+		exit(1);
+	}
 }
 
 t_serv Config::parseTokens(size_t& i, std::vector<std::string>& tokens)
@@ -114,8 +144,7 @@ t_serv Config::parseTokens(size_t& i, std::vector<std::string>& tokens)
 	size_t pos;
 	if ((pos = findNth(tokens, i)))
 	{
-		// blockServ = tokens.substr(i, pos);
-		//
+		valueForServer(tokens, pos, i, server);
 		i = pos;
 	}
 	else{
@@ -144,8 +173,13 @@ int Config::parse(std::string fileName)
 			}
 			++i;
 			t_serv server = parseTokens(i, tokens);
+			if (tokens[i] != "}")
+			{
+				std::cerr << RED << "Error: expected '}' after server directive." << NORMAL << std::endl;
+				exit(1);
+			}
+			++i;
 			this->servers.push_back(server);
-			std::cout << i << std::endl;
 			exit(1);
 		}
 		else
