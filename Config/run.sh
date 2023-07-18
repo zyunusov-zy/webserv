@@ -1,1 +1,1 @@
-c++ -Wall -Werror -Wextra -std=c++98 main.cpp -o server
+c++  main.cpp -o server

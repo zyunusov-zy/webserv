@@ -6,15 +6,17 @@
 #include <cstring>
 #include <vector>
 #include <algorithm>
+#include <map>
 
 # define RED "\033[31m"
 # define NORMAL "\033[0m"
 
 	typedef struct s_serv
 	{
-		std::string		name;
-		std::string 	host;
-		int				port;
+		std::string								name;
+		std::string 							host;
+		int										port;
+		std::map<int, std::string>				errorPages;
 	}	t_serv;
 
 class Config
@@ -24,7 +26,15 @@ private:
 	t_serv parseTokens(size_t& i, std::vector<std::string>& tokens);
 	size_t findNth(const std::vector<std::string> s, size_t i);
 	void initServer(t_serv &t);
+	void trim(std::string& s, char c);
+	void	mapingErrorPage(t_serv& t, std::string &str, char delim);
+	std::string key(std::string &str, char delim);
+	std::string value(std::string &str, char delim);
+	void valueForServer(std::vector<std::string> tokens, size_t end, size_t start, t_serv& t);
+
+
 	std::vector<t_serv> servers;
+	// std::map<int, std::string> errorPage;
 public:
 	Config(/* args */);
 	~Config();
@@ -70,17 +80,17 @@ std::vector<std::string> Config::configRead(std::string fileName)
 			tokens[i].erase(0, pos);
 		}
 		if (tokens[i].find("server") != std::string::npos)
-			trimSp(tokens[i]);
+			trim(tokens[i], ' ');
 	}
 	delete[] tmp;
 	return (tokens);
 }
 
-void trimSp(std::string& s)
+void Config::trim(std::string& s, char c)
 {
 	for(size_t j = 0; j < s.size(); j++)
 	{
-		if (s[j] == ' ') {
+		if (s[j] == c) {
     		s.erase(j, 1);
 			--j;
        	}
@@ -108,30 +118,53 @@ size_t Config::findNth(const std::vector<std::string> s, size_t i)
 	return i;
 }
 
+std::string Config::key(std::string &str, char delim) {
+	return str.substr(0, str.find(delim));
+}
+
+std::string Config::value(std::string &str, char delim) {
+	return str.substr(str.find(delim) + 1);
+}
+
+
+void	Config::mapingErrorPage(t_serv& t, std::string &str, char delim) {
+	t.errorPages.insert(std::pair<int, std::string>(atoi(key(str, delim).c_str()), value(str, delim)));
+}
+
 void Config::valueForServer(std::vector<std::string> tokens, size_t end, size_t start, t_serv& t)
 {
 	for(; start < end; start++)
 	{
-		if (tokens[start].find("host:") != std::string::npos)
+		if (tokens[start].find("host") != std::string::npos)
 		{
-			std::string v = tokens[start].substr(tokens[start].find("host:") + strlen("host:"));
-			trimSp(v);
+			std::string v = tokens[start].substr(tokens[start].find("host") + strlen("host"));
+			trim(v, ' ');
+			trim(v, ';');
 			t.host = v;
+			// std::cout << t.host << std::endl << std::endl;
 		}
-		if (tokens[start].find("server_name:") != std::string::npos)
+		if (tokens[start].find("server_name") != std::string::npos)
 		{
-			std::string v = tokens[start].substr(tokens[start].find("server_name:") + strlen("server_name:"));
-			trimSp(v);
+			std::string v = tokens[start].substr(tokens[start].find("server_name") + strlen("server_name"));
+			trim(v, ' ');
+			trim(v, ';');
 			t.name = v;
 		}
-		if (tokens[start].find("listen:") != std::string::npos)
+		if (tokens[start].find("listen") != std::string::npos)
 		{
-			std::string v = tokens[start].substr(tokens[start].find("listen:") + strlen("listen:"));
-			trimSp(v);
+			std::string v = tokens[start].substr(tokens[start].find("listen") + strlen("listen"));
+			trim(v, ' ');
+			trim(v, ';');
 			t.port = atoi(v.c_str());
 		}
-		/// fininsh'
-		exit(1);
+		if (tokens[start].find("error_page") != std::string::npos)
+		{
+			tokens[start].erase(0, tokens[start].find(' ') + 1);
+			trim(tokens[start], ' ');
+			std::string subStr = tokens[start].substr(0, tokens[start].find(' '));
+			tokens[start].erase(0, tokens[start].find(' '));
+			mapingErrorPage(t, subStr, '=');
+		}
 	}
 }
 
@@ -173,14 +206,15 @@ int Config::parse(std::string fileName)
 			}
 			++i;
 			t_serv server = parseTokens(i, tokens);
-			if (tokens[i] != "}")
-			{
-				std::cerr << RED << "Error: expected '}' after server directive." << NORMAL << std::endl;
-				exit(1);
-			}
-			++i;
+			// std::cout << tokens[i] << i << std::endl;
+			// if (tokens[i] != "}")
+			// {
+			// 	std::cerr << RED << "Error: expected '}' after server directive." << NORMAL << std::endl;
+			// 	exit(1);
+			// }
 			this->servers.push_back(server);
-			exit(1);
+			// std::cout << "hello";
+			// exit(1);
 		}
 		else
 		{
@@ -188,6 +222,18 @@ int Config::parse(std::string fileName)
 			exit(1);
 		}
 
+	}
+
+	for(size_t i = 0; i < servers.size(); i++)
+	{
+		std::cout << "host:" << servers[i].host << std::endl << std::endl;
+		std::cout << "name:" << servers[i].name << std::endl;
+		std::cout << "port:" << servers[i].port << std::endl;
+		std::cout << "MAP: \n";
+		for(auto t : servers[i].errorPages)
+		{
+			std::cout << t.first << ": " << t.second << std::endl;
+		}
 	}
 	exit(0);
 }
