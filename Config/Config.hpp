@@ -27,9 +27,7 @@ private:
 	size_t findNth(const std::vector<std::string> s, size_t i);
 	void initServer(t_serv &t);
 	void trim(std::string& s, char c);
-	void	mapingErrorPage(t_serv& t, std::string &str, char delim);
-	std::string key(std::string &str, char delim);
-	std::string value(std::string &str, char delim);
+	void	mapingErrorPage(t_serv& t, std::string &value, std::string& key);
 	void valueForServer(std::vector<std::string> tokens, size_t end, size_t start, t_serv& t);
 
 
@@ -115,20 +113,11 @@ size_t Config::findNth(const std::vector<std::string> s, size_t i)
 			return (i - 1);
 		}
 	}
-	return i;
+	return i - 1;
 }
 
-std::string Config::key(std::string &str, char delim) {
-	return str.substr(0, str.find(delim));
-}
-
-std::string Config::value(std::string &str, char delim) {
-	return str.substr(str.find(delim) + 1);
-}
-
-
-void	Config::mapingErrorPage(t_serv& t, std::string &str, char delim) {
-	t.errorPages.insert(std::pair<int, std::string>(atoi(key(str, delim).c_str()), value(str, delim)));
+void	Config::mapingErrorPage(t_serv& t, std::string &value, std::string& str) {
+	t.errorPages.insert(std::pair<int, std::string>(atoi(value.c_str()), str));
 }
 
 void Config::valueForServer(std::vector<std::string> tokens, size_t end, size_t start, t_serv& t)
@@ -160,10 +149,11 @@ void Config::valueForServer(std::vector<std::string> tokens, size_t end, size_t 
 		if (tokens[start].find("error_page") != std::string::npos)
 		{
 			tokens[start].erase(0, tokens[start].find(' ') + 1);
+			std::string key = tokens[start].substr(0, tokens[start].find(' '));
+			tokens[start].erase(0, tokens[start].find(' ') + 1);
 			trim(tokens[start], ' ');
-			std::string subStr = tokens[start].substr(0, tokens[start].find(' '));
-			tokens[start].erase(0, tokens[start].find(' '));
-			mapingErrorPage(t, subStr, '=');
+			std::string subStr = tokens[start].substr(0, tokens[start].find(';'));
+			mapingErrorPage(t,key, subStr);
 		}
 	}
 }
@@ -207,11 +197,11 @@ int Config::parse(std::string fileName)
 			++i;
 			t_serv server = parseTokens(i, tokens);
 			// std::cout << tokens[i] << i << std::endl;
-			// if (tokens[i] != "}")
-			// {
-			// 	std::cerr << RED << "Error: expected '}' after server directive." << NORMAL << std::endl;
-			// 	exit(1);
-			// }
+			if (tokens[i] != "}")
+			{
+				std::cerr << RED << "Error: expected '}' after server directive." << NORMAL << std::endl;
+				exit(1);
+			}
 			this->servers.push_back(server);
 			// std::cout << "hello";
 			// exit(1);
@@ -224,17 +214,17 @@ int Config::parse(std::string fileName)
 
 	}
 
-	for(size_t i = 0; i < servers.size(); i++)
-	{
-		std::cout << "host:" << servers[i].host << std::endl << std::endl;
-		std::cout << "name:" << servers[i].name << std::endl;
-		std::cout << "port:" << servers[i].port << std::endl;
-		std::cout << "MAP: \n";
-		for(auto t : servers[i].errorPages)
-		{
-			std::cout << t.first << ": " << t.second << std::endl;
-		}
-	}
+	// for(size_t i = 0; i < servers.size(); i++)
+	// {
+	// 	std::cout << "host:" << servers[i].host << std::endl;
+	// 	std::cout << "name:" << servers[i].name << std::endl;
+	// 	std::cout << "port:" << servers[i].port << std::endl;
+	// 	std::cout << "MAP: \n";
+	// 	for(auto t : servers[i].errorPages)
+	// 	{
+	// 		std::cout << t.first << ": " << t.second << std::endl;
+	// 	}
+	// }
 	exit(0);
 }
 
