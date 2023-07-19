@@ -7,17 +7,19 @@
 #include <vector>
 #include <algorithm>
 #include <map>
+#include "Location.hpp"
 
 # define RED "\033[31m"
 # define NORMAL "\033[0m"
 
-	typedef struct s_serv
-	{
-		std::string								name;
-		std::string 							host;
-		int										port;
-		std::map<int, std::string>				errorPages;
-	}	t_serv;
+typedef struct s_serv
+{
+	std::string								name;
+	std::string 							host;
+	int										port;
+	std::map<int, std::string>				errorPages;
+	std::map<std::string, Location>	loc;
+}	t_serv;
 
 class Config
 {
@@ -29,7 +31,7 @@ private:
 	void trim(std::string& s, char c);
 	void	mapingErrorPage(t_serv& t, std::string &value, std::string& key);
 	void valueForServer(std::vector<std::string> tokens, size_t end, size_t start, t_serv& t);
-
+	void parsLocation(std::vector<std::string> tokens, size_t end, size_t start, t_serv& server);
 
 	std::vector<t_serv> servers;
 	// std::map<int, std::string> errorPage;
@@ -158,6 +160,28 @@ void Config::valueForServer(std::vector<std::string> tokens, size_t end, size_t 
 	}
 }
 
+void Config::parsLocation(std::vector<std::string> tokens, size_t end, size_t start, t_serv& server)
+{
+	// std::cout << start << " = " << tokens[start] << " " << end << std::endl;
+	Location l;
+
+	for(; start < end; start++)
+	{
+		// std::cout << tokens[start] << std::endl;
+		if (tokens[start].find("location") != std::string::npos)
+		{
+			std::string v = tokens[start].substr(tokens[start].find("location") + strlen("location"));
+			trim(v, ' ');
+			// std::cout <<  v << std::endl << std::endl;
+			l.setPath(v);
+		}
+		if (l.getPath() != "")
+			server.loc.insert(std::pair<std::string, Location>(l.getPath(), l));
+	}
+
+	// exit(0);
+}
+
 t_serv Config::parseTokens(size_t& i, std::vector<std::string>& tokens)
 {
 	t_serv server;
@@ -168,10 +192,7 @@ t_serv Config::parseTokens(size_t& i, std::vector<std::string>& tokens)
 	if ((pos = findNth(tokens, i)))
 	{
 		valueForServer(tokens, pos, i, server);
-		i = pos;
-	}
-	else{
-		// blockServ = tokens.substr(i, tokens.size());
+		parsLocation(tokens, pos, i, server);
 		i = pos;
 	}
 	return server; // 
@@ -214,17 +235,23 @@ int Config::parse(std::string fileName)
 
 	}
 
-	// for(size_t i = 0; i < servers.size(); i++)
-	// {
-	// 	std::cout << "host:" << servers[i].host << std::endl;
-	// 	std::cout << "name:" << servers[i].name << std::endl;
-	// 	std::cout << "port:" << servers[i].port << std::endl;
-	// 	std::cout << "MAP: \n";
-	// 	for(auto t : servers[i].errorPages)
-	// 	{
-	// 		std::cout << t.first << ": " << t.second << std::endl;
-	// 	}
-	// }
+	for(size_t i = 0; i < servers.size(); i++)
+	{
+		std::cout << "host:" << servers[i].host << std::endl;
+		std::cout << "name:" << servers[i].name << std::endl;
+		std::cout << "port:" << servers[i].port << std::endl;
+		std::cout << "MAP: \n";
+		for(auto t : servers[i].errorPages)
+		{
+			std::cout << t.first << ": " << t.second << std::endl;
+		}
+		std::cout << "MAP of loc: \n";
+		for(auto t : servers[i].loc)
+		{
+			// std::cout << " helli " << std::endl;
+			std::cout << t.first << ": " << t.second.getPath() << std::endl;
+		}
+	}
 	exit(0);
 }
 
