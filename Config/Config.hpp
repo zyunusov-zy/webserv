@@ -19,7 +19,7 @@ typedef struct s_serv
 	int										port;
 	std::map<int, std::string>				errorPages;
 	int										limit_client_size;
-	std::map<std::string, Location>	loc;
+	std::map<std::string, Location>			loc;
 }	t_serv;
 
 class Config
@@ -49,6 +49,13 @@ Config::Config(/* args */)
 
 Config::~Config()
 {
+
+	// for(int i = 0; i < servers.size(); i++)
+	// {
+	// 	servers[i].errorPages.clear();
+	// 	servers[i].loc.clear();
+	// }
+	// servers.clear();
 }
 
 
@@ -71,9 +78,9 @@ std::vector<std::string> Config::configRead(std::string fileName)
 
 	std::vector<std::string> tokens;
 	char* token = std::strtok(tmp, "\n\t");
-	delete[] tmp;
 	while (token != NULL) {
-		tokens.push_back(token);
+		std::string l = token;
+		tokens.push_back(l);
 		// delete[] token;
 		token = std::strtok(NULL, "\n\t");
 	}
@@ -85,6 +92,7 @@ std::vector<std::string> Config::configRead(std::string fileName)
 		if (tokens[i].find("server") != std::string::npos)
 			trim(tokens[i], ' ');
 	}
+	delete[] tmp;
 	return (tokens);
 }
 
@@ -363,7 +371,8 @@ int Config::parse(std::string fileName)
 			std::cout <<  std::endl << std::endl;
 		}
 	}
-	exit(0);
+	// tokens.clear();
+	return 0;
 }
 
 #endif

@@ -51,6 +51,7 @@ Location::Location(/* args */)
 
 Location::~Location()
 {
+	this->cgi.clear();
 }
 
 void Location::setPath(std::string v)
