@@ -71,9 +71,10 @@ std::vector<std::string> Config::configRead(std::string fileName)
 
 	std::vector<std::string> tokens;
 	char* token = std::strtok(tmp, "\n\t");
-
+	delete[] tmp;
 	while (token != NULL) {
 		tokens.push_back(token);
+		// delete[] token;
 		token = std::strtok(NULL, "\n\t");
 	}
 	for (size_t i = 0; i < tokens.size(); i++) {
@@ -84,7 +85,6 @@ std::vector<std::string> Config::configRead(std::string fileName)
 		if (tokens[i].find("server") != std::string::npos)
 			trim(tokens[i], ' ');
 	}
-	delete[] tmp;
 	return (tokens);
 }
 
@@ -211,10 +211,36 @@ void Config::parsLocation(std::vector<std::string> tokens, size_t end, size_t st
 			// std::cout <<  v << std::endl << std::endl;
 			l.setIndex(v);
 		}
+		if (tokens[start].find("return") != std::string::npos)
+		{
+			std::string v = tokens[start].substr(tokens[start].find("return") + strlen("return"));
+			trim(v, ' ');
+			trim(v, ';');
+			l.setRedir(v);
+
+		}
 		if (tokens[start].find("allow_methods") != std::string::npos)
 		{
-			tokens[start].erase(0,tokens[start].find(' ') + 1);
+			tokens[start].erase(0, tokens[start].find(' ') + 1);
 			l.mapingMethods(tokens[start]);
+		}
+		if (tokens[start].find("cgi_path") != std::string::npos)
+		{
+			tokens[start].erase(0, tokens[start].find(' ') + 1);
+			while(tokens[start].length() != 0)
+			{
+				std::string subStr = tokens[start].substr(0, tokens[start].find(' '));
+				if (tokens[start].find(' ') == std::string::npos)
+				{
+					std::cout << "HERE" <<std::endl;
+					subStr = tokens[start].substr(0, tokens[start].length());
+					tokens[start].erase(0, tokens[start].length());
+					tokens[start] = "";
+				}
+				tokens[start].erase(0, tokens[start].find(' ') + 1);
+				trim(tokens[start], ';');
+				l.setCGI(subStr);
+			}
 		}
 	}
 	// std::cout << l.getPath() << std::endl;
@@ -326,6 +352,15 @@ int Config::parse(std::string fileName)
 			{
 				std::cout << s.first << ": " << s.second << std::endl;
 			}
+
+			std::cout << t.second.getRedir() << std::endl << std::endl;
+			std::cout << "CGI_PATH: " << std::endl;
+			std::vector<std::string> s = t.second.getCGI();
+			for(auto c : s)
+			{
+				std::cout << c << std::endl;
+			}
+			std::cout <<  std::endl << std::endl;
 		}
 	}
 	exit(0);

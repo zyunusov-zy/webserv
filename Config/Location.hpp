@@ -13,6 +13,8 @@ private:
 	std::string						index;
 	std::string 					autoindex;
 	std::map<std::string , bool>	methods;
+	std::string						redir;
+	std::vector<std::string>		cgi;
 
 public:
 	Location(/* args */);
@@ -29,6 +31,10 @@ public:
 	void mapingMethods(std::string &s);
 	int checkLoc();
 	std::map<std::string , bool> getMethods();
+	void setRedir(std::string v);
+	std::string getRedir();
+	void setCGI(std::string v);
+	std::vector<std::string> getCGI();
 };
 
 Location::Location(/* args */)
@@ -36,6 +42,7 @@ Location::Location(/* args */)
 	path = "";
 	root = "";
 	index = "";
+	redir = "";
 	autoindex = "off";
 	methods["GET"] = true;
 	methods["DELETE"] = true;
@@ -109,6 +116,36 @@ void Location::setIndex(std::string v)
 std::string Location::getIndex()
 {
 	return this->index;
+}
+
+void Location::setRedir(std::string v)
+{
+	if (v == "")
+	{
+		std::cerr << "Check return value of the location:" << this->path << std::endl;
+		exit(1);
+	}
+	this->redir = v;
+}
+
+std::string Location::getRedir()
+{
+	return this->redir;
+}
+
+void Location::setCGI(std::string v)
+{
+	if (v == "")
+	{
+		std::cerr << "Check cgo_path value of the location:" << this->path << std::endl;
+		exit(1);
+	}
+	this->cgi.push_back(v);
+}
+
+std::vector<std::string> Location::getCGI()
+{
+	return this->cgi;
 }
 
 void Location::mapingMethods(std::string &str)
