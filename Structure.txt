@@ -1,0 +1,21 @@
+Exercise links:
+https://medium.com/from-the-scratch/http-server-what-do-you-need-to-know-to-build-a-simple-http-server-from-scratch-d1ef8945e4fa
+https://www.youtube.com/watch?v=Y6pFtgRdUts&ab_channel=JacobSorber
+
+
+Steps:
+1) Parse config
+
+Parse server until location need to fix
+
+add method for server and location
+
+2)Server: creating sockets and server structure
+
+3)Request
+
+4) Request parsing
+
+5) Response
+
+6)CGI
