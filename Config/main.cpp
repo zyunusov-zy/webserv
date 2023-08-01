@@ -6,7 +6,8 @@ int main(int argc, char** av)
 	{
 		Server serv;
 		serv.conf(av[1]);
-
+		serv.setUp();
+		exit(1);
 	}
 	else
 	{

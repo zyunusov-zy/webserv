@@ -12,6 +12,8 @@
 # define RED "\033[31m"
 # define NORMAL "\033[0m"
 
+class Server;
+
 typedef struct s_serv
 {
 	std::string								name;
@@ -37,6 +39,7 @@ private:
 
 	std::vector<t_serv> servers;
 	// std::map<int, std::string> errorPage;
+	friend class Server;
 public:
 	Config(/* args */);
 	~Config();
@@ -240,7 +243,7 @@ void Config::parsLocation(std::vector<std::string> tokens, size_t end, size_t st
 				std::string subStr = tokens[start].substr(0, tokens[start].find(' '));
 				if (tokens[start].find(' ') == std::string::npos)
 				{
-					std::cout << "HERE" <<std::endl;
+					// std::cout << "HERE" <<std::endl;
 					subStr = tokens[start].substr(0, tokens[start].length());
 					tokens[start].erase(0, tokens[start].length());
 					tokens[start] = "";
@@ -335,43 +338,43 @@ int Config::parse(std::string fileName)
 
 	}
 
-	for(size_t i = 0; i < servers.size(); i++)
-	{
-		std::cout << "host:" << servers[i].host << std::endl;
-		std::cout << "name:" << servers[i].name << std::endl;
-		std::cout << "port:" << servers[i].port << std::endl;
-		std::cout << "body_size:" << servers[i].limit_client_size << std::endl;
-		std::cout << "MAP: \n";
-		for(auto t : servers[i].errorPages)
-		{
-			std::cout << t.first << ": " << t.second << std::endl;
-		}
-		std::cout << std::endl << std::endl<< "MAP of loc: \n";
-		for(auto t : servers[i].loc)
-		{
-			std::cout << t.first << ": " << t.second.getPath() << std::endl;
-			std::cout << t.second.getPath() << std::endl << std::endl;
-			std::cout << t.second.getIndex() << std::endl << std::endl;
-			std::cout << t.second.getAutoInd() << std::endl;
-			std::cout << t.second.getRoot() << std::endl;
-			std::map<std::string , bool> tmp = t.second.getMethods();
-			std::cout << "Methods: " << std::endl;
-			for( auto s : tmp)
-			{
-				std::cout << s.first << ": " << s.second << std::endl;
-			}
+	// for(size_t i = 0; i < servers.size(); i++)
+	// {
+	// 	std::cout << "host:" << servers[i].host << std::endl;
+	// 	std::cout << "name:" << servers[i].name << std::endl;
+	// 	std::cout << "port:" << servers[i].port << std::endl;
+	// 	std::cout << "body_size:" << servers[i].limit_client_size << std::endl;
+	// 	std::cout << "MAP: \n";
+	// 	for(auto t : servers[i].errorPages)
+	// 	{
+	// 		std::cout << t.first << ": " << t.second << std::endl;
+	// 	}
+	// 	std::cout << std::endl << std::endl<< "MAP of loc: \n";
+	// 	for(auto t : servers[i].loc)
+	// 	{
+	// 		std::cout << t.first << ": " << t.second.getPath() << std::endl;
+	// 		std::cout << t.second.getPath() << std::endl << std::endl;
+	// 		std::cout << t.second.getIndex() << std::endl << std::endl;
+	// 		std::cout << t.second.getAutoInd() << std::endl;
+	// 		std::cout << t.second.getRoot() << std::endl;
+	// 		std::map<std::string , bool> tmp = t.second.getMethods();
+	// 		std::cout << "Methods: " << std::endl;
+	// 		for( auto s : tmp)
+	// 		{
+	// 			std::cout << s.first << ": " << s.second << std::endl;
+	// 		}
 
-			std::cout << t.second.getRedir() << std::endl << std::endl;
-			std::cout << "CGI_PATH: " << std::endl;
-			std::vector<std::string> s = t.second.getCGI();
-			for(auto c : s)
-			{
-				std::cout << c << std::endl;
-			}
-			std::cout <<  std::endl << std::endl;
-		}
-	}
-	// tokens.clear();
+	// 		std::cout << t.second.getRedir() << std::endl << std::endl;
+	// 		std::cout << "CGI_PATH: " << std::endl;
+	// 		std::vector<std::string> s = t.second.getCGI();
+	// 		for(auto c : s)
+	// 		{
+	// 			std::cout << c << std::endl;
+	// 		}
+	// 		std::cout <<  std::endl << std::endl;
+	// 	}
+	// }
+	// // tokens.clear();
 	return 0;
 }
 
