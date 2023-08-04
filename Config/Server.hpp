@@ -100,8 +100,14 @@ void Server::setUp()
 		std::cout << "Connection accepted.\n";
 
 		Request req;
-		req.readRequest(new_socket);
-		req.print();
+		int error_code = req.readRequest(new_socket, _conf);
+		if (error_code == 200)
+		{
+			// std::cout << "hello22" << std::endl;
+			error_code = req.parseRequest();
+		}
+		// std::cout << "hello1" << std::endl;
+		// req.print();
 
 
 		static bool send_html = true;

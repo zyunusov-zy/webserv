@@ -13,9 +13,12 @@
 # define NORMAL "\033[0m"
 
 class Server;
+class Request;
 
 typedef struct s_serv
 {
+	std::string								ipPort;
+	std::string								namePort;
 	std::string								name;
 	std::string 							host;
 	int										port;
@@ -40,6 +43,7 @@ private:
 	std::vector<t_serv> servers;
 	// std::map<int, std::string> errorPage;
 	friend class Server;
+	friend class Request;
 public:
 	Config(/* args */);
 	~Config();
@@ -116,7 +120,7 @@ void Config::initServer(t_serv &t)
 	t.host = "";
 	t.port = 0;
 	// t.logFile = "";
-	t.limit_client_size = 0;
+	t.limit_client_size = -1;
 }
 
 size_t Config::findNth(const std::vector<std::string> s, size_t i)
@@ -138,6 +142,7 @@ void	Config::mapingErrorPage(t_serv& t, std::string &value, std::string& str) {
 
 void Config::valueForServer(std::vector<std::string> tokens, size_t end, size_t& start, t_serv& t)
 {
+	std::string p = "";
 	for(; start < end; start++)
 	{
 		if (tokens[start].find("host") != std::string::npos)
@@ -167,6 +172,7 @@ void Config::valueForServer(std::vector<std::string> tokens, size_t end, size_t&
 			std::string v = tokens[start].substr(tokens[start].find("listen") + strlen("listen"));
 			trim(v, ' ');
 			trim(v, ';');
+			p = v;
 			t.port = atoi(v.c_str());
 		}
 		if (tokens[start].find("error_page") != std::string::npos)
@@ -180,6 +186,16 @@ void Config::valueForServer(std::vector<std::string> tokens, size_t end, size_t&
 		}
 		if (tokens[start].find("location") != std::string::npos)
 			break;
+	}
+	if (p != "" && t.host != "")
+	{
+		std::string tmp = t.host + ":" + p;
+		t.ipPort = tmp;
+	}
+	if (p != "" && t.name != "")
+	{
+		std::string tmp1 = t.name + ":" + p;
+		t.namePort = tmp1;
 	}
 }
 
