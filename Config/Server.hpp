@@ -1,8 +1,10 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
+# define RED "\033[31m"
+# define NORMAL "\033[0m"
+
 #include <iostream>
-#include "Config.hpp"
 // to set up a server
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -12,10 +14,11 @@
 #include <sstream>
 #include <fstream>
 #include "Request.hpp"
+#include "Client.hpp"
+#include "Config.hpp"
+#include "ErrorCodes.hpp"
 
 
-# define RED "\033[31m"
-# define NORMAL "\033[0m"
 
 class Server
 {
@@ -99,13 +102,8 @@ void Server::setUp()
 
 		std::cout << "Connection accepted.\n";
 
-		Request req;
-		int error_code = req.readRequest(new_socket, _conf);
-		if (error_code == 200)
-		{
-			// std::cout << "hello22" << std::endl;
-			error_code = req.parseRequest();
-		}
+		Client cl(new_socket, _conf);
+		cl.print();
 		// std::cout << "hello1" << std::endl;
 		// req.print();
 

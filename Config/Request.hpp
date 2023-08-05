@@ -6,13 +6,15 @@
 #include <map>
 #include <cerrno>
 #include <cstring>
+#include <fstream>
 #include "Config.hpp"
+#include "Server.hpp"
+#include "ErrorCodes.hpp"
 
-# define BADREQUEST 400
-# define OK 200;
-# define REQUEST_ENTITY_TOO_LARGE 413;
 
 typedef std::map<std::string, std::string> HeaderMap;
+
+class Config;
 
 class Request 
 {
@@ -21,31 +23,74 @@ class Request
 		std::string _method;
 		std::string _resource;
 		std::string _version;
+		std::string	_scriptName;
+		std::string _pathInfo;
 		HeaderMap _headers;
 		HeaderMap _query;
+		std::string _body;
+		t_serv serv;
+		int _err;
+		bool _q;
 
 		ssize_t receiveData(int socket, char* buffer, size_t length);
-		int checkBodySize(size_t total_bytes_read, const Config& _conf, std::string h);
+		int initServ(const Config& _conf, std::string h);
 		std::string getHost();
 		void parseQueryString(const std::string& query);
 		void parseHeaders(std::istringstream& sstream);
 		void parseRequestLine(const std::string& request_line);
-
+		bool doesFileExist(const std::string& filePath);
+		void parseResource();
+		void parseBody();
 	public:
 		Request();
 		~Request();
+		bool getQ();
 		int readRequest(int socket, Config _conf);
 		int parseRequest();
 		std::string& getMethod();
 		std::string& getResource();
 		std::string& getVersion();
+		std::string& getScriptName();
+		std::string& getPathInfo();
+		std::string& getBody();
+		t_serv getServ();
 		HeaderMap& getHeaders();
 		void print();
 		
 };
 
-Request::Request()
+Request::Request(): _q(false), _err(0)
 {
+}
+
+bool Request::getQ()
+{
+	return _q;
+}
+
+std::string& Request::getScriptName()
+{
+	return _scriptName;
+}
+
+std::string& Request::getPathInfo()
+{
+	return _pathInfo;
+}
+
+std::string& Request::getBody()
+{
+	return _body;
+}
+
+t_serv Request::getServ()
+{
+	return serv;
+}
+
+bool Request::doesFileExist(const std::string& filePath) {
+    std::ifstream infile(filePath.c_str());
+    return infile.good();
 }
 
 void Request::parseQueryString(const std::string& query)
@@ -65,7 +110,42 @@ void Request::parseQueryString(const std::string& query)
         }
         _query[name] = value;
     }
+	_q = true;
 }
+
+void Request::parseResource()
+{
+	std::string scriptDir = "/cgi-bin";
+	size_t pos = _resource.find(scriptDir);
+
+	if (pos != std::string::npos) {
+		// Handle as a CGI request
+		pos += scriptDir.length();
+		std::string remainingPath = _resource.substr(pos);
+		std::istringstream ss(remainingPath);
+		std::string segment;
+		while (std::getline(ss, segment, '/')) {
+			if (doesFileExist(scriptDir + '/' + segment)) {
+				_scriptName = scriptDir + '/' + segment;
+				// Find the position of scriptName in resource to split the pathInfo
+				pos = _resource.find(_scriptName);
+				pos += _scriptName.length();
+				if (pos < _resource.length()) {
+					_pathInfo = _resource.substr(pos);
+				} else {
+					_pathInfo = "";
+				}
+				return;
+			}
+		}
+		throw std::runtime_error("Invalid resource path: " + _resource);
+	} else {
+		// Non-CGI request, treat as a file to serve
+		_scriptName = _resource;
+		_pathInfo = _resource;
+	}
+}
+
 
 void Request::parseRequestLine(const std::string& request_line)
 {
@@ -80,6 +160,33 @@ void Request::parseRequestLine(const std::string& request_line)
         std::cerr << "Failed to parse request line\n";
         throw std::runtime_error("Invalid request line");
     }
+	try{
+		parseResource();
+	}catch (const std::runtime_error& e) {
+        std::cerr << "Failed to parse resource: " << e.what() << "\n";
+		_err = 1;
+        throw;  // Re-throw the exception
+    }
+}
+
+void Request::parseBody()
+{
+	std::map<std::string, std::string>::iterator it = _headers.find("Content-Length");
+	if (it != _headers.end())
+	{
+		// The 'Content-Length' header exists
+		int content_length = std::stoi(it->second);
+		if (content_length > serv.limit_client_size)
+			throw std::runtime_error("Request Body is too Large!");
+		size_t body_start_pos = _requestline.find("\r\n\r\n");
+
+		if (body_start_pos != std::string::npos) {
+			body_start_pos += 4;
+			_body = _requestline.substr(body_start_pos, content_length);
+		} else {
+			_body = "";
+		}
+	}
 }
 
 void Request::parseHeaders(std::istringstream& sstream)
@@ -98,6 +205,16 @@ void Request::parseHeaders(std::istringstream& sstream)
 		}
         _headers[name] = value;
     }
+	try
+	{
+		parseBody();
+	}catch(const std::exception& e)
+	{
+		std::cerr << "Failed to parse body: " << e.what() << "\n";
+		_err = 2;
+        throw;  // Re-throw the exception
+	}
+	
 }
 
 int Request::parseRequest()
@@ -128,6 +245,11 @@ int Request::parseRequest()
 		parseHeaders(sstream);
 	}catch (const std::runtime_error& e) {
         std::cerr << e.what() << '\n';
+		_q = false;
+		if (_err == 1)
+			return UNABLE_TO_FIND;
+		if (_err == 2)
+			return REQUEST_ENTITY_TOO_LARGE;
         return BADREQUEST;
     }
 	return OK;
@@ -163,20 +285,15 @@ std::string Request::getHost()
     return _requestline.substr(startPos, endPos - startPos);
 }
 
-int Request::checkBodySize(size_t total_bytes_read, const Config& _conf, std::string h)
+int Request::initServ(const Config& _conf, std::string h)
 {
-    size_t maxBody = 0;
 	for (int i = 0; i < _conf.servers.size(); i++) {
 		if (h == _conf.servers[i].ipPort || h == _conf.servers[i].namePort) {
-			maxBody = _conf.servers[i].limit_client_size;
+			serv = _conf.servers[i];
+			return OK
 		}
 	}
-	// std::cout << maxBody << std::endl << std::endl;
-    if (maxBody != -1 && total_bytes_read > maxBody) {
-        std::cerr << "Client request body exceeded the maximum allowed size\n";
-        return REQUEST_ENTITY_TOO_LARGE;
-    }
-	return OK;
+	return BADREQUEST;
 }
 
 
@@ -186,7 +303,6 @@ int Request::readRequest(int socket, Config _conf)
 	char buf[4096];
 	bool chunked = false;
 	int error_code = OK;
-	size_t total_bytes_read = 0;
 
 	while(true)
 	{
@@ -204,7 +320,6 @@ int Request::readRequest(int socket, Config _conf)
 			std::cerr << "Client closed connection" << std::endl;
 			break;
 		}
-		total_bytes_read += bytes_rec;
 		this->_requestline.append(buf, bytes_rec);
 
 		std::string host = getHost();
@@ -214,7 +329,7 @@ int Request::readRequest(int socket, Config _conf)
             std::cerr << "Host header not found or malformed in the request.\n";
             break;
         }
-		error_code = checkBodySize(total_bytes_read ,_conf, host);
+		error_code =initServ(_conf, host);
 		if (error_code != 200) {
             return error_code;
         }
@@ -237,6 +352,11 @@ void Request::print()
 	std::cout << "Method: " << getMethod() << "\n";
     std::cout << "Resource: " << getResource() << "\n";
     std::cout << "Version: " << getVersion() << "\n";
+	std::cout << "PATH_INFO: " << getPathInfo() << "\n";
+	std::cout << "ScriptName: " << getScriptName() << "\n";
+
+	std::cout << "Body: " << getBody() << "\n" << "\n";
+
 
 	HeaderMap tmp = getHeaders();
 	for (auto header : tmp) {

@@ -8,12 +8,12 @@
 #include <algorithm>
 #include <map>
 #include "Location.hpp"
+#include "Server.hpp"
+#include "Request.hpp"
 
 # define RED "\033[31m"
 # define NORMAL "\033[0m"
 
-class Server;
-class Request;
 
 typedef struct s_serv
 {
