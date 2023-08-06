@@ -46,10 +46,13 @@ void Client::parseEnvVar()
 	std::string tmp;
 	if(!_quer)
 	{
-		tmp = "CONTENT_LENGTH=" + _clientHeaders["Content-Length:"];
-		_env_vec.push_back(tmp);
-		tmp = "CONTENT_TYPE=" + _clientHeaders["Content-Type:"];
-		_env_vec.push_back(tmp);
+		if (_req.getMethod() == "POST") // will add it only with POST
+		{
+			tmp = "CONTENT_LENGTH=" + _clientHeaders["Content-Length:"];
+			_env_vec.push_back(tmp);
+			tmp = "CONTENT_TYPE=" + _clientHeaders["Content-Type:"];
+			_env_vec.push_back(tmp);
+		}
 		tmp = "PATH_INFO=" + _req.getPathInfo();
 		_env_vec.push_back(tmp);
 	}

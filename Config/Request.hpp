@@ -231,7 +231,7 @@ int Request::parseRequest()
 	if (!std::getline(sstream, request_line))
 	{
 		std::cerr << "Failed to read request line\n";
-		return BADREQUEST;
+		return BADREQUEST;// do i need to return?
 	}
 
 	try {
