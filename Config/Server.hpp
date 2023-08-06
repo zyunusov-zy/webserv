@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <sstream>
 #include <fstream>
+#include <arpa/inet.h>
 #include "Request.hpp"
 #include "Client.hpp"
 #include "Config.hpp"
@@ -101,8 +102,16 @@ void Server::setUp()
 		}
 
 		std::cout << "Connection accepted.\n";
+		char client_ip[INET_ADDRSTRLEN];
+		if(inet_ntop(AF_INET, &(address.sin_addr), client_ip, INET_ADDRSTRLEN) == NULL)
+		{
+			std::cerr << "Error converting IP address to string: " << strerror(errno) << std::endl;
+			exit(1);// need to change
+		}
 
-		Client cl(new_socket, _conf);
+
+
+		Client cl(new_socket, _conf, client_ip);
 		cl.print();
 		// std::cout << "hello1" << std::endl;
 		// req.print();

@@ -25,6 +25,7 @@ class Request
 		std::string _version;
 		std::string	_scriptName;
 		std::string _pathInfo;
+		std::string _queryString;
 		HeaderMap _headers;
 		HeaderMap _query;
 		std::string _body;
@@ -35,7 +36,7 @@ class Request
 		ssize_t receiveData(int socket, char* buffer, size_t length);
 		int initServ(const Config& _conf, std::string h);
 		std::string getHost();
-		void parseQueryString(const std::string& query);
+		void parseQueryString();
 		void parseHeaders(std::istringstream& sstream);
 		void parseRequestLine(const std::string& request_line);
 		bool doesFileExist(const std::string& filePath);
@@ -53,6 +54,7 @@ class Request
 		std::string& getScriptName();
 		std::string& getPathInfo();
 		std::string& getBody();
+		std::string& getQueryString();
 		t_serv getServ();
 		HeaderMap& getHeaders();
 		void print();
@@ -83,6 +85,11 @@ std::string& Request::getBody()
 	return _body;
 }
 
+std::string& Request::getQueryString()
+{
+	return _queryString;
+}
+
 t_serv Request::getServ()
 {
 	return serv;
@@ -93,9 +100,9 @@ bool Request::doesFileExist(const std::string& filePath) {
     return infile.good();
 }
 
-void Request::parseQueryString(const std::string& query)
+void Request::parseQueryString()
 {
-    std::istringstream qstream(query);
+    std::istringstream qstream(_queryString);
     std::string param;
     while (std::getline(qstream, param, '&')) {
         size_t separator = param.find("=");
@@ -229,18 +236,16 @@ int Request::parseRequest()
 
 	try {
 		parseRequestLine(request_line);
-
 		std::string path = _resource;
-		std::string query;
 		size_t pos = _resource.find('?');
 		if (pos != std::string::npos)
 		{
 			path = _resource.substr(0, pos);
-			query = _resource.substr(pos + 1);
+			_queryString = _resource.substr(pos + 1);
 		}
 
-		if (!query.empty()) {
-				parseQueryString(query);
+		if (!_query.empty()) {
+				parseQueryString(); // if we dont need map delete
 		}
 		parseHeaders(sstream);
 	}catch (const std::runtime_error& e) {
@@ -263,7 +268,7 @@ ssize_t Request::receiveData(int socket, char* buffer, size_t length)
         std::cerr << "Error reading from socket: " << std::strerror(errno) << std::endl;
     } else if (bytes_received == 0) {
         std::cerr << "Client closed connection" << std::endl;
-    }
+    }// need to fix
 
     return bytes_received;
 }
@@ -354,6 +359,7 @@ void Request::print()
     std::cout << "Version: " << getVersion() << "\n";
 	std::cout << "PATH_INFO: " << getPathInfo() << "\n";
 	std::cout << "ScriptName: " << getScriptName() << "\n";
+	std::cout << "QueryString: " << getQueryString() << "\n" << "\n";
 
 	std::cout << "Body: " << getBody() << "\n" << "\n";
 

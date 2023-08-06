@@ -14,20 +14,22 @@ private:
 	int error_code;
 	char **env_var;
 	bool _quer;
+	std::string _clienIP;
 	std::map<std::string, std::string> _clientHeaders;
 	std::vector<std::string> _env_vec;
 
 
 	void parseEnvVar();
 public:
-	Client(int new_socket, Config _conf);
+	Client(int new_socket, Config _conf, char *clien_ip);
 	~Client();
 	void print();
 };
 
-Client::Client(int new_socket, Config _conf)
+Client::Client(int new_socket, Config _conf, char *clien_ip)
 {
 	error_code = OK;
+	_clienIP = clien_ip;
 	error_code = _req.readRequest(new_socket,_conf);
 	if (error_code == 200)
 	{
@@ -53,14 +55,14 @@ void Client::parseEnvVar()
 	}
 	else
 	{
-		tmp = "QUERY_STRING=" + _clientHeaders["query_string:"];// need to ask do you need full query string
+		tmp = "QUERY_STRING=" + _req.getQueryString();// need to ask do you need full query string
 		_env_vec.push_back(tmp);
 	}
 	tmp = "GATEWAY_INTERFACE=CGI/1.1";
 	_env_vec.push_back(tmp);
 	tmp = "REQUEST_METHOD=" + _req.getMethod();
 	_env_vec.push_back(tmp);
-	tmp = "REMOTE_ADDR="; // need to know where to get Client IP
+	tmp = "REMOTE_ADDR=" + _clienIP; // need to know where to get Client IP
 	_env_vec.push_back(tmp);
 	tmp = "SCRIPT_NAME=" + _req.getScriptName();
 	_env_vec.push_back(tmp);
