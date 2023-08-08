@@ -78,7 +78,7 @@ void Server::launchCgi(class Client client)
     
 
     // Create a dynamic filename for the output of the Python script.
-    std::string tmp = client._req.getScriptName() + "output" + client.getClienIP();
+    std::string tmp = client.getReq().getScriptName() + "output" + client.getClienIP();
     const char* out_filename = tmp.c_str(); //dynamic filename
 
     // Open the output file for writing (create if it doesn't exist with permissions 600).
@@ -98,11 +98,11 @@ void Server::launchCgi(class Client client)
     }
 
     // If there is data in the client request, set the size of the pipe buffer accordingly.
-    if (client._req.getBody().size() > 0)
-        fcntl(pipe_d[WRITE_END], 0, client._req.getBody().size());
+    if (client.getReq().getBody().size() > 0)
+        fcntl(pipe_d[WRITE_END], 0, client.getReq().getBody().size());
 
     // Write the client request data to the pipe.
-    write(pipe_d[WRITE_END], client._req.getBody().c_str(), client._req.getBody().size());
+    write(pipe_d[WRITE_END], client.getReq().getBody().c_str(), client.getReq().getBody().size());
     close(pipe_d[WRITE_END]);
 
     // Fork a new process to run the Python script.
@@ -122,7 +122,7 @@ void Server::launchCgi(class Client client)
         close(outfile);
 
         // If there is no query string, redirect standard input to the input file.
-        if (!client._req.getQueryString().c_str())
+        if (!client.getReq().getQueryString().c_str())
         {
             dup2(infile, STDIN_FILENO);
             close(infile);

@@ -10,6 +10,7 @@
 class Client
 {
 private:
+	Request _req;
 	int error_code;
 	char **env_var;
 	bool _quer;
@@ -20,14 +21,19 @@ private:
 
 	void parseEnvVar();
 public:
-	Request _req;
 	Client(int new_socket, Config _conf, char *clien_ip);
 	~Client();
 	void print();
 
 	char **get_env();
 	std::string	getClienIP();
+	Request getReq();
 };
+
+Request Client::getReq()
+{
+	return (_req);
+}
 
 char **Client::get_env()
 {
