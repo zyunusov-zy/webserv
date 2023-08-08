@@ -18,6 +18,7 @@
 #include "Client.hpp"
 #include "Config.hpp"
 #include "ErrorCodes.hpp"
+#include <sys/wait.h>
 
 #include <cstdlib>
 #include <vector>
@@ -135,7 +136,10 @@ void Server::launchCgi(class Client client)
         char* _args[3];
         _args[0] = (char*)path_to_python;
         // _args[1] = script_path;
-        _args[1] = "/Users/cgreenpo/our_webserv/Config/cgi-bin/script";      
+		// fixed by zyko
+		std::string tmp = "/Users/cgreenpo/our_webserv/Config/cgi-bin/script";
+        _args[1] = new char[tmp.length() + 1];
+		std::strcpy(_args[1], tmp.c_str());
         _args[2] = NULL;
 
 
