@@ -26,6 +26,7 @@ class Request
 		std::string	_scriptName;
 		std::string _pathInfo;
 		std::string _queryString;
+		int			_portOfReq;
 		HeaderMap _headers;
 		HeaderMap _query;
 		std::string _body;
@@ -55,6 +56,7 @@ class Request
 		std::string& getPathInfo();
 		std::string& getBody();
 		std::string& getQueryString();
+		int getPortOfReq();
 		t_serv getServ();
 		HeaderMap& getHeaders();
 		void print();
@@ -68,6 +70,11 @@ Request::Request(): _q(false), _err(0)
 bool Request::getQ()
 {
 	return _q;
+}
+
+int Request::getPortOfReq()
+{
+	return _portOfReq;
 }
 
 std::string& Request::getScriptName()
@@ -292,13 +299,26 @@ std::string Request::getHost()
 
 int Request::initServ(const Config& _conf, std::string h)
 {
+	bool check = true;
 	for (int i = 0; i < _conf.servers.size(); i++) {
-		if (h == _conf.servers[i].ipPort || h == _conf.servers[i].namePort) {
+		if (_conf.servers[i].ipPort.find(h) != std::string::npos 
+		|| _conf.servers[i].namePort.find(h) != std::string::npos) {
 			serv = _conf.servers[i];
-			return OK
+			check = false;
 		}
 	}
-	return BADREQUEST;
+	if (check)
+	{
+		std::cerr << "Request done for the unkown ip/port or server_nam/port" << std::endl;
+		return BADREQUEST;
+	}
+	for(int i = 0; i < serv.port.size(); i++)
+	{
+		if (h.find(std::to_string(serv.port[i])))
+			_portOfReq = serv.port[i];
+
+	}
+	return OK;
 }
 
 

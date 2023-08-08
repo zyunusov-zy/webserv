@@ -138,7 +138,7 @@ void Location::setCGI(std::string v)
 {
 	if (v == "")
 	{
-		std::cerr << "Check cgo_path value of the location:" << this->path << std::endl;
+		std::cerr << "Check cgi_path value of the location:" << this->path << std::endl;
 		exit(1);
 	}
 	this->cgi.push_back(v);

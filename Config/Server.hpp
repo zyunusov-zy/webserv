@@ -42,6 +42,8 @@ Server::Server()
 void Server::conf(std::string filename)
 {
 	_conf.parse(filename);
+	// exit(1);
+	
 }
 
 Server::~Server()
@@ -73,7 +75,7 @@ void Server::setUp()
     //     std::cerr << "Invalid address or address not supported\n";
     //     return -1;
     // }
-	address.sin_port = htons(_conf.servers[0].port);
+	address.sin_port = htons(_conf.servers[0].port[0]);
 
 	int b = bind(server_fd, (struct sockaddr *)&address, sizeof(address));
 	if (b < 0)

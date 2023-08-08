@@ -42,7 +42,6 @@ Client::Client(int new_socket, Config _conf, char *clien_ip)
 
 void Client::parseEnvVar()
 {
-	// std::cout << "hello" << std::endl;
 	std::string tmp;
 	if(!_quer)
 	{
@@ -71,7 +70,7 @@ void Client::parseEnvVar()
 	_env_vec.push_back(tmp);
 	tmp = "SERVER_NAME=" + _req.getServ().name;
 	_env_vec.push_back(tmp);
-	tmp = "SERVER_PORT=" + std::to_string(_req.getServ().port);
+	tmp = "SERVER_PORT=" + std::to_string(_req.getPortOfReq());
 	_env_vec.push_back(tmp);
 	tmp = "SERVER_PROTOCOL=HTTP/1.1";
 	_env_vec.push_back(tmp);
