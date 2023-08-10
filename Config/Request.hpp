@@ -33,6 +33,7 @@ class Request
 		t_serv serv;
 		int _err;
 		bool _q;
+		bool _cgi;
 
 		ssize_t receiveData(int socket, char* buffer, size_t length);
 		int initServ(const Config& _conf, std::string h);
@@ -56,6 +57,7 @@ class Request
 		std::string& getPathInfo();
 		std::string& getBody();
 		std::string& getQueryString();
+		bool getCGIB();
 		int getPortOfReq();
 		t_serv getServ();
 		HeaderMap& getHeaders();
@@ -63,7 +65,7 @@ class Request
 		
 };
 
-Request::Request(): _q(false), _err(0)
+Request::Request(): _q(false), _err(0), _cgi(false)
 {
 }
 
@@ -80,6 +82,11 @@ int Request::getPortOfReq()
 std::string& Request::getScriptName()
 {
 	return _scriptName;
+}
+
+bool Request::getCGIB()
+{
+	return _cgi;
 }
 
 std::string& Request::getPathInfo()
@@ -152,6 +159,7 @@ void Request::parseResource()
 				return;
 			}
 		}
+		_cgi = true;
 		throw std::runtime_error("Invalid resource path: " + _resource);
 	} else {
 		// Non-CGI request, treat as a file to serve
@@ -284,10 +292,10 @@ std::string Request::getHost()
 {
     std::string hostHeader = "Host: ";
     size_t startPos = _requestline.find(hostHeader);
-    if (startPos == std::string::npos) {
-        std::cerr << "Host header not found in the request.\n";
-        return "";
-    }
+    // if (startPos == std::string::npos) {
+    //     std::cerr << "Host header not found in the request.\n";
+    //     return "";
+    // }
     startPos += hostHeader.length(); // Skip past "Host: "
     size_t endPos = _requestline.find("\r\n", startPos);
     if (endPos == std::string::npos) {
@@ -329,8 +337,8 @@ int Request::readRequest(int socket, Config _conf)
 	bool chunked = false;
 	int error_code = OK;
 
-	while(true)
-	{
+	// while(true)
+	// {
 		std::memset(buf, 0, sizeof(buf));
 		ssize_t bytes_rec = receiveData(socket, buf, sizeof(buf));
 
@@ -338,22 +346,22 @@ int Request::readRequest(int socket, Config _conf)
 		{
 			std::cerr << "Error reading from socket: " << std::strerror(errno) << std::endl;
 			error_code = BADREQUEST;
-			break;
+			return error_code;
 		}
 		else if (bytes_rec == 0)
 		{
 			std::cerr << "Client closed connection" << std::endl;
-			break;
+			return error_code;
 		}
 		this->_requestline.append(buf, bytes_rec);
 
 		std::string host = getHost();
 		// std::cout << "Helloooo" <<std::endl;
-        if (host.empty()) {
-            error_code = BADREQUEST;
-            std::cerr << "Host header not found or malformed in the request.\n";
-            break;
-        }
+        // if (host.empty()) {
+        //     error_code = BADREQUEST;
+        //     std::cerr << "Host header not found or malformed in the request.\n";
+		// 	return error_code;
+        // }
 		error_code =initServ(_conf, host);
 		if (error_code != 200) {
             return error_code;
@@ -363,12 +371,12 @@ int Request::readRequest(int socket, Config _conf)
 			if (_requestline.find("Transfer-Encoding: chunked") != std::string::npos)
 				chunked = true;
 			else if (_requestline.find("\r\n\r\n") != std::string::npos)
-				break;
+				return (error_code);
 		}
 		else if (chunked && _requestline.find("\r\n0\r\n\r\n") != std::string::npos)
-			break;
+			return (error_code);
 		
-	}
+	// }
 	return (error_code);
 }
 
