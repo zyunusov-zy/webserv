@@ -220,7 +220,7 @@ void Server::setUp()
     std::vector<int> listenfds;
     struct sockaddr_in servaddr;
     char buff[200];
-    char bytes[200];
+    char bytes[4048];
 
     std::vector<pollfd> pollfds;
 
@@ -292,24 +292,25 @@ void Server::setUp()
         for (size_t i = listenfds.size(); i < pollfds.size(); ++i)
         {
             if (pollfds[i].revents & POLLIN) {
-                int fd = pollfds[i].fd;
+                // int fd = pollfds[i].fd;
 
-                // Handle incoming data from the client
-                int n = read(fd, bytes, sizeof(bytes) - 1);
-                if (n < 0) {
-                    std::cout << "Failed to read. errno: " << errno << std::endl;
-                    exit(EXIT_FAILURE);
-                }
-                else if (n == 0) {
-                    // Connection closed by the client
-                    close(fd);
-                    sockets_to_remove.push_back(fd);
-                }
-                else 
-                {
-                    bytes[n] = '\0';
-                    std::cout << "\n\n" << bytes;
-                    std::cout.flush();
+                // // Handle incoming data from the client
+                // int n = read(fd, bytes, sizeof(bytes) - 1);
+                // if (n < 0) {
+                //     std::cout << "Failed to read. errno: " << errno << std::endl;
+                //     exit(EXIT_FAILURE);
+                // }
+                // else if (n == 0) {
+                //     // Connection closed by the client
+                //     close(fd);
+                //     sockets_to_remove.push_back(fd);
+                // }
+                // else 
+                // {
+                    // bytes[n] = '\0';
+                    // std::cout << "ARE YOU HERE?";
+                    // std::cout << "\n\n" << bytes;
+                    // std::cout.flush();
 
                     
                     char client_ip[INET_ADDRSTRLEN];
@@ -320,7 +321,8 @@ void Server::setUp()
                     }
 
 
-
+                    // std::cout << "HERE11111" << std::endl;
+                    // std::cout << "File descriptor: " << pollfds[i].fd << std::endl;
                     Client cl(pollfds[i].fd, _conf, client_ip);
                     cl.print();
                     
@@ -329,15 +331,15 @@ void Server::setUp()
                     //----------------------
                     
                     
-                    if (bytes[n - 1] == '\n') {
-                        close(fd);
-                        sockets_to_remove.push_back(fd);
-                    } else {
+                    // if (bytes[n - 1] == '\n') {
+                    //     close(fd);
+                    //     sockets_to_remove.push_back(fd);
+                    // } else {
                         // Send a response to the client
                         snprintf(buff, sizeof(buff), "HTTP/1.0 200 OK\r\n\r\nHello");
-                        write(fd, buff, strlen(buff));
-                    }
-                }
+                        write(pollfds[i].fd, buff, strlen(buff));
+                    // }
+                // }
             }
         }
 

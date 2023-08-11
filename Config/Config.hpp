@@ -10,6 +10,7 @@
 #include "Location.hpp"
 #include "Server.hpp"
 #include "Request.hpp"
+#include "ErrorCodes.hpp"
 
 # define RED "\033[31m"
 # define NORMAL "\033[0m"
@@ -23,7 +24,6 @@ typedef struct s_serv
 	std::string 							host;
 	std::vector<int>						port;
 	std::map<int, std::string>				errorPages;
-	int										limit_client_size;
 	std::map<std::string, Location>			loc;
 }	t_serv;
 
@@ -34,7 +34,6 @@ private:
 	t_serv parseTokens(size_t& i, std::vector<std::string>& tokens);
 	size_t findNth(const std::vector<std::string> s, size_t i);
 	void initServer(t_serv &t);
-	void trim(std::string& s, char c);
 	void	mapingErrorPage(t_serv& t, std::string &value, std::string& key);
 	void valueForServer(std::vector<std::string> tokens, size_t end, size_t& start, t_serv& t);
 	void parsLocation(std::vector<std::string> tokens, size_t end, size_t start, t_serv& server);
@@ -103,16 +102,6 @@ std::vector<std::string> Config::configRead(std::string fileName)
 	return (tokens);
 }
 
-void Config::trim(std::string& s, char c)
-{
-	for(size_t j = 0; j < s.size(); j++)
-	{
-		if (s[j] == c) {
-    		s.erase(j, 1);
-			--j;
-       	}
-	}
-}
 
 void Config::initServer(t_serv &t)
 {
@@ -120,7 +109,6 @@ void Config::initServer(t_serv &t)
 	t.host = "";
 	// t.port = 0;
 	// t.logFile = "";
-	t.limit_client_size = -1;
 }
 
 size_t Config::findNth(const std::vector<std::string> s, size_t i)
@@ -159,13 +147,6 @@ void Config::valueForServer(std::vector<std::string> tokens, size_t end, size_t&
 			trim(v, ' ');
 			trim(v, ';');
 			t.name = v;
-		}
-		if (tokens[start].find("limits_client_body_size") != std::string::npos)
-		{
-			std::string v = tokens[start].substr(tokens[start].find("limits_client_body_size") + strlen("limits_client_body_size"));
-			trim(v, ' ');
-			trim(v, ';');
-			t.limit_client_size = atoi(v.c_str());
 		}
 		if (tokens[start].find("listen") != std::string::npos)
 		{
@@ -247,6 +228,13 @@ void Config::parsLocation(std::vector<std::string> tokens, size_t end, size_t st
 			trim(v, ';');
 			l.setRedir(v);
 
+		}
+		if (tokens[start].find("limits_client_body_size") != std::string::npos)
+		{
+			std::string v = tokens[start].substr(tokens[start].find("limits_client_body_size") + strlen("limits_client_body_size"));
+			trim(v, ' ');
+			trim(v, ';');
+			l.setBodySize(atoi(v.c_str()));
 		}
 		if (tokens[start].find("allow_methods") != std::string::npos)
 		{
@@ -363,7 +351,6 @@ int Config::parse(std::string fileName)
 		for(int j = 0; j < servers[i].port.size(); j++)
 			std::cout << "port:" << servers[i].port[j] << std::endl;
 		// std::cout << "hello" << std::endl;
-		std::cout << "body_size:" << servers[i].limit_client_size << std::endl;
 		std::cout << "MAP: \n";
 		for(auto t : servers[i].errorPages)
 		{
@@ -377,6 +364,7 @@ int Config::parse(std::string fileName)
 			std::cout << t.second.getIndex() << std::endl << std::endl;
 			std::cout << t.second.getAutoInd() << std::endl;
 			std::cout << t.second.getRoot() << std::endl;
+			std::cout << "Body_size: " << t.second.getBodySize() << std::endl;
 			std::map<std::string , bool> tmp = t.second.getMethods();
 			std::cout << "Methods: " << std::endl;
 			for( auto s : tmp)

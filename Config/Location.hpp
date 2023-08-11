@@ -15,6 +15,7 @@ private:
 	std::map<std::string , bool>	methods;
 	std::string						redir;
 	std::vector<std::string>		cgi;
+	int								limit_client_size;
 
 public:
 	Location(/* args */);
@@ -35,6 +36,8 @@ public:
 	std::string getRedir();
 	void setCGI(std::string v);
 	std::vector<std::string> getCGI();
+	void setBodySize(int num);
+	int getBodySize();
 };
 
 Location::Location(/* args */)
@@ -44,6 +47,7 @@ Location::Location(/* args */)
 	index = "";
 	redir = "";
 	autoindex = "off";
+	limit_client_size = -1;
 	methods["GET"] = true;
 	methods["DELETE"] = true;
 	methods["POST"] = true;
@@ -67,6 +71,20 @@ void Location::setPath(std::string v)
 std::string Location::getPath()
 {
 	return this->path;
+}
+
+void Location::setBodySize(int num)
+{
+	if (num <= 0)
+	{
+		std::cerr << "Body size cant be 0 or negative numbers of the location:" << this->path << std::endl;
+		exit(1);
+	}
+	limit_client_size = num;
+}
+int  Location::getBodySize()
+{
+	return limit_client_size;
 }
 
 void Location::setAutoInd(std::string v)

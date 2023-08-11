@@ -10,6 +10,8 @@
 #include "Config.hpp"
 #include "Server.hpp"
 #include "ErrorCodes.hpp"
+#include "Location.hpp"
+
 
 
 typedef std::map<std::string, std::string> HeaderMap;
@@ -21,35 +23,37 @@ class Request
 	private:
 		std::string _requestline;
 		std::string _method;
-		std::string _resource;
+		std::string _uri;
 		std::string _version;
 		std::string	_scriptName;
 		std::string _pathInfo;
 		std::string _queryString;
 		int			_portOfReq;
-		HeaderMap _headers;
-		HeaderMap _query;
+		// HeaderMap _query;
 		std::string _body;
 		t_serv serv;
-		int _err;
+		// int _err;
 		bool _q;
 		bool _cgi;
 
-		ssize_t receiveData(int socket, char* buffer, size_t length);
-		int initServ(const Config& _conf, std::string h);
-		std::string getHost();
-		void parseQueryString();
-		void parseHeaders(std::istringstream& sstream);
-		void parseRequestLine(const std::string& request_line);
+		HeaderMap _headers;
+		char *_buf;
+		std::string _tmpBuffer;
+		int _parseStat;
+		int _errorCode;
+		// const Location *_location;
+		int _bodySize;
+		std::string _transEn;
+		bool _isChunkSize;
+		int _chunkSize;
+		bool _isReqDone;
+
 		bool doesFileExist(const std::string& filePath);
 		void parseResource();
-		void parseBody();
 	public:
 		Request();
 		~Request();
 		bool getQ();
-		int readRequest(int socket, Config _conf);
-		int parseRequest();
 		std::string& getMethod();
 		std::string& getResource();
 		std::string& getVersion();
@@ -57,15 +61,35 @@ class Request
 		std::string& getPathInfo();
 		std::string& getBody();
 		std::string& getQueryString();
+		int getErrorCode();
 		bool getCGIB();
 		int getPortOfReq();
 		t_serv getServ();
 		HeaderMap& getHeaders();
 		void print();
 		
+
+		char	*getBuffer(void) const;
+		bool	saveRequestData(ssize_t recv);
+		void	resetRequest();
+		void	saveStartLineHeaders(std::string &data);
+		void	saveStartLine(std::string startLine);
+		void	validateStartLine(void);
+		// const Location *getLoc();
+		void	parseUri(void);
+		void	parsePercent();
+		void	saveHeaderLine(std::string headerLine);
+		void	saveChunkedBody(std::string &data);
+		void	parseChunkSize(std::string &data);
+		void	parseChunkedBody(std::string &data);
+		void	saveSimpleBody(std::string &data);
+		void	setErrorStatus(const int s);
 };
 
-Request::Request(): _q(false), _err(0), _cgi(false)
+Request::Request(): _q(false), _errorCode(0), 
+_cgi(false), _buf(new char[RECV_BUFFER_SIZE + 1]), 
+_parseStat(STARTL), _bodySize(0), _isChunkSize(false),
+_chunkSize(0), _isReqDone(false)
 {
 }
 
@@ -84,6 +108,10 @@ std::string& Request::getScriptName()
 	return _scriptName;
 }
 
+char	*Request::getBuffer(void) const {
+	return _buf;
+}
+
 bool Request::getCGIB()
 {
 	return _cgi;
@@ -93,6 +121,12 @@ std::string& Request::getPathInfo()
 {
 	return _pathInfo;
 }
+
+void	Request::setErrorStatus(const int s) {
+	_errorCode = s;
+}
+
+
 
 std::string& Request::getBody()
 {
@@ -109,290 +143,337 @@ t_serv Request::getServ()
 	return serv;
 }
 
-bool Request::doesFileExist(const std::string& filePath) {
-    std::ifstream infile(filePath.c_str());
-    return infile.good();
+void Request::resetRequest()
+{
+	_errorCode = 0;
 }
 
-void Request::parseQueryString()
+int Request::getErrorCode()
 {
-    std::istringstream qstream(_queryString);
-    std::string param;
-    while (std::getline(qstream, param, '&')) {
-        size_t separator = param.find("=");
-        if (separator == std::string::npos) {
-            throw std::runtime_error("Invalid query string: no separator found");
-        }
-        std::string name = param.substr(0, separator);
-        std::string value = param.substr(separator + 1);
-        if (name.empty() || value.empty())
-        {
-            throw std::runtime_error("Invalid query string: empty name or value");
-        }
-        _query[name] = value;
-    }
-	_q = true;
+	return _errorCode;
 }
 
-void Request::parseResource()
-{
-	std::string scriptDir = "/cgi-bin";
-	size_t pos = _resource.find(scriptDir);
+// const Location *Request::getLoc()
+// {
+// 	std::string tmp;
+// 	std::string tmp1;
+// 	size_t lastSlash;
+// 	size_t len;
+// 	bool isLastSlash;
 
-	if (pos != std::string::npos) {
-		// Handle as a CGI request
-		pos += scriptDir.length();
-		std::string remainingPath = _resource.substr(pos);
-		std::istringstream ss(remainingPath);
-		std::string segment;
-		while (std::getline(ss, segment, '/')) {
-			if (doesFileExist(scriptDir + '/' + segment)) {
-				_scriptName = scriptDir + '/' + segment;
-				// Find the position of scriptName in resource to split the pathInfo
-				pos = _resource.find(_scriptName);
-				pos += _scriptName.length();
-				if (pos < _resource.length()) {
-					_pathInfo = _resource.substr(pos);
-				} else {
-					_pathInfo = "";
-				}
-				return;
+// 	isLastSlash = false;
+// 	if (_uri[_uri.length() - 1] != '/')
+// 	{
+// 		isLastSlash = true;
+// 		_uri.push_back('/');
+// 	}
+// 	lastSlash = _uri.find_last_of("/");
+// 	if (lastSlash == std::string::npos)
+// 		throw ErrorException(400, "Bad Request");
+// 	tmp = _uri.substr(0, lastSlash);
+// 	len = std::cout(_uri.begin(), _uri.end(), '/');
+// 	for(size_t i = 0; i < len; i++)
+// 	{
+
+// 	}
+// }
+
+void	Request::parsePercent()
+{
+	std::stringstream 	ss;
+	std::string 		tmp;
+	int					c;
+
+	for (size_t i = 0; i < _uri.length(); i++)
+	{
+		if (_uri[i] == '%')
+		{
+			try
+			{
+				ss << std::hex << _uri.substr(i + 1, 2);
+				ss >> c;
+				tmp = _uri.substr(i + 3);
+				_uri.erase(i);
+				_uri.push_back(static_cast<char>(c));
+				_uri.append(tmp);
+				ss.clear();
+
 			}
-		}
-		_cgi = true;
-		throw std::runtime_error("Invalid resource path: " + _resource);
-	} else {
-		// Non-CGI request, treat as a file to serve
-		_scriptName = _resource;
-		_pathInfo = _resource;
+			catch(const std::exception& e)
+			{
+				throw ErrorException(400, "Bad Request");
+			}
+			
+		}else if (_uri[i] == '+')
+			_uri = _uri.substr(0 , i) + " " + _uri.substr(i + 1);
 	}
 }
 
-
-void Request::parseRequestLine(const std::string& request_line)
+void	Request::parseUri(void)
 {
-    std::istringstream rlstream(request_line);
-    if (!(rlstream >> this->_method >> this->_resource >> this->_version))
-    {
-        std::cerr << "Failed to parse request line\n";
-        throw std::runtime_error("Invalid request line");
-    }
+	size_t pos;
 
-	if (_method.empty() || _resource.empty() || _version.empty()) {
-        std::cerr << "Failed to parse request line\n";
-        throw std::runtime_error("Invalid request line");
-    }
-	try{
-		parseResource();
-	}catch (const std::runtime_error& e) {
-        std::cerr << "Failed to parse resource: " << e.what() << "\n";
-		_err = 1;
-        throw;  // Re-throw the exception
-    }
-}
-
-void Request::parseBody()
-{
-	std::map<std::string, std::string>::iterator it = _headers.find("Content-Length");
-	if (it != _headers.end())
+	pos = _uri.find("?");
+	if (pos != std::string::npos)
 	{
-		// The 'Content-Length' header exists
-		int content_length = std::stoi(it->second);
-		if (content_length > serv.limit_client_size)
-			throw std::runtime_error("Request Body is too Large!");
-		size_t body_start_pos = _requestline.find("\r\n\r\n");
-
-		if (body_start_pos != std::string::npos) {
-			body_start_pos += 4;
-			_body = _requestline.substr(body_start_pos, content_length);
-		} else {
-			_body = "";
-		}
+		_queryString = _uri.substr(pos + 1);
+		_uri.erase(pos);
 	}
-}
-
-void Request::parseHeaders(std::istringstream& sstream)
-{
-    std::string header_line;
-    while (std::getline(sstream, header_line) && header_line != "\r") {
-        header_line.pop_back(); // remove the '\r'
-        size_t separator = header_line.find(": ");
-        if (separator == std::string::npos) {
-            throw std::runtime_error("Invalid header line: no separator found");
-        }
-        std::string name = header_line.substr(0, separator);
-        std::string value = header_line.substr(separator + 2);
-		if (name.empty() || value.empty()){
-			throw std::runtime_error("Invalid header line: empty name or value\n");
-		}
-        _headers[name] = value;
-    }
-	try
-	{
-		parseBody();
-	}catch(const std::exception& e)
-	{
-		std::cerr << "Failed to parse body: " << e.what() << "\n";
-		_err = 2;
-        throw;  // Re-throw the exception
-	}
-	
-}
-
-int Request::parseRequest()
-{
-	std::istringstream sstream(_requestline);
-	std::string request_line;
-	if (!std::getline(sstream, request_line))
-	{
-		std::cerr << "Failed to read request line\n";
-		return BADREQUEST;// do i need to return?
-	}
-
-	try {
-		parseRequestLine(request_line);
-		std::string path = _resource;
-		size_t pos = _resource.find('?');
-		if (pos != std::string::npos)
-		{
-			path = _resource.substr(0, pos);
-			_queryString = _resource.substr(pos + 1);
-		}
-
-		if (!_query.empty()) {
-				parseQueryString(); // if we dont need map delete
-		}
-		parseHeaders(sstream);
-	}catch (const std::runtime_error& e) {
-        std::cerr << e.what() << '\n';
+	parsePercent();
+	if (_queryString.empty())
 		_q = false;
-		if (_err == 1)
-			return UNABLE_TO_FIND;
-		if (_err == 2)
-			return REQUEST_ENTITY_TOO_LARGE;
-        return BADREQUEST;
-    }
-	return OK;
 }
 
-ssize_t Request::receiveData(int socket, char* buffer, size_t length)
+void	Request::validateStartLine(void)
 {
-    ssize_t bytes_received = recv(socket, buffer, length - 1, 0);
-
-    if (bytes_received < 0) {
-        std::cerr << "Error reading from socket: " << std::strerror(errno) << std::endl;
-    } else if (bytes_received == 0) {
-        std::cerr << "Client closed connection" << std::endl;
-    }// need to fix
-
-    return bytes_received;
+	// _location = getLoc();
+	//need to get location;
+	if (_version != "HTTP/1.1")
+		throw ErrorException(505, "Http Version Not Supported");
+	// _bodySize = _location.getBodySize();
+	parseUri();
 }
 
-std::string Request::getHost()
+void	Request::saveStartLine(std::string startLine)
 {
-    std::string hostHeader = "Host: ";
-    size_t startPos = _requestline.find(hostHeader);
-    // if (startPos == std::string::npos) {
-    //     std::cerr << "Host header not found in the request.\n";
-    //     return "";
-    // }
-    startPos += hostHeader.length(); // Skip past "Host: "
-    size_t endPos = _requestline.find("\r\n", startPos);
-    if (endPos == std::string::npos) {
-        // Handle case where "\r\n" is not found after "Host: ".
-        return "";
-    }
-    return _requestline.substr(startPos, endPos - startPos);
+	size_t pos;
+
+	// std::cout << startLine << std::endl << std::endl;
+
+
+	if (!startLine.length())
+		throw ErrorException(400, "Bad Request! No Header of the request!");
+	pos = startLine.find(' ');
+	if (pos == std::string::npos)
+		throw ErrorException(400, "Bad Request!No Separaters in the Head of the request!");
+	_method = startLine.substr(0, pos);
+	startLine.erase (0, skipWhiteSpaces(startLine, pos));
+
+	pos = startLine.find(' ');
+	if (pos == std::string::npos)
+		throw ErrorException(400, "Bad Request!No Separaters in the Head of the request!");
+	_uri = startLine.substr(0, pos);
+	startLine.erase (0, pos);
+	_version = startLine;
+	_version.erase(std::remove_if(_version.begin(),
+		_version.end(), &isCharWhiteSpace), _version.end());
+
+
+	validateStartLine();
+	// std::cout << "heeeeee212121" <<std::endl;
+	_parseStat = HEADERL;
+	// std::cout << _parseStat << std::endl;
 }
 
-int Request::initServ(const Config& _conf, std::string h)
+void	Request::saveHeaderLine(std::string headerLine)
 {
-	bool check = true;
-	for (int i = 0; i < _conf.servers.size(); i++) {
-		if (_conf.servers[i].ipPort.find(h) != std::string::npos 
-		|| _conf.servers[i].namePort.find(h) != std::string::npos) {
-			serv = _conf.servers[i];
-			check = false;
-		}
-	}
-	if (check)
+	size_t colPos;
+	std::string headerKey;
+	std::string headerVal;
+
+	headerLine.erase(std::remove_if(headerLine.begin(),
+		headerLine.end(), &isCharWhiteSpace), headerLine.end());
+	// std::cout << "hello" << std::endl;
+	// std::cout << headerLine << std::endl;
+	if (!headerLine.length())
 	{
-		std::cerr << "Request done for the unkown ip/port or server_nam/port" << std::endl;
-		return BADREQUEST;
+		if (_headers.find("Host") == std::end(_headers))
+			throw ErrorException(400, "Bad Request");
+		if (_headers.find("Transfer-Encoding") == std::end(_headers)
+			&& _headers.find("Content-Length") == std::end(_headers))
+			_parseStat = END_STAT;
+		else
+			_parseStat = BODYL;
+		return ;
 	}
-	for(int i = 0; i < serv.port.size(); i++)
-	{
-		if (h.find(std::to_string(serv.port[i])))
-			_portOfReq = serv.port[i];
-
-	}
-	return OK;
+	colPos = headerLine.find(":");
+	if (colPos == std::string::npos)
+		throw ErrorException(400, "Bad Request! No separater \":\"");
+	headerKey = headerLine.substr(0, colPos);
+	headerVal = headerLine.substr(colPos + 1);
+	_headers.insert(std::pair<std::string, std::string> (headerKey, headerVal));
+	if (headerKey == "Content-Length")
+		_bodySize = static_cast<int>(std::atol(headerVal.c_str()));
+	if (headerKey == "Transfer-Encoding")
+		_transEn = headerVal;
+	return ;
 }
 
-
-
-int Request::readRequest(int socket, Config _conf)
+void	Request::saveStartLineHeaders(std::string &data)
 {
-	char buf[4096];
-	bool chunked = false;
-	int error_code = OK;
+	size_t linePos;
 
-	// while(true)
-	// {
-		std::memset(buf, 0, sizeof(buf));
-		ssize_t bytes_rec = receiveData(socket, buf, sizeof(buf));
-
-		if (bytes_rec < 0)
+	linePos = data.find("\n");
+	while(linePos != std::string::npos 
+	&& (_parseStat != BODYL && _parseStat != END_STAT))
+	{
+		if (_parseStat == STARTL)
 		{
-			std::cerr << "Error reading from socket: " << std::strerror(errno) << std::endl;
-			error_code = BADREQUEST;
-			return error_code;
+			saveStartLine(data.substr(0, linePos));
+			data.erase(0, linePos + 1);
 		}
-		else if (bytes_rec == 0)
+		if (_parseStat == HEADERL)
 		{
-			std::cerr << "Client closed connection" << std::endl;
-			return error_code;
+			linePos = data.find("\n");
+			saveHeaderLine(data.substr(0, linePos));
+			data.erase(0, linePos + 1);
 		}
-		this->_requestline.append(buf, bytes_rec);
-
-		std::string host = getHost();
-		// std::cout << "Helloooo" <<std::endl;
-        // if (host.empty()) {
-        //     error_code = BADREQUEST;
-        //     std::cerr << "Host header not found or malformed in the request.\n";
-		// 	return error_code;
-        // }
-		error_code =initServ(_conf, host);
-		if (error_code != 200) {
-            return error_code;
-        }
-		if (!chunked)
-		{
-			if (_requestline.find("Transfer-Encoding: chunked") != std::string::npos)
-				chunked = true;
-			else if (_requestline.find("\r\n\r\n") != std::string::npos)
-				return (error_code);
-		}
-		else if (chunked && _requestline.find("\r\n0\r\n\r\n") != std::string::npos)
-			return (error_code);
-		
-	// }
-	return (error_code);
+		linePos = data.find("\n");
+	}
 }
+
+void	Request::parseChunkSize(std::string &data)
+{
+	std::stringstream ss;
+	size_t pos;
+	
+	if (!data.length())
+	{
+		_parseStat = END_STAT;
+		return ;
+	}
+	pos = data.find("\n");
+	if (pos == std::string::npos)
+		return ;
+	ss << std::hex << data.substr(0, pos);
+	ss >> _chunkSize;
+	if (!_chunkSize)
+		_parseStat = END_STAT;
+	_isChunkSize = true;
+	data.erase(0, pos + 1);
+}
+
+void	Request::parseChunkedBody(std::string &data)
+{
+	size_t i = 0;
+
+	while(i < data.length() && _chunkSize)
+	{
+		if (data[i] == '\n' && (i - 1 >= 0 && data[i - 1] == '\r'))
+			_body.push_back('\n');
+		else if (data[i] != '\r')
+			_body.push_back(data[i]);
+		i++;
+		_chunkSize--;
+	}
+	if (!_chunkSize)
+	{
+		_isChunkSize = false;
+		i += 2;
+	}
+	data.erase(0, i);
+}
+
+void	Request::saveChunkedBody(std::string &data)
+{
+	while(_parseStat != END_STAT)
+	{
+		if (!_isChunkSize)
+			parseChunkSize(data);
+		if (_isChunkSize && _parseStat != END_STAT)
+			parseChunkedBody(data);
+	}
+}
+
+void	Request::saveSimpleBody(std::string &data)
+{
+	size_t bodySize;
+
+	bodySize = static_cast<size_t>(std::atol(_headers["Content-Length"].c_str()));
+	if (bodySize > this->_bodySize)
+		throw ErrorException(413, "Request Entity Too Large");
+	if (_body.length() + data.length() > this->_bodySize)
+		throw ErrorException(413, "Request Entity Too Large");
+	
+	_body.append(data);
+	data.clear();
+	if (_body.length() == bodySize)
+		_parseStat = END_STAT;
+}
+
+bool	Request::saveRequestData(ssize_t recv)
+{
+	std::string data;
+
+	data = _tmpBuffer;
+
+	_buf[recv] = '\0';
+	data.append(_buf, recv);
+	// std::cout << "HERE: " << std::endl << std::endl;
+	// std::cout << std::endl << data << std::endl;
+
+	if (_parseStat == END_STAT)
+		resetRequest();
+	if (_parseStat == STARTL || _parseStat == HEADERL)
+		saveStartLineHeaders(data);
+	if (_parseStat == BODYL)
+	{
+		if (_transEn == "chunked")
+			saveChunkedBody(data);
+		else
+			saveSimpleBody(data);
+	}
+	_tmpBuffer = data;
+	if (_parseStat == END_STAT)
+		_isReqDone = true;
+	return _isReqDone;
+}
+
+// bool Request::doesFileExist(const std::string& filePath) {
+//     std::ifstream infile(filePath.c_str());
+//     return infile.good();
+// }
+
+// void Request::parseResource()
+// {
+// 	std::string scriptDir = "/cgi-bin";
+// 	size_t pos = _uri.find(scriptDir);
+
+// 	if (pos != std::string::npos) {
+// 		// Handle as a CGI request
+// 		pos += scriptDir.length();
+// 		std::string remainingPath = _resource.substr(pos);
+// 		std::istringstream ss(remainingPath);
+// 		std::string segment;
+// 		while (std::getline(ss, segment, '/')) {
+// 			if (doesFileExist(scriptDir + '/' + segment)) {
+// 				_scriptName = scriptDir + '/' + segment;
+// 				// Find the position of scriptName in resource to split the pathInfo
+// 				pos = _resource.find(_scriptName);
+// 				pos += _scriptName.length();
+// 				if (pos < _resource.length()) {
+// 					_pathInfo = _resource.substr(pos);
+// 				} else {
+// 					_pathInfo = "";
+// 				}
+// 				return;
+// 			}
+// 		}
+// 		_cgi = true;
+// 		throw std::runtime_error("Invalid resource path: " + _resource);
+// 	} else {
+// 		// Non-CGI request, treat as a file to serve
+// 		_scriptName = _resource;
+// 		_pathInfo = _resource;
+// 	}
+// }
+
+
 
 void Request::print()
 {
 	std::cout << "Method: " << getMethod() << "\n";
     std::cout << "Resource: " << getResource() << "\n";
     std::cout << "Version: " << getVersion() << "\n";
-	std::cout << "PATH_INFO: " << getPathInfo() << "\n";
-	std::cout << "ScriptName: " << getScriptName() << "\n";
+	// std::cout << "PATH_INFO: " << getPathInfo() << "\n";
+	// std::cout << "ScriptName: " << getScriptName() << "\n";
 	std::cout << "QueryString: " << getQueryString() << "\n" << "\n";
 
 	std::cout << "Body: " << getBody() << "\n" << "\n";
 
 
 	HeaderMap tmp = getHeaders();
+	std::cout << "Headers: " << getBody() << "\n" << "\n";
 	for (auto header : tmp) {
         std::cout << header.first << " = " << header.second << "\n";
     }
@@ -404,7 +485,7 @@ std::string& Request::getMethod()
 }
 std::string& Request::getResource()
 {
-	return this->_resource;
+	return this->_uri;
 }
 std::string& Request::getVersion()
 {
