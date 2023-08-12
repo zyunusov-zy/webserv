@@ -323,7 +323,15 @@ void Server::setUp()
 
                     // std::cout << "HERE11111" << std::endl;
                     // std::cout << "File descriptor: " << pollfds[i].fd << std::endl;
-                    Client cl(pollfds[i].fd, _conf, client_ip);
+                    Client cl(pollfds[i].fd, client_ip, _conf.servers[0]);
+                    try
+                    {
+                       cl.readRequest();
+                    }
+                    catch(const std::exception& e)
+                    {
+                        std::cerr << e.what() << '\n';
+                    }
                     cl.print();
                     
 

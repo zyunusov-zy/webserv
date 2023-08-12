@@ -21,14 +21,15 @@ private:
 	bool _isRead;
 	bool _toServe;
 	std::string _clienIP;
+	t_serv _serv;
 	std::map<std::string, std::string> _clientHeaders;
 	std::vector<std::string> _env_vec;
 
 
 	void parseEnvVar();
-	bool readRequest(int _fdSock);
 public:
-	Client(int new_socket, Config _conf, char *clien_ip);
+	bool readRequest();
+	Client(int new_socket, char *clien_ip,  t_serv s);
 	~Client();
 	void print();
 
@@ -52,22 +53,16 @@ std::string	Client::getClienIP()
 	return (_clienIP);
 }
 
-Client::Client(int new_socket, Config _conf, char *clien_ip)
+Client::Client(int new_socket, char *clien_ip, t_serv s)
 {
 	// std::cout << std::endl << std::endl << "MBHERE?" << std::endl << std::endl;
 	_clienIP = clien_ip;
-	// _fdSock = new_socket;
+	_fdSock = new_socket;
+	_serv = s;
 	_isClosed = false;
 	_isRead = false;
 	_toServe = false;
 	// std::cout << "File descriptor: " << new_socket << std::endl;
-	try{
-		readRequest(new_socket);
-	}
-	catch(const std::exception& e)
-	{
-		std::cerr << e.what() << '\n';
-	}
 	// if (error_code == 200)
 	// {
 	// 	error_code = _req.parseRequest();
@@ -78,7 +73,7 @@ Client::Client(int new_socket, Config _conf, char *clien_ip)
 }
 
 
-bool Client::readRequest(int _fdSock)
+bool Client::readRequest()
 {
 	ssize_t res = recv(_fdSock, _req.getBuffer(), RECV_BUFFER_SIZE, 0);
 		// std::cout << "Hello" << std::endl;
