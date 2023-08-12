@@ -16,28 +16,28 @@ private:
 	std::string						redir;
 	std::vector<std::string>		cgi;
 	int								limit_client_size;
-
+	friend class Request;
 public:
 	Location(/* args */);
 	~Location();
 
 	void setPath(std::string v);
-	std::string getPath();
-	std::string getAutoInd();
+	std::string getPath() const;
+	std::string getAutoInd() const;
 	void setAutoInd(std::string v);
 	void setRoot(std::string v);
-	std::string getRoot();
+	std::string getRoot() const;
 	void setIndex(std::string v);
-	std::string getIndex();
+	std::string getIndex() const;
 	void mapingMethods(std::string &s);
 	int checkLoc();
-	std::map<std::string , bool> getMethods();
+	std::map<std::string , bool> getMethods() const;
 	void setRedir(std::string v);
-	std::string getRedir();
+	std::string getRedir() const;
 	void setCGI(std::string v);
-	std::vector<std::string> getCGI();
+	std::vector<std::string> getCGI() const;
 	void setBodySize(int num);
-	int getBodySize();
+	int getBodySize() const;
 };
 
 Location::Location(/* args */)
@@ -68,7 +68,7 @@ void Location::setPath(std::string v)
 	this->path = v;
 }
 
-std::string Location::getPath()
+std::string Location::getPath() const
 {
 	return this->path;
 }
@@ -82,7 +82,7 @@ void Location::setBodySize(int num)
 	}
 	limit_client_size = num;
 }
-int  Location::getBodySize()
+int  Location::getBodySize() const
 {
 	return limit_client_size;
 }
@@ -97,7 +97,7 @@ void Location::setAutoInd(std::string v)
 	this->autoindex = v;
 }
 
-std::string Location::getAutoInd()
+std::string Location::getAutoInd() const
 {
 	return this->autoindex;
 }
@@ -112,7 +112,7 @@ void Location::setRoot(std::string v)
 	this->root = v;
 }
 
-std::string Location::getRoot()
+std::string Location::getRoot() const
 {
 	return this->root;
 }
@@ -132,7 +132,7 @@ void Location::setIndex(std::string v)
 	this->index = v;
 }
 
-std::string Location::getIndex()
+std::string Location::getIndex() const
 {
 	return this->index;
 }
@@ -147,7 +147,7 @@ void Location::setRedir(std::string v)
 	this->redir = v;
 }
 
-std::string Location::getRedir()
+std::string Location::getRedir() const
 {
 	return this->redir;
 }
@@ -162,7 +162,7 @@ void Location::setCGI(std::string v)
 	this->cgi.push_back(v);
 }
 
-std::vector<std::string> Location::getCGI()
+std::vector<std::string> Location::getCGI() const
 {
 	return this->cgi;
 }
@@ -183,7 +183,7 @@ void Location::mapingMethods(std::string &str)
 	}
 }
 
-std::map<std::string , bool> Location::getMethods()
+std::map<std::string , bool> Location::getMethods() const
 {
 	return this->methods;
 }

@@ -211,6 +211,7 @@ void Server::launchCgi(class Client client)
 
 void Server::setUp()
 {
+    // std::cout << _conf.servers[0].host << std::endl;
     std::vector<int> port_numbers;
     // port_numbers.push_back(9999);
     // port_numbers.push_back(9998);
@@ -323,6 +324,7 @@ void Server::setUp()
 
                     // std::cout << "HERE11111" << std::endl;
                     // std::cout << "File descriptor: " << pollfds[i].fd << std::endl;
+                    // std::cout << _conf.servers[0].host << std::endl;
                     Client cl(pollfds[i].fd, client_ip, _conf.servers[0]);
                     try
                     {

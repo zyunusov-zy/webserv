@@ -53,7 +53,7 @@ std::string	Client::getClienIP()
 	return (_clienIP);
 }
 
-Client::Client(int new_socket, char *clien_ip, t_serv s)
+Client::Client(int new_socket, char *clien_ip, t_serv s): _serv(s), _req(_serv.loc)
 {
 	// std::cout << std::endl << std::endl << "MBHERE?" << std::endl << std::endl;
 	_clienIP = clien_ip;
@@ -153,6 +153,7 @@ void Client::print()
 	_req.print();
 	std::cout << "Error_code: " << _req.getErrorCode() << std::endl;
 	std::cout << "Query: " << _req.getQ() << std::endl;
+	std::cout << "Server host: " << _serv.host << std::endl;
 	// std::cout << "hello" << std::endl;
 	// for (int i = 0; env_var[i] != NULL; ++i)
 	// {

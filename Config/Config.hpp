@@ -24,7 +24,7 @@ typedef struct s_serv
 	std::string 							host;
 	std::vector<int>						port;
 	std::map<int, std::string>				errorPages;
-	std::map<std::string, Location>			loc;
+	std::multimap<std::string, Location>			loc;
 }	t_serv;
 
 class Config
@@ -133,30 +133,30 @@ void Config::valueForServer(std::vector<std::string> tokens, size_t end, size_t&
 	std::string p = "";
 	for(; start < end; start++)
 	{
-		if (tokens[start].find("host") != std::string::npos)
+		if (tokens[start].find("host:") != std::string::npos)
 		{
-			std::string v = tokens[start].substr(tokens[start].find("host") + strlen("host"));
+			std::string v = tokens[start].substr(tokens[start].find("host:") + strlen("host:"));
 			trim(v, ' ');
 			trim(v, ';');
 			t.host = v;
-			// std::cout << t.host << std::endl << std::endl;
+			// std::cout << "HERE" << t.host << std::endl << std::endl;
 		}
-		if (tokens[start].find("server_name") != std::string::npos)
+		if (tokens[start].find("server_name:") != std::string::npos)
 		{
-			std::string v = tokens[start].substr(tokens[start].find("server_name") + strlen("server_name"));
+			std::string v = tokens[start].substr(tokens[start].find("server_name:") + strlen("server_name:"));
 			trim(v, ' ');
 			trim(v, ';');
 			t.name = v;
 		}
-		if (tokens[start].find("listen") != std::string::npos)
+		if (tokens[start].find("listen:") != std::string::npos)
 		{
-			std::string v = tokens[start].substr(tokens[start].find("listen") + strlen("listen"));
+			std::string v = tokens[start].substr(tokens[start].find("listen:") + strlen("listen:"));
 			trim(v, ' ');
 			trim(v, ';');
 			p = v;
 			t.port.push_back(atoi(v.c_str()));
 		}
-		if (tokens[start].find("error_page") != std::string::npos)
+		if (tokens[start].find("error_page:") != std::string::npos)
 		{
 			tokens[start].erase(0, tokens[start].find(' ') + 1);
 			std::string key = tokens[start].substr(0, tokens[start].find(' '));
@@ -177,7 +177,7 @@ void Config::valueForServer(std::vector<std::string> tokens, size_t end, size_t&
 			t.namePort = tmp1;
 			t.namePort = " " + t.namePort;
 		}
-		if (tokens[start].find("location") != std::string::npos)
+		if (tokens[start].find("location:") != std::string::npos)
 			break;
 	}
 }
@@ -190,58 +190,58 @@ void Config::parsLocation(std::vector<std::string> tokens, size_t end, size_t st
 	for(; start < end; start++)
 	{
 		// std::cout << tokens[start] << std::endl;
-		if (tokens[start].find("location") != std::string::npos)
+		if (tokens[start].find("location:") != std::string::npos)
 		{
-			std::string v = tokens[start].substr(tokens[start].find("location") + strlen("location"));
+			std::string v = tokens[start].substr(tokens[start].find("location:") + strlen("location:"));
 			trim(v, ' ');
 			// std::cout <<  v << std::endl << std::endl;
 			l.setPath(v);
 		}
-		if (tokens[start].find("root") != std::string::npos)
+		if (tokens[start].find("root:") != std::string::npos)
 		{
-			std::string v = tokens[start].substr(tokens[start].find("root") + strlen("root"));
+			std::string v = tokens[start].substr(tokens[start].find("root:") + strlen("root:"));
 			trim(v, ' ');
 			trim(v, ';');
 			// std::cout <<  v << std::endl << std::endl;
 			l.setRoot(v);
 		}
-		if (tokens[start].find("autoindex") != std::string::npos)
+		if (tokens[start].find("autoindex:") != std::string::npos)
 		{
-			std::string v = tokens[start].substr(tokens[start].find("autoindex") + strlen("autoindex"));
+			std::string v = tokens[start].substr(tokens[start].find("autoindex:") + strlen("autoindex:"));
 			trim(v, ' ');
 			trim(v, ';');
 			// std::cout <<  v << std::endl << std::endl;
 			l.setAutoInd(v);
 		}
-		if (tokens[start].find("index.html") != std::string::npos)
+		if (tokens[start].find("index:") != std::string::npos)
 		{
-			std::string v = tokens[start].substr(tokens[start].find("index") + strlen("index"));
+			std::string v = tokens[start].substr(tokens[start].find("index:") + strlen("index:"));
 			trim(v, ' ');
 			trim(v, ';');
 			// std::cout <<  v << std::endl << std::endl;
 			l.setIndex(v);
 		}
-		if (tokens[start].find("return") != std::string::npos)
+		if (tokens[start].find("return:") != std::string::npos)
 		{
-			std::string v = tokens[start].substr(tokens[start].find("return") + strlen("return"));
+			std::string v = tokens[start].substr(tokens[start].find("return:") + strlen("return:"));
 			trim(v, ' ');
 			trim(v, ';');
 			l.setRedir(v);
 
 		}
-		if (tokens[start].find("limits_client_body_size") != std::string::npos)
+		if (tokens[start].find("limits_client_body_size:") != std::string::npos)
 		{
-			std::string v = tokens[start].substr(tokens[start].find("limits_client_body_size") + strlen("limits_client_body_size"));
+			std::string v = tokens[start].substr(tokens[start].find("limits_client_body_size:") + strlen("limits_client_body_size:"));
 			trim(v, ' ');
 			trim(v, ';');
 			l.setBodySize(atoi(v.c_str()));
 		}
-		if (tokens[start].find("allow_methods") != std::string::npos)
+		if (tokens[start].find("allow_methods:") != std::string::npos)
 		{
 			tokens[start].erase(0, tokens[start].find(' ') + 1);
 			l.mapingMethods(tokens[start]);
 		}
-		if (tokens[start].find("cgi_path") != std::string::npos)
+		if (tokens[start].find("cgi_path:") != std::string::npos)
 		{
 			tokens[start].erase(0, tokens[start].find(' ') + 1);
 			while(tokens[start].length() != 0)
@@ -275,7 +275,7 @@ int Config::findLoc(size_t i, std::vector<std::string> tokens)
 	i++;
 	for(; i < tokens.size(); ++i)
 	{
-		if (tokens[i].find("location") < tokens.size())
+		if (tokens[i].find("location:") < tokens.size())
 			return i - 1;
 	}
 	return i - 1;

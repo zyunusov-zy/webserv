@@ -41,7 +41,8 @@ class Request
 		std::string _tmpBuffer;
 		int _parseStat;
 		int _errorCode;
-		// const Location *_location;
+		std::multimap<std::string, Location> const &_locationMap;
+		const Location	*_location;
 		int _bodySize;
 		std::string _transEn;
 		bool _isChunkSize;
@@ -51,7 +52,7 @@ class Request
 		bool doesFileExist(const std::string& filePath);
 		void parseResource();
 	public:
-		Request();
+		Request(std::multimap<std::string, Location> const &l);
 		~Request();
 		bool getQ();
 		std::string& getMethod();
@@ -75,7 +76,7 @@ class Request
 		void	saveStartLineHeaders(std::string &data);
 		void	saveStartLine(std::string startLine);
 		void	validateStartLine(void);
-		// const Location *getLoc();
+		const Location *getLoc();
 		void	parseUri(void);
 		void	parsePercent();
 		void	saveHeaderLine(std::string headerLine);
@@ -86,10 +87,10 @@ class Request
 		void	setErrorStatus(const int s);
 };
 
-Request::Request(): _q(false), _errorCode(0), 
+Request::Request(std::multimap<std::string, Location> const &l): _q(false), _errorCode(0), 
 _cgi(false), _buf(new char[RECV_BUFFER_SIZE + 1]), 
 _parseStat(STARTL), _bodySize(0), _isChunkSize(false),
-_chunkSize(0), _isReqDone(false)
+_chunkSize(0), _isReqDone(false), _locationMap(l)
 {
 }
 
@@ -153,30 +154,46 @@ int Request::getErrorCode()
 	return _errorCode;
 }
 
-// const Location *Request::getLoc()
-// {
-// 	std::string tmp;
-// 	std::string tmp1;
-// 	size_t lastSlash;
-// 	size_t len;
-// 	bool isLastSlash;
+const Location *Request::getLoc()
+{
+	std::string tmp;
+	std::string tmp1;
+	size_t lastSlash;
+	size_t len;
+	bool isLastSlash;
 
-// 	isLastSlash = false;
-// 	if (_uri[_uri.length() - 1] != '/')
-// 	{
-// 		isLastSlash = true;
-// 		_uri.push_back('/');
-// 	}
-// 	lastSlash = _uri.find_last_of("/");
-// 	if (lastSlash == std::string::npos)
-// 		throw ErrorException(400, "Bad Request");
-// 	tmp = _uri.substr(0, lastSlash);
-// 	len = std::cout(_uri.begin(), _uri.end(), '/');
-// 	for(size_t i = 0; i < len; i++)
-// 	{
-
-// 	}
-// }
+	isLastSlash = false;
+	if (_uri[_uri.length() - 1] != '/')
+	{
+		isLastSlash = true;
+		_uri.push_back('/');
+	}
+	lastSlash = _uri.find_last_of("/");
+	if (lastSlash == std::string::npos)
+		throw ErrorException(400, "Bad Request");
+	tmp = _uri.substr(0, lastSlash);
+	len = std::count(_uri.begin(), _uri.end(), '/');
+	for(size_t i = 0; i < len; i++)
+	{
+		std::multimap<std::string, Location>::const_iterator j = _locationMap.begin();
+		for(; j != _locationMap.end(); j++)
+		{
+			if (!tmp.length())
+				tmp = "/";
+				(j->first != "/" && j->first[j->first.length() - 1] == '/') ?
+					tmp1 = j->first.substr(0, j->first.find_last_of("/")) : tmp1 = j->first;
+				if (tmp == tmp1)
+				{
+					if (isLastSlash)
+						_uri.pop_back();
+					return &j->second;
+				}
+		}
+		lastSlash = tmp.find_last_of("/", lastSlash);
+		tmp = tmp.substr(0, lastSlash);
+	}
+	return NULL;
+}
 
 void	Request::parsePercent()
 {
@@ -226,11 +243,27 @@ void	Request::parseUri(void)
 
 void	Request::validateStartLine(void)
 {
-	// _location = getLoc();
+	_location = getLoc();
+	if (_location == NULL)
+		throw ErrorException(404, "Not Found");
 	//need to get location;
 	if (_version != "HTTP/1.1")
 		throw ErrorException(505, "Http Version Not Supported");
-	// _bodySize = _location.getBodySize();
+	std::map<std::string, bool>::const_iterator i = _location->methods.begin();
+	std::cout << "hello" << std::endl;
+	for(; i != _location->methods.end(); i++)
+	{
+		if (i->first == _method){
+			if (!i->second)
+				throw ErrorException(405, "Method Not Allowed");
+			break;
+		}
+	}
+	if (i == _location->methods.end())
+		throw ErrorException(400, "Bad Request");
+	if (_version != "HTTP/1.1")
+		throw ErrorException(505, "Http Version Not Supported");
+	_bodySize = _location->getBodySize();
 	parseUri();
 }
 
@@ -470,7 +503,7 @@ void Request::print()
 	std::cout << "QueryString: " << getQueryString() << "\n" << "\n";
 
 	std::cout << "Body: " << getBody() << "\n" << "\n";
-
+	std::cout << "Location Path: " << _location->getPath() << "\n" << "\n";
 
 	HeaderMap tmp = getHeaders();
 	std::cout << "Headers: " << getBody() << "\n" << "\n";
