@@ -18,8 +18,6 @@
 
 typedef struct s_serv
 {
-	std::string								ipPort;
-	std::string								namePort;
 	std::string								name;
 	std::string 							host;
 	std::vector<int>						port;
@@ -165,18 +163,6 @@ void Config::valueForServer(std::vector<std::string> tokens, size_t end, size_t&
 			std::string subStr = tokens[start].substr(0, tokens[start].find(';'));
 			mapingErrorPage(t,key, subStr);
 		}
-		if (p != "" && t.host != "")
-		{
-			std::string tmp = t.host + ":" + p;
-			t.ipPort = tmp;
-			t.ipPort = " " + t.ipPort;
-		}
-		if (p != "" && t.name != "")
-		{
-			std::string tmp1 = t.name + ":" + p;
-			t.namePort = tmp1;
-			t.namePort = " " + t.namePort;
-		}
 		if (tokens[start].find("location:") != std::string::npos)
 			break;
 	}
@@ -224,9 +210,12 @@ void Config::parsLocation(std::vector<std::string> tokens, size_t end, size_t st
 		if (tokens[start].find("return:") != std::string::npos)
 		{
 			std::string v = tokens[start].substr(tokens[start].find("return:") + strlen("return:"));
-			trim(v, ' ');
+			trimBegin(v);
 			trim(v, ';');
-			l.setRedir(v);
+			std::string extn = v.substr(0, v.find(' '));
+			std::string path = v.substr(v.find(extn) + extn.length());
+			trim(path, ' ');
+			l.setRedir(extn, path);
 
 		}
 		if (tokens[start].find("limits_client_body_size:") != std::string::npos)
@@ -244,19 +233,25 @@ void Config::parsLocation(std::vector<std::string> tokens, size_t end, size_t st
 		if (tokens[start].find("cgi_path:") != std::string::npos)
 		{
 			tokens[start].erase(0, tokens[start].find(' ') + 1);
-			while(tokens[start].length() != 0)
+			trim(tokens[start], ';');
+			while(!tokens[start].empty())
 			{
-				std::string subStr = tokens[start].substr(0, tokens[start].find(' '));
-				if (tokens[start].find(' ') == std::string::npos)
+				std::string key = tokens[start].substr(0, tokens[start].find('='));
+				trim(key, ' ');
+				trim(key, '\t');
+				tokens[start].erase(0, tokens[start].find('=') + 1);
+				std::string value;
+				if (tokens[start].find(' ') != std::string::npos)
 				{
-					// std::cout << "HERE" <<std::endl;
-					subStr = tokens[start].substr(0, tokens[start].length());
-					tokens[start].erase(0, tokens[start].length());
-					tokens[start] = "";
+					value = tokens[start].substr(0, tokens[start].find(' '));
+					tokens[start].erase(0, tokens[start].find(' ') + 1);
+				}else{
+					value = tokens[start];
+					tokens[start].clear();
 				}
-				tokens[start].erase(0, tokens[start].find(' ') + 1);
-				trim(tokens[start], ';');
-				l.setCGI(subStr);
+				trim(value, ' ');
+				trim(value, '\t');
+				l.setCGI(key, value);
 			}
 		}
 	}
@@ -372,12 +367,12 @@ int Config::parse(std::string fileName)
 				std::cout << s.first << ": " << s.second << std::endl;
 			}
 
-			std::cout << t.second.getRedir() << std::endl << std::endl;
+			std::cout << t.second.getRedir().first << ": " <<  t.second.getRedir().second <<  std::endl << std::endl;
 			std::cout << "CGI_PATH: " << std::endl;
-			std::vector<std::string> s = t.second.getCGI();
+			std::multimap<std::string,std::string> s = t.second.getCGI();
 			for(auto c : s)
 			{
-				std::cout << c << std::endl;
+				std::cout << c.first << ":" << c.second << std::endl;
 			}
 			std::cout <<  std::endl << std::endl;
 		}

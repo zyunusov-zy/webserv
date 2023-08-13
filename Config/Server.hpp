@@ -79,7 +79,7 @@ void Server::launchCgi(class Client client)
     
 
     // Create a dynamic filename for the output of the Python script.
-    std::string tmp = client.getReq().getScriptName() + "output" + client.getClienIP();
+    std::string tmp = client.getReq().getResource() + "output" + client.getClienIP();
     const char* out_filename = tmp.c_str(); //dynamic filename
 
     // Open the output file for writing (create if it doesn't exist with permissions 600).

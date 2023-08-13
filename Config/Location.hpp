@@ -13,8 +13,8 @@ private:
 	std::string						index;
 	std::string 					autoindex;
 	std::map<std::string , bool>	methods;
-	std::string						redir;
-	std::vector<std::string>		cgi;
+	std::pair<int, std::string>		redir;
+	std::multimap<std::string, std::string>		cgi;
 	int								limit_client_size;
 	friend class Request;
 public:
@@ -32,10 +32,10 @@ public:
 	void mapingMethods(std::string &s);
 	int checkLoc();
 	std::map<std::string , bool> getMethods() const;
-	void setRedir(std::string v);
-	std::string getRedir() const;
-	void setCGI(std::string v);
-	std::vector<std::string> getCGI() const;
+	void setRedir(std::string v, std::string p);
+	const std::pair<int, std::string>& getRedir() const;
+	void setCGI(std::string k, std::string v);
+	std::multimap<std::string, std::string> getCGI() const;
 	void setBodySize(int num);
 	int getBodySize() const;
 };
@@ -45,7 +45,6 @@ Location::Location(/* args */)
 	path = "";
 	root = "";
 	index = "";
-	redir = "";
 	autoindex = "off";
 	limit_client_size = -1;
 	methods["GET"] = true;
@@ -137,32 +136,32 @@ std::string Location::getIndex() const
 	return this->index;
 }
 
-void Location::setRedir(std::string v)
+void Location::setRedir(std::string v, std::string p)
 {
 	if (v == "")
 	{
 		std::cerr << "Check return value of the location:" << this->path << std::endl;
 		exit(1);
 	}
-	this->redir = v;
+	this->redir = std::pair<int, std::string>(atoi(v.c_str()), p);
 }
 
-std::string Location::getRedir() const
+const std::pair<int, std::string>& Location::getRedir() const
 {
 	return this->redir;
 }
 
-void Location::setCGI(std::string v)
+void Location::setCGI(std::string k, std::string v)
 {
 	if (v == "")
 	{
 		std::cerr << "Check cgi_path value of the location:" << this->path << std::endl;
 		exit(1);
 	}
-	this->cgi.push_back(v);
+	this->cgi.insert(std::pair<std::string, std::string>(k, v));
 }
 
-std::vector<std::string> Location::getCGI() const
+std::multimap<std::string, std::string> Location::getCGI() const
 {
 	return this->cgi;
 }

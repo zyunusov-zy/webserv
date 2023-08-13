@@ -21,18 +21,12 @@ class Config;
 class Request 
 {
 	private:
-		std::string _requestline;
 		std::string _method;
 		std::string _uri;
 		std::string _version;
-		std::string	_scriptName;
-		std::string _pathInfo;
 		std::string _queryString;
-		int			_portOfReq;
-		// HeaderMap _query;
 		std::string _body;
 		t_serv serv;
-		// int _err;
 		bool _q;
 		bool _cgi;
 
@@ -48,6 +42,9 @@ class Request
 		bool _isChunkSize;
 		int _chunkSize;
 		bool _isReqDone;
+		int _cgiNum;
+		char **_envCGI;
+		std::string _uriCGI;
 
 		bool doesFileExist(const std::string& filePath);
 		void parseResource();
@@ -58,15 +55,15 @@ class Request
 		std::string& getMethod();
 		std::string& getResource();
 		std::string& getVersion();
-		std::string& getScriptName();
-		std::string& getPathInfo();
 		std::string& getBody();
 		std::string& getQueryString();
+		std::string& getUriCGI();
 		int getErrorCode();
 		bool getCGIB();
 		int getPortOfReq();
 		t_serv getServ();
 		HeaderMap& getHeaders();
+		char** getENV();
 		void print();
 		
 
@@ -78,35 +75,31 @@ class Request
 		void	validateStartLine(void);
 		const Location *getLoc();
 		void	parseUri(void);
-		void	parsePercent();
+		void	parsePercent(std::string &s);
 		void	saveHeaderLine(std::string headerLine);
 		void	saveChunkedBody(std::string &data);
 		void	parseChunkSize(std::string &data);
 		void	parseChunkedBody(std::string &data);
 		void	saveSimpleBody(std::string &data);
 		void	setErrorStatus(const int s);
+		bool  checkCGI();
+		void makeEnv();
+		std::string getURI();
+		std::string validateURI(std::string &fullPath, std::uint8_t mode);
+		void getUriEncodedBody();
 };
 
 Request::Request(std::multimap<std::string, Location> const &l): _q(false), _errorCode(0), 
 _cgi(false), _buf(new char[RECV_BUFFER_SIZE + 1]), 
 _parseStat(STARTL), _bodySize(0), _isChunkSize(false),
-_chunkSize(0), _isReqDone(false), _locationMap(l)
+_chunkSize(0), _isReqDone(false), _locationMap(l), _cgiNum(0), 
+_envCGI(NULL)
 {
 }
 
 bool Request::getQ()
 {
 	return _q;
-}
-
-int Request::getPortOfReq()
-{
-	return _portOfReq;
-}
-
-std::string& Request::getScriptName()
-{
-	return _scriptName;
 }
 
 char	*Request::getBuffer(void) const {
@@ -118,10 +111,6 @@ bool Request::getCGIB()
 	return _cgi;
 }
 
-std::string& Request::getPathInfo()
-{
-	return _pathInfo;
-}
 
 void	Request::setErrorStatus(const int s) {
 	_errorCode = s;
@@ -142,6 +131,11 @@ std::string& Request::getQueryString()
 t_serv Request::getServ()
 {
 	return serv;
+}
+
+char** Request::getENV()
+{
+	return _envCGI;
 }
 
 void Request::resetRequest()
@@ -195,24 +189,24 @@ const Location *Request::getLoc()
 	return NULL;
 }
 
-void	Request::parsePercent()
+void	Request::parsePercent(std::string &s)
 {
 	std::stringstream 	ss;
 	std::string 		tmp;
 	int					c;
 
-	for (size_t i = 0; i < _uri.length(); i++)
+	for (size_t i = 0; i < s.length(); i++)
 	{
-		if (_uri[i] == '%')
+		if (s[i] == '%')
 		{
 			try
 			{
-				ss << std::hex << _uri.substr(i + 1, 2);
+				ss << std::hex << s.substr(i + 1, 2);
 				ss >> c;
-				tmp = _uri.substr(i + 3);
-				_uri.erase(i);
-				_uri.push_back(static_cast<char>(c));
-				_uri.append(tmp);
+				tmp = s.substr(i + 3);
+				s.erase(i);
+				s.push_back(static_cast<char>(c));
+				s.append(tmp);
 				ss.clear();
 
 			}
@@ -221,8 +215,8 @@ void	Request::parsePercent()
 				throw ErrorException(400, "Bad Request");
 			}
 			
-		}else if (_uri[i] == '+')
-			_uri = _uri.substr(0 , i) + " " + _uri.substr(i + 1);
+		}else if (s[i] == '+')
+			s = s.substr(0 , i) + " " + s.substr(i + 1);
 	}
 }
 
@@ -236,7 +230,7 @@ void	Request::parseUri(void)
 		_queryString = _uri.substr(pos + 1);
 		_uri.erase(pos);
 	}
-	parsePercent();
+	parsePercent(_uri);
 	if (_queryString.empty())
 		_q = false;
 }
@@ -250,7 +244,7 @@ void	Request::validateStartLine(void)
 	if (_version != "HTTP/1.1")
 		throw ErrorException(505, "Http Version Not Supported");
 	std::map<std::string, bool>::const_iterator i = _location->methods.begin();
-	std::cout << "hello" << std::endl;
+	// std::cout << "hello" << std::endl;
 	for(; i != _location->methods.end(); i++)
 	{
 		if (i->first == _method){
@@ -452,45 +446,149 @@ bool	Request::saveRequestData(ssize_t recv)
 	return _isReqDone;
 }
 
-// bool Request::doesFileExist(const std::string& filePath) {
-//     std::ifstream infile(filePath.c_str());
-//     return infile.good();
-// }
+std::string Request::validateURI(std::string &fullPath, std::uint8_t mode)
+{
+	std::string tmp;
+	if (mode == 2)// dir
+	{
+		tmp = fullPath + "/" + _location->getIndex();
+		if (isDirOrFile(tmp.c_str()) == 1){
+			if (!access(tmp.c_str(), R_OK))
+				return tmp;
+		}
+		if (_location->getAutoInd() == "on")
+		{
+			_errorCode = 1;
+			return fullPath;
+		}
+		if (errno == EACCES)
+			_errorCode = 403;
+		else
+			_errorCode = 404;
+		return tmp;
+	}
+	else if (mode == 1) //file
+	{
+		if (!access(fullPath.c_str(), R_OK))
+			return fullPath;
+		if (errno == EACCES)
+			_errorCode = 403;
+		else
+			_errorCode = 404;
+		_errorCode = 403;
+		return fullPath;
+	}
+	if (_method == "POST")
+		_errorCode = 201;
+	else
+		_errorCode = 404;
+	return fullPath;
+}
 
-// void Request::parseResource()
-// {
-// 	std::string scriptDir = "/cgi-bin";
-// 	size_t pos = _uri.find(scriptDir);
+std::string Request::getURI()
+{
+	std::string	fullPath;
+	std::uint8_t mode;
+	std::string tmp;
 
-// 	if (pos != std::string::npos) {
-// 		// Handle as a CGI request
-// 		pos += scriptDir.length();
-// 		std::string remainingPath = _resource.substr(pos);
-// 		std::istringstream ss(remainingPath);
-// 		std::string segment;
-// 		while (std::getline(ss, segment, '/')) {
-// 			if (doesFileExist(scriptDir + '/' + segment)) {
-// 				_scriptName = scriptDir + '/' + segment;
-// 				// Find the position of scriptName in resource to split the pathInfo
-// 				pos = _resource.find(_scriptName);
-// 				pos += _scriptName.length();
-// 				if (pos < _resource.length()) {
-// 					_pathInfo = _resource.substr(pos);
-// 				} else {
-// 					_pathInfo = "";
-// 				}
-// 				return;
-// 			}
-// 		}
-// 		_cgi = true;
-// 		throw std::runtime_error("Invalid resource path: " + _resource);
-// 	} else {
-// 		// Non-CGI request, treat as a file to serve
-// 		_scriptName = _resource;
-// 		_pathInfo = _resource;
-// 	}
-// }
+	if (_location && _location->redir.second.length())
+	{
+		_errorCode = _location->redir.first;
+		return _location->redir.second;
+	}
+	_errorCode = 200;
+	fullPath = _location->getRoot() + _uri;
+	for(size_t i = 0; i < fullPath.length() - 1; i++)
+	{
+		if (fullPath[i] == '/' && fullPath[i + 1] == '/')
+			fullPath.erase(i + 1, 1);
+	}
+	if (fullPath[fullPath.length() - 1] == '/')
+		fullPath.pop_back();
+	mode = isDirOrFile(fullPath.c_str());
+	if (mode == 0 && _method != "POST")
+	{
+		_errorCode = 404;
+		return "unkown url";
+	}
+	return (validateURI(fullPath, mode));
+}
 
+void Request::getUriEncodedBody()
+{
+	std::string			tmp;
+	size_t 				size;
+	size_t 				pos;
+	std::pair<std::string, std::string> pair;
+
+	tmp = _body;
+	size = std::count(tmp.begin(), tmp.end(), '&');
+	for(size_t i = 0; i < size; i++)
+	{
+		pos = tmp.find("&");
+		pair.first = tmp.substr(0, tmp.find("="));
+		parsePercent(pair.first);
+		pair.second = tmp.substr(tmp.find("=") + 1, pos - pair.first.length() - 1);
+		parsePercent(pair.second);
+		_headers.insert(pair);
+		tmp.erase(0 , pos + 1);
+	}
+}
+
+void Request::makeEnv()
+{
+	_envCGI = new char*[_headers.size() + 1];
+
+	_envCGI[_headers.size()] = NULL;
+	std::map<std::string, std::string>::iterator i = _headers.begin();
+	for(int j = 0; i != _headers.end(); i++, j++)
+		_envCGI[j] = strdup((i->first + "=" + i->second).c_str());
+}
+
+bool  Request::checkCGI()
+{
+	std::multimap<std::string,std::string> tmp = _location->getCGI();
+	std::string ext = "." + _uri.substr(_uri.find_last_of('.') + 1);
+	// if (tmp.empty()) {
+    // 	_cgi = false;
+    // 	if (access(_uri.c_str(), F_OK) == 0) {
+    //     	// The file exists but isn't in the CGI map
+    //     	throw ErrorException(500, "Server configuration error: File is present but not configured in CGI map.");
+    // 	}
+	// }
+	std::multimap<std::string,std::string>::const_iterator i = tmp.begin();
+	for(; i != tmp.end(); i++)
+	{
+		if (ext == i->first)
+		{
+			if (access(i->second.c_str(), X_OK))
+			{
+				_cgiNum = -1;
+				break;
+			}
+			_cgiNum++;
+		}
+	}
+	if (_cgiNum > 0)
+	{
+		_cgi = true;
+		_uriCGI = getURI(); 
+		getUriEncodedBody();//need to code
+		_headers.insert(std::pair<std::string, std::string>("QUERY_STRING", _queryString));
+		_headers.insert(std::pair<std::string, std::string>("REQUEST_METHOD", _method));
+		_headers.insert(std::pair<std::string, std::string>("PATH_INFO", _uriCGI));
+		_headers.insert(std::pair<std::string, std::string>("PATH_TRANSLATED", _location->getRoot()));
+		_headers.insert(std::pair<std::string, std::string>("SERVER_PROTOCOL", "HTTP/1.1"));
+		makeEnv();
+	}
+	else if (_cgiNum < 0){
+		_cgi = false;
+		throw ErrorException(502, "Bad Gateway");
+	}
+	else
+		_cgi = false;
+	return _cgi;
+}
 
 
 void Request::print()
@@ -529,7 +627,20 @@ HeaderMap& Request::getHeaders()
 	return this->_headers;
 }
 
+std::string& Request::getUriCGI()
+{
+	return _uriCGI;
+}
+
 Request::~Request()
 {
+	if (_envCGI)
+	{
+		for (int i = 0; _envCGI[i] != NULL; ++i) {
+            delete[] _envCGI[i];
+        }
+		delete[] _envCGI;
+		_envCGI = NULL;
+	}
 }
 #endif
