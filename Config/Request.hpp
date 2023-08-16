@@ -548,7 +548,15 @@ void Request::makeEnv()
 bool  Request::checkCGI()
 {
 	std::multimap<std::string,std::string> tmp = _location->getCGI();
+	std::cout << _location->getRoot() << std::endl;
+	std::cout << _location->getCGI().empty() << std::endl;
 	std::string ext = "." + _uri.substr(_uri.find_last_of('.') + 1);
+	std::cout << "EXTENSION: "  << ext << std::endl;
+	std::cout << tmp.empty() << std::endl;
+	for(auto v : tmp)
+	{
+		std::cout << v.first << ": " << v.second << std::endl;
+	}
 	// if (tmp.empty()) {
     // 	_cgi = false;
     // 	if (access(_uri.c_str(), F_OK) == 0) {
@@ -561,14 +569,19 @@ bool  Request::checkCGI()
 	{
 		if (ext == i->first)
 		{
-			if (access(i->second.c_str(), X_OK))
+			std::cout <<  "path for script: " <<i->second << "]" << std::endl;
+			int n = access(i->second.c_str(), X_OK);
+			std::cout << "ACEES: " << n << std::endl;
+			if (n == -1)
 			{
+				std::cerr << "Error: " << strerror(errno) << std::endl;
 				_cgiNum = -1;
 				break;
 			}
 			_cgiNum++;
 		}
 	}
+	std::cout << "NUM: "  << _cgiNum << std::endl;
 	if (_cgiNum > 0)
 	{
 		_cgi = true;
@@ -587,6 +600,7 @@ bool  Request::checkCGI()
 	}
 	else
 		_cgi = false;
+	std::cout << (_cgi ? "TRUE" : "FALSE") << std::endl;
 	return _cgi;
 }
 
@@ -634,13 +648,17 @@ std::string& Request::getUriCGI()
 
 Request::~Request()
 {
-	if (_envCGI)
+	if (_buf)
 	{
-		for (int i = 0; _envCGI[i] != NULL; ++i) {
-            delete[] _envCGI[i];
-        }
+		delete [] _buf;
+		_buf = nullptr;
+	}
+	if (_envCGI) {
+		for (size_t i = 0; i < _headers.size(); ++i) {
+			free(_envCGI[i]);
+		}
 		delete[] _envCGI;
-		_envCGI = NULL;
+   		_envCGI = nullptr;
 	}
 }
 #endif

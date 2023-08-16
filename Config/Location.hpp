@@ -159,10 +159,18 @@ void Location::setCGI(std::string k, std::string v)
 		exit(1);
 	}
 	this->cgi.insert(std::pair<std::string, std::string>(k, v));
+	for(auto c : cgi)
+	{
+		std::cout << "SETTER:" << c.first << "=====" << c.second;
+	}
 }
 
 std::multimap<std::string, std::string> Location::getCGI() const
 {
+	for(auto c : cgi)
+	{
+		std::cout << "GETTER:" << c.first << "=====" << c.second;
+	}
 	return this->cgi;
 }
 

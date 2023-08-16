@@ -507,6 +507,7 @@ void Server::setUp()
                     // std::cout << "HERE11111" << std::endl;
                     // std::cout << "File descriptor: " << pollfds[i].fd << std::endl;
                     // std::cout << _conf.servers[0].host << std::endl;
+                    std::cout << "HEL YEAH!" << std::endl;
                     Client cl(pollfds[i].fd, client_ip, _conf.servers[0]);
                     try
                     {

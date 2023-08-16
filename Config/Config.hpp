@@ -251,6 +251,7 @@ void Config::parsLocation(std::vector<std::string> tokens, size_t end, size_t st
 				}
 				trim(value, ' ');
 				trim(value, '\t');
+				// std::cout << key << "          " << value << std::endl;
 				l.setCGI(key, value);
 			}
 		}
