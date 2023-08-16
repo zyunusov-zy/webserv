@@ -35,7 +35,7 @@ public:
 	void setRedir(std::string v, std::string p);
 	const std::pair<int, std::string>& getRedir() const;
 	void setCGI(std::string k, std::string v);
-	std::multimap<std::string, std::string> getCGI() const;
+	std::multimap<std::string, std::string>& getCGI();
 	void setBodySize(int num);
 	int getBodySize() const;
 };
@@ -159,18 +159,10 @@ void Location::setCGI(std::string k, std::string v)
 		exit(1);
 	}
 	this->cgi.insert(std::pair<std::string, std::string>(k, v));
-	for(auto c : cgi)
-	{
-		std::cout << "SETTER:" << c.first << "=====" << c.second;
-	}
 }
 
-std::multimap<std::string, std::string> Location::getCGI() const
+std::multimap<std::string, std::string>& Location::getCGI()
 {
-	for(auto c : cgi)
-	{
-		std::cout << "GETTER:" << c.first << "=====" << c.second;
-	}
 	return this->cgi;
 }
 

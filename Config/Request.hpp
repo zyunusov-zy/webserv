@@ -35,8 +35,8 @@ class Request
 		std::string _tmpBuffer;
 		int _parseStat;
 		int _errorCode;
-		std::multimap<std::string, Location> const &_locationMap;
-		const Location	*_location;
+		std::multimap<std::string, Location> &_locationMap;
+		Location	*_location;
 		int _bodySize;
 		std::string _transEn;
 		bool _isChunkSize;
@@ -49,7 +49,7 @@ class Request
 		bool doesFileExist(const std::string& filePath);
 		void parseResource();
 	public:
-		Request(std::multimap<std::string, Location> const &l);
+		Request(std::multimap<std::string, Location> &l);
 		~Request();
 		bool getQ();
 		std::string& getMethod();
@@ -73,7 +73,7 @@ class Request
 		void	saveStartLineHeaders(std::string &data);
 		void	saveStartLine(std::string startLine);
 		void	validateStartLine(void);
-		const Location *getLoc();
+		Location *getLoc();
 		void	parseUri(void);
 		void	parsePercent(std::string &s);
 		void	saveHeaderLine(std::string headerLine);
@@ -89,7 +89,7 @@ class Request
 		void getUriEncodedBody();
 };
 
-Request::Request(std::multimap<std::string, Location> const &l): _q(false), _errorCode(0), 
+Request::Request(std::multimap<std::string, Location> &l): _q(false), _errorCode(0), 
 _cgi(false), _buf(new char[RECV_BUFFER_SIZE + 1]), 
 _parseStat(STARTL), _bodySize(0), _isChunkSize(false),
 _chunkSize(0), _isReqDone(false), _locationMap(l), _cgiNum(0), 
@@ -148,7 +148,7 @@ int Request::getErrorCode()
 	return _errorCode;
 }
 
-const Location *Request::getLoc()
+Location *Request::getLoc()
 {
 	std::string tmp;
 	std::string tmp1;
@@ -169,7 +169,7 @@ const Location *Request::getLoc()
 	len = std::count(_uri.begin(), _uri.end(), '/');
 	for(size_t i = 0; i < len; i++)
 	{
-		std::multimap<std::string, Location>::const_iterator j = _locationMap.begin();
+		std::multimap<std::string, Location>::iterator j = _locationMap.begin();
 		for(; j != _locationMap.end(); j++)
 		{
 			if (!tmp.length())

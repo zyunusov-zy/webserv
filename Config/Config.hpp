@@ -36,6 +36,8 @@ private:
 	void valueForServer(std::vector<std::string> tokens, size_t end, size_t& start, t_serv& t);
 	void parsLocation(std::vector<std::string> tokens, size_t end, size_t start, t_serv& server);
 	int findLoc(size_t i, std::vector<std::string> tokens);
+	void checkPathCGI();
+	void modifyCGIMap(const std::string& root, std::multimap<std::string, std::string>& cgiMap);
 
 	std::vector<t_serv> servers;
 	// std::map<int, std::string> errorPage;
@@ -302,6 +304,40 @@ t_serv Config::parseTokens(size_t& i, std::vector<std::string>& tokens)
 	return server; // 
 }
 
+void Config::modifyCGIMap(const std::string& root, std::multimap<std::string, std::string>& cgiMap)
+{
+	for(auto it = cgiMap.begin(); it != cgiMap.end(); ++it)
+	{
+		if (!it->second.empty() && it->second[0] != '/')
+		{
+			it->second.insert(0, "/");
+		}
+
+		if (it->second.find(root) == std::string::npos)
+		{
+			it->second.insert(0, root); // prepend the root
+		}
+	}
+}
+
+void Config::checkPathCGI()
+{
+	for(size_t i = 0; i < servers.size(); i++)
+	{
+		for(auto& v : servers[i].loc)
+		{
+			if (v.second.getRoot().empty())
+				continue;
+
+			std::multimap<std::string, std::string>& cgiMap = v.second.getCGI();
+			if (cgiMap.empty())
+				continue;
+
+			modifyCGIMap(v.second.getRoot(), cgiMap);
+		}
+	}
+}
+
 int Config::parse(std::string fileName)
 {
 	std::vector<std::string> tokens = configRead(fileName);
@@ -338,7 +374,8 @@ int Config::parse(std::string fileName)
 			exit(1);
 		}
 	
-}
+	}
+	checkPathCGI();
 
 	for(size_t i = 0; i < servers.size(); i++)
 	{
