@@ -83,9 +83,11 @@ void Server::sendHTMLResponse(int fd, std::string filepath)
       std::cout << " \n In file returning \n";
 
     std::ifstream file(filepath);
+
+    // if (filepath == "/favicon.ico")
     if (!file.is_open()) {
         std::cerr << "Failed to open " << filepath << std::endl;
-        exit(EXIT_FAILURE);
+        // exit(EXIT_FAILURE);
     }
     std::string suffix = filepath.substr(filepath.rfind(".") + 1);
     // Construct the HTTP response header
@@ -169,10 +171,15 @@ void Server::launchCgi(class Client client, int fd)
         dup2(infile, STDIN_FILENO);
         close(infile);
 
-        char* script_path = (char*)(client.getReq().getUriCGI().c_str());
+        // char* script_path = (char*)(client.getReq().getUriCGI().c_str());
+        const char* path_to_script = "/Users/cgreenpo/our_webserv/Config/cgi-bin/script.py";
+        const char* path_to_py = "/usr/local/bin/python3";
+
+    
+
 
         // const char* path_to_script = "/Users/cgreenpo/our_webserv/Config/cgi-bin/script";
-        char* _args[] = {const_cast<char*>(script_path), nullptr};
+        char* _args[] = {const_cast<char*>(path_to_py), const_cast<char*>(path_to_script), nullptr};
 
         // char* _env[] = {
         //     const_cast<char*>("GATEWAY_INTERFACE=CGI/1.1"),
@@ -196,7 +203,10 @@ void Server::launchCgi(class Client client, int fd)
         dup2(pipe_d[READ_END], STDIN_FILENO);
         close(pipe_d[READ_END]);
 
-        execve(_args[0], _args, client.getReq().getENV());
+        if ((execve(_args[0], _args, client.getReq().getENV())) == -1)
+            std::cerr << "\ncgi: error with execution\n";
+        std::cerr << "\n\n ***** AFTER execution   \n";
+
         // Handle execve error...
     }
 
@@ -507,8 +517,7 @@ void Server::setUp()
                         std::cerr << e.what() << '\n';
                     }
                     cl.print();
-                    // if (cl.getReq().getCGIB())
-                    if (1)
+                    if (cl.getReq().getCGIB())
                         launchCgi(cl, fd);
                     else
                     {
@@ -524,7 +533,7 @@ void Server::setUp()
                     //     sockets_to_remove.push_back(fd);
                     // } else {
                         // Send a response to the client
-                        snprintf(buff, sizeof(buff), "HTTP/1.0 200 OK\r\n\r\nHello");
+                        // snprintf(buff, sizeof(buff), "HTTP/1.0 200 OK\r\n\r\nHello");
                         write(pollfds[i].fd, buff, strlen(buff));
                     // }
                 // }
