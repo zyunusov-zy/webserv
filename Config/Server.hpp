@@ -22,6 +22,7 @@
 
 #include <cstdlib>
 #include <vector>
+#include <map>
 #include <algorithm>
 #include <poll.h>
 #include <stdio.h>
@@ -217,6 +218,11 @@ void Server::setUp()
     // port_numbers.push_back(9998);
     // port_numbers.push_back(9997);
     port_numbers.push_back((int)_conf.servers[0].port[0]);
+	std::map<int, int> fd_to_port;
+	std::map<int, > fd_to_port;
+
+
+
 
     std::vector<int> listenfds;
     struct sockaddr_in servaddr;
