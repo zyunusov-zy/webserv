@@ -308,7 +308,7 @@ void Config::modifyCGIMap(const std::string& root, std::multimap<std::string, st
 {
 	for(auto it = cgiMap.begin(); it != cgiMap.end(); ++it)
 	{
-		if (!it->second.empty() && it->second[0] != '/')
+		if (!it->second.empty() && (it->second[0] != '/' && root[root.length() - 1] !='/'))
 		{
 			it->second.insert(0, "/");
 		}
@@ -316,6 +316,10 @@ void Config::modifyCGIMap(const std::string& root, std::multimap<std::string, st
 		if (it->second.find(root) == std::string::npos)
 		{
 			it->second.insert(0, root); // prepend the root
+		}
+		if (it->second.find("//") != std::string::npos)
+		{
+			it->second.replace(it->second.find("//"), 2, "/");
 		}
 	}
 }
