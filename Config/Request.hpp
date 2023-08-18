@@ -648,17 +648,17 @@ std::string& Request::getUriCGI()
 
 Request::~Request()
 {
-	if (_buf)
-	{
-		delete [] _buf;
-		_buf = nullptr;
-	}
-	if (_envCGI) {
-		for (size_t i = 0; i < _headers.size(); ++i) {
-			free(_envCGI[i]);
-		}
-		delete[] _envCGI;
-   		_envCGI = nullptr;
-	}
+	// if (_buf)
+	// {
+	// 	delete [] _buf;
+	// 	_buf = nullptr;
+	// }
+	// if (_envCGI) {
+	// 	for (size_t i = 0; i < _headers.size(); ++i) {
+	// 		free(_envCGI[i]);
+	// 	}
+	// 	delete[] _envCGI;
+   	// 	_envCGI = nullptr;
+	// }
 }
 #endif

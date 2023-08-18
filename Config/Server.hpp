@@ -75,22 +75,30 @@ std::string Server::readFile(const std::string & filename)
 #define WRITE_END 1
 #define READ_END 0
 
+int calculateContentLength(std::ifstream& file) {
+        file.seekg(0, std::ios::end);
+        int length = static_cast<int>(file.tellg());
+        file.seekg(0, std::ios::beg);
+        return length;
+    }
+
 void Server::sendHTMLResponse(int fd, std::string filepath) 
 {
-    char buff[200];
+    char buff[8192];
+    char head[300];
+
     std::string content_type;
     // Read the content of the HTML file
       std::cout << " \n In file returning \n";
 
-    std::ifstream file(filepath);
 
-    // if (filepath == "/favicon.ico")
+    filepath = "/Users/cgreenpo/our_webserv" + filepath;
+    std::ifstream file(filepath);
     if (!file.is_open()) {
         std::cerr << "Failed to open " << filepath << std::endl;
-        // exit(EXIT_FAILURE);
     }
+    
     std::string suffix = filepath.substr(filepath.rfind(".") + 1);
-    // Construct the HTTP response header
     if (suffix == "html")
         content_type = "text/html";
     else if (suffix == "css")
@@ -115,23 +123,52 @@ void Server::sendHTMLResponse(int fd, std::string filepath)
         content_type = "video/x-msvideo";
     else
         content_type = "application/octet-stream";
-    snprintf(buff, sizeof(buff), "HTTP/1.0 200 OK\r\nContent-Type: %s\r\n\r\n", "text/html");
-    // snprintf(buff, sizeof(buff), "HTTP/1.0 200 OK\r\n\r\n");
 
-    // Send the header to the client using send
+    // snprintf(head, sizeof(head), "HTTP/1.0 200 OK\r\nContent-Type: %s\r\n\r\n", "text/html");
+
+    snprintf(buff, sizeof(buff), "HTTP/1.1 200 OK\r\n"
+                                         "Content-Type: %s\r\n"
+                                         "Content-Length: %d\r\n"
+                                         "Connection: keep-alive\r\n"
+                                         "\r\n", content_type.c_str(), calculateContentLength(file));
+
+
     send(fd, buff, strlen(buff), 0);
 
     // Send the content of the HTML file to the client using send
-    while (file.good()) {
+    // while (file.good()) {
+    //     file.read(buff, sizeof(buff));
+    //     int bytesRead = file.gcount();
+    //     if (bytesRead > 0) {
+    //         send(fd, buff, bytesRead, 0);
+    //     }
+    // }
+
+    // int bytesRead = file.gcount();
+
+    while (file.good())
+    {
         file.read(buff, sizeof(buff));
         int bytesRead = file.gcount();
         if (bytesRead > 0) {
-            send(fd, buff, bytesRead, 0);
+            int bytesSent = send(fd, buff, bytesRead, 0);
+            if (bytesSent < 0) {
+                std::cerr << "Send error" << std::endl;
+                break;
+            }
         }
+        else 
+        {
+            // No more data to send
+            break;
+        }
+        std::cerr << "\n in the loop\n" << std::endl;
+
     }
 
-    // Close the file
     file.close();
+    std::cerr << "\n after file closing\n" << std::endl;
+
 }
 
 
@@ -171,34 +208,15 @@ void Server::launchCgi(class Client client, int fd)
         dup2(infile, STDIN_FILENO);
         close(infile);
 
-        // char* script_path = (char*)(client.getReq().getUriCGI().c_str());
-        const char* path_to_script = "/Users/cgreenpo/our_webserv/Config/cgi-bin/script.py";
+        char* script_path = (char*)(client.getReq().getUriCGI().c_str());
+        // const char* path_to_script = "/Users/cgreenpo/our_webserv/Config/cgi-bin/script.py";
         const char* path_to_py = "/usr/local/bin/python3";
 
     
 
 
         // const char* path_to_script = "/Users/cgreenpo/our_webserv/Config/cgi-bin/script";
-        char* _args[] = {const_cast<char*>(path_to_py), const_cast<char*>(path_to_script), nullptr};
-
-        // char* _env[] = {
-        //     const_cast<char*>("GATEWAY_INTERFACE=CGI/1.1"),
-        //     const_cast<char*>("SERVER_SOFTWARE=Our_Web_Server/1.0"),
-        //     const_cast<char*>("SERVER_NAME=example.com"),
-        //     const_cast<char*>("SERVER_PORT=9999"),
-        //     const_cast<char*>("REMOTE_ADDR=127.0.0.1"),
-        //     const_cast<char*>("CONTENT_LENGTH=9"),
-        //     const_cast<char*>("HTTP_USER_AGENT=Our_Web_Client/1.0"),
-        //     const_cast<char*>("HTTP_ACCEPT=text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"),
-        //     const_cast<char*>("HTTP_ACCEPT_LANGUAGE=en-US,en;q=0.5"),
-        //     const_cast<char*>("HTTP_ACCEPT_ENCODING=gzip, deflate"),
-        //     const_cast<char*>("HTTP_CONNECTION=keep-alive"),
-        //     const_cast<char*>("REQUEST_METHOD=POST"),
-
-        //     const_cast<char*>("CLIENT_REQUEST=name=john"),
-        //     const_cast<char*>("PATH_INFO=/Users/kris/our_webserve/ex/index.html"),
-        //     NULL
-        // };
+        char* _args[] = {const_cast<char*>(path_to_py), const_cast<char*>(script_path), nullptr};
 
         dup2(pipe_d[READ_END], STDIN_FILENO);
         close(pipe_d[READ_END]);
@@ -213,11 +231,11 @@ void Server::launchCgi(class Client client, int fd)
     close(pipe_d[READ_END]);
     close(outfile);
 
-    // int status;
-    // pid_t terminatedPid = waitpid(cgi_pid, &status, 0);
-    // if (terminatedPid == -1) {
-    //     std::cerr << "cgi: error with process handling\n";
-    // }
+    int status;
+    pid_t terminatedPid = waitpid(cgi_pid, &status, 0);
+    if (terminatedPid == -1) {
+        std::cerr << "cgi: error with process handling\n";
+    }
 
     char header[200];
 
@@ -232,10 +250,8 @@ void Server::launchCgi(class Client client, int fd)
         output += line + "\n";
     }
 
-    // Construct the HTTP response header
     snprintf(header, sizeof(header), "HTTP/1.0 200 OK\r\nContent-Type: %s\r\n\r\n", "text/html");
 
-    // Send the header to the client using send
     send(fd, header, strlen(header), 0);
     send(fd, output.c_str(), output.size(), 0);
 
@@ -245,143 +261,6 @@ void Server::launchCgi(class Client client, int fd)
     remove(out_filename);
     close(fd); // Close the client socket
 }
-
-// void Server::launchCgi(class Client client)
-// {
-//     int infile = 0;
-//     std::string body_path;
-    
-
-//     // Create a dynamic filename for the output of the Python script.
-//     std::string tmp = client.getReq().getResource() + "output" + client.getClienIP();
-//     const char* out_filename = tmp.c_str(); //dynamic filename
-
-//     // Open the output file for writing (create if it doesn't exist with permissions 600).
-//     int outfile = open(out_filename, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
-//     if (outfile == -1) 
-//     {
-//         std::cerr << "cgi: Error opening the outfile.\n";
-//         // throw (CgiException());
-//     }
-
-//     // Create a pipe for interprocess communication (IPC).
-//     int pipe_d[2];
-//     if (pipe(pipe_d) == -1)
-//     {
-//         std::cout << "Pipe Error\n";
-//         // throw (CgiException());
-//     }
-
-//     // If there is data in the client request, set the size of the pipe buffer accordingly.
-//     if (client.getReq().getBody().size() > 0)
-//         fcntl(pipe_d[WRITE_END], 0, client.getReq().getBody().size());
-
-//     // Write the client request data to the pipe.
-//     write(pipe_d[WRITE_END], client.getReq().getBody().c_str(), client.getReq().getBody().size());
-//     close(pipe_d[WRITE_END]);
-
-//     // Fork a new process to run the Python script.
-//     int cgi_pid = fork();
-//     if (cgi_pid < 0)
-//     {
-//         close(pipe_d[READ_END]);
-//         close(outfile);
-//         std::cerr << "Error with fork\n";
-//     }
-
-//     // Code executed by the child process.
-//     if (cgi_pid == 0)
-//     {
-//         // Redirect standard output to the output file.
-//         dup2(outfile, STDOUT_FILENO);
-//         close(outfile);
-
-//         // If there is no query string, redirect standard input to the input file.
-//         if (!client.getReq().getQueryString().c_str())
-//         {
-//             dup2(infile, STDIN_FILENO);
-//             close(infile);
-//         }
-
-//         // Create arguments for the execve call to run the Python script.
-//         // char* script_path = (char*)(client.path_on_server.c_str());
-
-//         const char* path_to_python = "/usr/bin/python3";
-//         char* _args[3];
-//         _args[0] = (char*)path_to_python;
-//         // _args[1] = script_path;
-// 		// fixed by zyko
-// 		std::string tmp = "/Users/cgreenpo/our_webserv/Config/cgi-bin/script";
-//         _args[1] = new char[tmp.length() + 1];
-// 		std::strcpy(_args[1], tmp.c_str());
-//         _args[2] = NULL;
-
-
-
-
-//         // Redirect standard input and output for the child process.
-//         dup2(pipe_d[READ_END], STDIN_FILENO);
-//         close(pipe_d[READ_END]);
-
-//         dup2(outfile, STDOUT_FILENO);
-//         close(outfile);
-
-
-
-//         // // Set up a signal handler for the timeout.
-//         // struct sigaction sa;
-//         // memset(&sa, 0, sizeof(sa));
-//         // sa.sa_handler = handleTimeout;
-//         // sigaction(SIGALRM, &sa, NULL);
-
-//         // // Set the timeout alarm.
-//         // alarm(timeoutDuration);
-
-
-
-//         // Execute the Python script with the given arguments and environment variables.
-//         execve(_args[0], const_cast<char* const*>(_args), client.get_env());
-//         // throw (CgiException()); // Throw an exception if execve fails.
-//     }
-
-//     // Code executed by the parent process.
-//     int status;
-//     close(pipe_d[READ_END]);
-//     close(outfile);
-
-//     // Wait for the child process to terminate and get its status.
-//     pid_t terminatedPid = waitpid(cgi_pid, &status, 0);
-//     if (terminatedPid == -1)
-//     {
-//         std::cerr << "cgi: error with process handling\n";
-//         // throw (CgiException());
-//     }
-
-//     //---- TIMEOUT
-//     // // Check if a timeout occurred and handle the child process accordingly.
-//     // if (timeoutOccurred)
-//     //     std::cerr << "Timeout occurred. Child process was terminated." << std::endl;
-//     // else
-//     // {
-//     //     // Handle normal exit
-//     //     if (WIFEXITED(status)) 
-//     //     {
-//     //         // Do further processing based on the status of the child process.
-//     //         client.path_on_server = out_filename;
-//     //         if (client.obtainFileLength())
-//     //             client.response.generateCgiResponse();
-//     //         else
-//     //             throw (CgiException());
-//     //     }
-//     //     else if (WIFSIGNALED(status))
-//     //     {
-//     //         std::cerr << "Child process terminated due to signal: " << WTERMSIG(status) << std::endl;
-//     //         // const char* cgi_error_path = "../HTML/cgi-bin/cgi_error.html";
-//     //         throw (CgiException());
-//     //     }
-//     // }
-// }
-
 
 void Server::setUp()
 {
@@ -408,7 +287,8 @@ void Server::setUp()
     for (size_t i = 0; i < port_numbers.size(); ++i) 
     {
         int listenfd = socket(AF_INET, SOCK_STREAM, 0);
-        if (listenfd < 0) {
+        if (listenfd < 0) 
+        {
             std::cout << "Failed to create socket. errno: " << errno << std::endl;
             exit(EXIT_FAILURE);
         }
@@ -418,7 +298,8 @@ void Server::setUp()
         servaddr.sin_port = htons(port_numbers[i]);
 		int optval = 1;
 		setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
-        if (bind(listenfd, (struct sockaddr*)&servaddr, sizeof(servaddr)) < 0) {
+        if (bind(listenfd, (struct sockaddr*)&servaddr, sizeof(servaddr)) < 0) 
+        {
             std::cout << "Failed to bind to port " << port_numbers[i] << ". errno: " << errno << std::endl;
             exit(EXIT_FAILURE);
         }
@@ -496,48 +377,37 @@ void Server::setUp()
                     // std::cout.flush();
 
                     
-                    char client_ip[INET_ADDRSTRLEN];
-                    if(inet_ntop(AF_INET, &(servaddr.sin_addr), client_ip, INET_ADDRSTRLEN) == NULL)
-                    {
-                        std::cerr << "Error converting IP address to string: " << strerror(errno) << std::endl;
-                        exit(1);// need to change
-                    }
+                char client_ip[INET_ADDRSTRLEN];
+                if(inet_ntop(AF_INET, &(servaddr.sin_addr), client_ip, INET_ADDRSTRLEN) == NULL)
+                {
+                    std::cerr << "Error converting IP address to string: " << strerror(errno) << std::endl;
+                    exit(1);// need to change
+                }
 
 
-                    // std::cout << "HERE11111" << std::endl;
-                    // std::cout << "File descriptor: " << pollfds[i].fd << std::endl;
-                    // std::cout << _conf.servers[0].host << std::endl;
-                    std::cout << "HEL YEAH!" << std::endl;
-                    Client cl(pollfds[i].fd, client_ip, _conf.servers[0]);
-                    try
-                    {
-                       cl.readRequest();
-                    }
-                    catch(const std::exception& e)
-                    {
-                        std::cerr << e.what() << '\n';
-                    }
-                    cl.print();
-                    if (cl.getReq().getCGIB())
-                        launchCgi(cl, fd);
-                    else
-                    {
-                        sendHTMLResponse(fd, cl.getReq().getResource());
+                // std::cout << "HERE11111" << std::endl;
+                // std::cout << "File descriptor: " << pollfds[i].fd << std::endl;
+                // std::cout << _conf.servers[0].host << std::endl;
+                std::cout << "HEL YEAH!" << std::endl;
+                Client cl(pollfds[i].fd, client_ip, _conf.servers[0]);
+                try
+                {
+                    cl.readRequest();
+                }
+                catch(const std::exception& e)
+                {
+                    std::cerr << e.what() << '\n';
+                }
+                cl.print();
+                if (cl.getReq().getCGIB())
+                    launchCgi(cl, fd);
+                else
+                {
+                    sendHTMLResponse(fd, cl.getReq().getResource());
 
-                    }
+                }
+                
 
-                    //----------------------
-                    
-                    
-                    // if (bytes[n - 1] == '\n') {
-                    //     close(fd);
-                    //     sockets_to_remove.push_back(fd);
-                    // } else {
-                        // Send a response to the client
-                        // snprintf(buff, sizeof(buff), "HTTP/1.0 200 OK\r\n\r\nHello");
-                        write(pollfds[i].fd, buff, strlen(buff));
-                    // }
-                // }
             }
         }
 
@@ -567,7 +437,6 @@ void Server::setUp()
         }
 
     }
+
 }
-
-
 #endif
