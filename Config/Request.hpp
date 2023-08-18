@@ -607,7 +607,17 @@ bool  Request::checkCGI()
 		throw ErrorException(502, "Bad Gateway");
 	}
 	else
+	{
 		_cgi = false;
+		_errorCode = 200;
+		if (_uri.find(_location->getRoot()) == std::string::npos)
+			_uri = _location->getRoot() + _uri;
+		for(size_t i = 0; i < _uri.length() - 1; i++)
+		{
+			if (_uri[i] == '/' && _uri[i + 1] == '/')
+				_uri.erase(i + 1, 1);
+		}
+	}
 	std::cout << (_cgi ? "TRUE" : "FALSE") << std::endl;
 	return _cgi;
 }
