@@ -97,7 +97,7 @@ void Server::sendHTMLResponse(int fd, std::string filepath)
     if (!file.is_open()) {
         std::cerr << "Failed to open " << filepath << std::endl;
     }
-    
+
     std::string suffix = filepath.substr(filepath.rfind(".") + 1);
     if (suffix == "html")
         content_type = "text/html";
@@ -269,9 +269,29 @@ void Server::setUp()
     // port_numbers.push_back(9999);
     // port_numbers.push_back(9998);
     // port_numbers.push_back(9997);
-    port_numbers.push_back((int)_conf.servers[0].port[0]);
-	// std::map<int, int> fd_to_port;
-	// std::map<int, > fd_to_port;
+    // port_numbers.push_back((int)_conf.servers[0].port[0]);
+
+	std::map<int, int> fd_to_port;
+	std::map<int, t_serv*> port_to_serv;
+
+    int i;
+    int j;
+
+    i = 0;
+    while(i < _conf.servers.size())
+    {
+        j = 0;
+        while (j < _conf.servers[i].port.size())
+        {
+            port_numbers.push_back((int)_conf.servers[i].port[j]);
+            std::cerr << "\n Pushed port  ." << _conf.servers[i].port[j]<< "\n";
+
+            port_to_serv.insert(std::make_pair((int)_conf.servers[i].port[j], &(_conf.servers[i])));
+            j++;
+        }
+        i++;
+    }
+
 
 
 
@@ -309,7 +329,8 @@ void Server::setUp()
             exit(EXIT_FAILURE);
         }
 
-        // Add the listenfd to the pollfds array
+        fd_to_port.insert(std::make_pair(listenfd, port_numbers[i]));
+
         pollfd listen_pollfd;
         listen_pollfd.fd = listenfd;
         listen_pollfd.events = POLLIN; // Check for incoming data
@@ -389,7 +410,9 @@ void Server::setUp()
                 // std::cout << "File descriptor: " << pollfds[i].fd << std::endl;
                 // std::cout << _conf.servers[0].host << std::endl;
                 std::cout << "HEL YEAH!" << std::endl;
-                Client cl(pollfds[i].fd, client_ip, _conf.servers[0]);
+                int port_tmp = fd_to_port[pollfds[i].fd];
+
+                Client cl(pollfds[i].fd, client_ip, *port_to_serv[port_tmp]);
                 try
                 {
                     cl.readRequest();
