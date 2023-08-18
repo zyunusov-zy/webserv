@@ -497,7 +497,14 @@ std::string Request::getURI()
 		return _location->redir.second;
 	}
 	_errorCode = 200;
-	fullPath = _location->getRoot() + _uri;
+	if (_uri.find(_location->getRoot()) == std::string::npos)
+	{
+		fullPath = _location->getRoot() + _uri;
+	}
+	else
+	{
+		fullPath = _uri;
+	}
 	for(size_t i = 0; i < fullPath.length() - 1; i++)
 	{
 		if (fullPath[i] == '/' && fullPath[i + 1] == '/')
@@ -585,7 +592,8 @@ bool  Request::checkCGI()
 	if (_cgiNum > 0)
 	{
 		_cgi = true;
-		_uriCGI = getURI(); 
+		_uriCGI = getURI();
+		// std::cout << "CGI_PPPP: " << _uriCGI << std::endl; 
 		getUriEncodedBody();//need to code
 		_headers.insert(std::pair<std::string, std::string>("QUERY_STRING", _queryString));
 		_headers.insert(std::pair<std::string, std::string>("REQUEST_METHOD", _method));
