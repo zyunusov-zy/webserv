@@ -46,8 +46,20 @@ class Request
 		char **_envCGI;
 		std::string _uriCGI;
 
-		bool doesFileExist(const std::string& filePath);
-		void parseResource();
+		void	resetRequest();
+		void	saveStartLineHeaders(std::string &data);
+		void	saveStartLine(std::string startLine);
+		void	validateStartLine(void);
+		Location *getLoc();
+		void	parseUri(void);
+		void	parsePercent(std::string &s);
+		void	saveHeaderLine(std::string headerLine);
+		void	saveChunkedBody(std::string &data);
+		void	parseChunkSize(std::string &data);
+		void	parseChunkedBody(std::string &data);
+		void	saveSimpleBody(std::string &data);
+		void getUriEncodedBody();
+		void makeEnv();
 	public:
 		Request(std::multimap<std::string, Location> &l);
 		~Request();
@@ -69,24 +81,10 @@ class Request
 
 		char	*getBuffer(void) const;
 		bool	saveRequestData(ssize_t recv);
-		void	resetRequest();
-		void	saveStartLineHeaders(std::string &data);
-		void	saveStartLine(std::string startLine);
-		void	validateStartLine(void);
-		Location *getLoc();
-		void	parseUri(void);
-		void	parsePercent(std::string &s);
-		void	saveHeaderLine(std::string headerLine);
-		void	saveChunkedBody(std::string &data);
-		void	parseChunkSize(std::string &data);
-		void	parseChunkedBody(std::string &data);
-		void	saveSimpleBody(std::string &data);
 		void	setErrorStatus(const int s);
 		bool  checkCGI();
-		void makeEnv();
 		std::string getURI();
 		std::string validateURI(std::string &fullPath, std::uint8_t mode);
-		void getUriEncodedBody();
 };
 
 Request::Request(std::multimap<std::string, Location> &l): _q(false), _errorCode(0), 
@@ -140,7 +138,24 @@ char** Request::getENV()
 
 void Request::resetRequest()
 {
+	_headers.clear();
+	_bodySize = -1;
+	_chunkSize = 0;
+	_parseStat = STARTL;
+	_transEn.clear();
+	_method.clear();
+	_version.clear();
+	_uri.clear();
+	_uriCGI.clear();
+	_queryString.clear();
+	_body.clear();
+	_tmpBuffer.clear();
+	_isChunkSize = false;
+	_isReqDone = false;
 	_errorCode = 0;
+	_q = false;
+	_cgi = false;
+	_location = NULL;
 }
 
 int Request::getErrorCode()
