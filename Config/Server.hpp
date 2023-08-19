@@ -284,17 +284,18 @@ void Server::setUp()
         while (j < _conf.servers[i].port.size())
         {
             port_numbers.push_back((int)_conf.servers[i].port[j]);
-            std::cerr << "\n Pushed port  ." << _conf.servers[i].port[j]<< "\n";
+            std::cerr << "\n Pushed port  " << _conf.servers[i].port[j]<< "\n";
 
             port_to_serv.insert(std::make_pair((int)_conf.servers[i].port[j], &(_conf.servers[i])));
+            std::cerr << "\n server struct pointer = " << port_to_serv[(int)_conf.servers[i].port[j]] << "\n";
+            std::cerr << "\n server struct value = " << port_to_serv[(int)_conf.servers[i].port[j]]->port[0] << "\n";
+
+            
+
             j++;
         }
         i++;
     }
-
-
-
-
 
     std::vector<int> listenfds;
     struct sockaddr_in servaddr;
@@ -302,6 +303,8 @@ void Server::setUp()
     char bytes[4048];
 
     std::vector<pollfd> pollfds;
+    std::map<int, int> conn_to_listen;
+
 
     // Create listen sockets and bind them to different port numbers
     for (size_t i = 0; i < port_numbers.size(); ++i) 
@@ -353,20 +356,26 @@ void Server::setUp()
 
         for (size_t i = 0; i < listenfds.size(); ++i) 
         {
-            if (pollfds[i].revents & POLLIN) {
+            if (pollfds[i].revents & POLLIN) 
+            {
                 std::cout << "\n\nWaiting for a connection on port " << port_numbers[i] << std::endl;
                 int connfd = accept(listenfds[i], NULL, NULL);
-                if (connfd < 0) {
+                if (connfd < 0) 
+                {
                     std::cout << "Failed to accept connection. errno: " << errno << std::endl;
                     exit(EXIT_FAILURE);
                 }
                 connected_fds.push_back(connfd);
-
+                std::cout << "Client connected on port: " << port_numbers[i] << std::endl;
                 // Add the new connected socket to the pollfds array
                 pollfd new_pollfd;
                 new_pollfd.fd = connfd;
                 new_pollfd.events = POLLIN; // Check for incoming data
                 pollfds.push_back(new_pollfd);
+
+                conn_to_listen.insert(std::make_pair(connfd, listenfds[i]));
+
+
             }
         }
         // Check connected client sockets for incoming data and handle them separately
@@ -410,24 +419,30 @@ void Server::setUp()
                 // std::cout << "File descriptor: " << pollfds[i].fd << std::endl;
                 // std::cout << _conf.servers[0].host << std::endl;
                 std::cout << "HEL YEAH!" << std::endl;
-                int port_tmp = fd_to_port[pollfds[i].fd];
+                int listnfd_tmp = conn_to_listen[pollfds[i].fd];
 
-                Client cl(pollfds[i].fd, client_ip, *port_to_serv[port_tmp]);
-                try
+                int port_tmp = fd_to_port[listnfd_tmp];
+                t_serv  *serv_tmp = port_to_serv[port_tmp];
+                if (serv_tmp)
                 {
-                    cl.readRequest();
-                }
-                catch(const std::exception& e)
-                {
-                    std::cerr << e.what() << '\n';
-                }
-                cl.print();
-                if (cl.getReq().getCGIB())
-                    launchCgi(cl, fd);
-                else
-                {
-                    sendHTMLResponse(fd, cl.getReq().getResource());
+                    Client cl(pollfds[i].fd, client_ip, *serv_tmp);
+                    // exit(0);
+                    try
+                    {
+                        cl.readRequest();
+                    }
+                    catch(const std::exception& e)
+                    {
+                        std::cerr << e.what() << '\n';
+                    }
+                    cl.print();
+                    if (cl.getReq().getCGIB())
+                        launchCgi(cl, fd);
+                    else
+                    {
+                        sendHTMLResponse(fd, cl.getReq().getResource());
 
+                    }
                 }
                 
 
