@@ -147,6 +147,7 @@ void Config::valueForServer(std::vector<std::string> tokens, size_t end, size_t&
 			trim(v, ' ');
 			trim(v, ';');
 			t.name = v;
+			
 		}
 		if (tokens[start].find("listen:") != std::string::npos)
 		{
