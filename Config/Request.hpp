@@ -45,6 +45,7 @@ class Request
 		int _cgiNum;
 		char **_envCGI;
 		std::string _uriCGI;
+		std::string _scriptPath;
 
 		void	resetRequest();
 		void	saveStartLineHeaders(std::string &data);
@@ -91,7 +92,7 @@ Request::Request(std::multimap<std::string, Location> &l): _q(false), _errorCode
 _cgi(false), _buf(new char[RECV_BUFFER_SIZE + 1]), 
 _parseStat(STARTL), _bodySize(0), _isChunkSize(false),
 _chunkSize(0), _isReqDone(false), _locationMap(l), _cgiNum(0), 
-_envCGI(NULL)
+_envCGI(NULL), _scriptPath("")
 {
 }
 
@@ -156,6 +157,7 @@ void Request::resetRequest()
 	_q = false;
 	_cgi = false;
 	_location = NULL;
+	_scriptPath.clear();
 }
 
 int Request::getErrorCode()
@@ -573,6 +575,7 @@ bool  Request::checkCGI()
 	std::cout << _location->getRoot() << std::endl;
 	std::cout << _location->getCGI().empty() << std::endl;
 	std::string ext = "." + _uri.substr(_uri.find_last_of('.') + 1);
+	std::string _scriptName =  _uri.substr(_uri.find_last_of('/') + 1);
 	std::cout << "EXTENSION: "  << ext << std::endl;
 	std::cout << tmp.empty() << std::endl;
 	for(auto v : tmp)
@@ -591,8 +594,9 @@ bool  Request::checkCGI()
 	{
 		if (ext == i->first)
 		{
-			std::cout <<  "path for script: " <<i->second << "]" << std::endl;
-			int n = access(i->second.c_str(), X_OK);
+			_scriptPath = i->second + _scriptName;
+			std::cout <<  "path for script: " <<_scriptPath << "]" << std::endl;
+			int n = access(_scriptPath.c_str(), X_OK);
 			std::cout << "ACEES: " << n << std::endl;
 			if (n == -1)
 			{
