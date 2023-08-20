@@ -194,6 +194,7 @@ void Server::launchCgi(class Client client, int fd)
 
     if (cgi_pid == 0) {
 
+        std::cerr << "\n2\n";
 
         dup2(outfile, STDOUT_FILENO);
         close(outfile);
@@ -203,6 +204,7 @@ void Server::launchCgi(class Client client, int fd)
 			dup2(infile, STDIN_FILENO);
 			close(infile);
 		}
+        std::cerr << "\n3\n";
 
         char* script_path = (char*)(client.getReq().getUriCGI().c_str());
         const char* path_to_py = "/usr/local/bin/python3";
@@ -213,13 +215,15 @@ void Server::launchCgi(class Client client, int fd)
 
         if ((execve(_args[0], _args, client.getReq().getENV())) == -1)
             std::cerr << "\ncgi: error with execution\n";
-        std::cerr << "\n\n ***** AFTER execution   \n";
+        // std::cerr << "\n4\n";
+
+        // std::cerr << "\n\n ***** AFTER execution   \n";
 
         // Handle execve error...
     }
 
     close(pipe_d[READ_END]);
-    close(outfile);
+    // close(outfile);
 
     int status;
     pid_t terminatedPid = waitpid(cgi_pid, &status, 0);
@@ -227,29 +231,37 @@ void Server::launchCgi(class Client client, int fd)
         std::cerr << "cgi: error with process handling\n";
     }
 
+    std::cerr << "\n1\n";
+
+    // string_filename = "/Users/cgreenpo/our_webserv/Config/" + string_filename;
+    std::cerr << "\n" << string_filename << "\n";
 
     client.getResp().setFilename(string_filename);
-    char header[200];
+    client.getResp().setFd(fd);
+    client.getResp().sendResponse();
 
-    std::ifstream outFileStream(out_filename);
-    if (!outFileStream) {
-        std::cerr << "Failed to open output file for reading." << std::endl;
-    }
+    // char header[200];
 
-    std::string output;
-    std::string line;
-    while (std::getline(outFileStream, line)) {
-        output += line + "\n";
-    }
+    // std::ifstream outFileStream(out_filename);
+    // if (!outFileStream) {
+    //     std::cerr << "Failed to open output file for reading." << std::endl;
+    // }
 
-    snprintf(header, sizeof(header), "HTTP/1.0 200 OK\r\nContent-Type: %s\r\n\r\n", "text/html");
+    // std::string output;
+    // std::string line;
+    // while (std::getline(outFileStream, line)) {
+    //     output += line + "\n";
+    // }
 
-    send(fd, header, strlen(header), 0);
-    send(fd, output.c_str(), output.size(), 0);
+    // snprintf(header, sizeof(header), "HTTP/1.0 200 OK\r\nContent-Type: %s\r\n\r\n", "text/html");
 
-    outFileStream.close();
+    // send(fd, header, strlen(header), 0);
+    // send(fd, output.c_str(), output.size(), 0);
+
+    // outFileStream.close();
     remove(out_filename);
     close(fd); // Close the client socket
+    // exit(1);
 }
 
 void Server::setUp()
@@ -417,14 +429,17 @@ void Server::setUp()
                     }
                     cl.print();
                     if (cl.getReq().getCGIB())
+                    {
                         launchCgi(cl, fd);
+                        // cl.getResp().sendResponse();
+
+                    }
                     else
                     {
                         sendHTMLResponse(fd, cl.getReq().getResource());
 
                     }
 
-                    // cl.getResp().sendResponse();
                 }
                 
 

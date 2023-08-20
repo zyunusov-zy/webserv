@@ -39,11 +39,11 @@ public:
 	std::string	getClienIP();
 	Request getReq();
 	bool getQuer();
-	Response getResp();
+	Response &getResp();
 
 };
 
-Response Client::getResp()
+Response &Client::getResp()
 {
 	return (_resp);
 }

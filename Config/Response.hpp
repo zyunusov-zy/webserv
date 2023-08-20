@@ -17,11 +17,10 @@ public:
     void setHeader(const std::string& key, const std::string& value);
     void setBody(const std::string& body);
 	void assembleHeader();
-	void setFilename(std::string name);
+	void setFilename(std::string &name);
 	void sendResponse();
+	void setFd(int fd);
 
-
-    std::string toString() const;
 
 private:
 
@@ -31,6 +30,7 @@ private:
 	std::string _header;
     std::string _body;
     std::string _status;
+	int _target_fd;
 
 	std::string	_date;
 	std::string	_proto;
@@ -44,28 +44,35 @@ private:
 Response::Response() 
 {
     _statusCode = 200;
-    _header = "";
-    _body = "";
-    _status = "";
-    _chunking = "";
-    _content_type = "";
-    _date = "";
-    _proto = "";
-    _status_code = "";
-	_filename = "";
+    // _header = "";
+    // _body = "";
+    // _status = "";
+    // _chunking = "";
+    // _content_type = "";
+    // _date = "";
+    // _proto = "";
+    // _status_code = "";
+	// _filename = "";
+	// _target_fd = 0;
+
 }
 
-void Response::sendResponse() {
+void Response::sendResponse() 
+{
 
-	std::ifstream file(_filename);
+	std::ifstream file(_filename.c_str());
+    std::cerr << "\n in response" << _filename << "\n";
+
 	char buff[BUFF_SIZE];
 
-    // char header[200];
+    char header[400];
 
-    // std::ifstream outFileStream(_filename.c_str);
+    // std::ifstream outFileStream(_filename.c_str());
+
     // if (!outFileStream) {
     //     std::cerr << "Failed to open output file for reading." << std::endl;
     // }
+    // std::cerr << "\n" << 5 << "\n";
 
     // std::string output;
     // std::string line;
@@ -73,21 +80,23 @@ void Response::sendResponse() {
     //     output += line + "\n";
     // }
 
-    // snprintf(header, sizeof(header), "HTTP/1.0 200 OK\r\nContent-Type: %s\r\n\r\n", "text/html");
+    snprintf(header, sizeof(header), "HTTP/1.0 200 OK\r\nContent-Type: %s\r\n\r\n", "text/html");
 
-    // send(fd, header, strlen(header), 0);
-    // send(fd, output.c_str(), output.size(), 0);
+    send(_target_fd, header, strlen(header), 0);
+    // send(_target_fd, output.c_str(), output.size(), 0);
 
     // outFileStream.close();
     // remove(_filename.c_str);
     // close(fd); // Close the client socket
-	
+
+
 	while (file.good())
     {
         file.read(buff, sizeof(buff));
         int bytesRead = file.gcount();
-        if (bytesRead > 0) {
-            int bytesSent = send(fd, buff, bytesRead, 0);
+        if (bytesRead > 0) 
+		{
+            int bytesSent = send(_target_fd, buff, bytesRead, 0);
             if (bytesSent < 0) {
                 std::cerr << "Send error" << std::endl;
                 break;
@@ -98,12 +107,17 @@ void Response::sendResponse() {
             // No more data to send
             break;
         }
-
+	}
+	// close(_target_fd);
 }
 
+void Response::setFd(int fd) {
+    _target_fd = fd;
+}
 
-void Response::setFilename(std::string name) {
+void Response::setFilename(std::string &name) {
     _filename = name;
+    std::cout << "\n\nset name " << _filename << "\n";
 }
 
 void Response::setStatus(int statusCode) {
