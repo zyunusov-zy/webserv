@@ -586,13 +586,10 @@ bool  Request::checkCGI()
 	{
 		std::cout << v.first << ": " << v.second << std::endl;
 	}
-	// if (tmp.empty()) {
-    // 	_cgi = false;
-    // 	if (access(_uri.c_str(), F_OK) == 0) {
-    //     	// The file exists but isn't in the CGI map
-    //     	throw ErrorException(500, "Server configuration error: File is present but not configured in CGI map.");
-    // 	}
-	// }
+	if (tmp.empty()) {
+    	_cgi = false;
+        throw ErrorException(500, "Server configuration error: File is present but not configured in CGI map.");
+	}
 	std::multimap<std::string,std::string>::const_iterator i = tmp.begin();
 	for(; i != tmp.end(); i++)
 	{
