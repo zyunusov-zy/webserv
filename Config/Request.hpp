@@ -256,7 +256,10 @@ void	Request::validateStartLine(void)
 {
 	_location = getLoc();
 	if (_location == NULL)
+	{
+		std::cout << "HERE!!!" << std::endl;
 		throw ErrorException(404, "Not Found");
+	}
 	//need to get location;
 	if (_version != "HTTP/1.1")
 		throw ErrorException(505, "Http Version Not Supported");
@@ -514,13 +517,14 @@ std::string Request::getURI()
 		return _location->redir.second;
 	}
 	_errorCode = 200;
-	if (_uri.find(_location->getRoot()) == std::string::npos)
+	if (_scriptPath.find(_location->getRoot()) == std::string::npos)
 	{
-		fullPath = _location->getRoot() + _uri;
+		std::cout << "HEEEEEE:" << std::endl;
+		fullPath = _location->getRoot() + _scriptPath;
 	}
 	else
 	{
-		fullPath = _uri;
+		fullPath = _scriptPath;
 	}
 	for(size_t i = 0; i < fullPath.length() - 1; i++)
 	{
@@ -612,7 +616,7 @@ bool  Request::checkCGI()
 	{
 		_cgi = true;
 		_uriCGI = getURI();
-		// std::cout << "CGI_PPPP: " << _uriCGI << std::endl; 
+		std::cout << "CGI_PPPP: " << _uriCGI << std::endl; 
 		getUriEncodedBody();//need to code
 		_headers.insert(std::pair<std::string, std::string>("QUERY_STRING", _queryString));
 		_headers.insert(std::pair<std::string, std::string>("REQUEST_METHOD", _method));
