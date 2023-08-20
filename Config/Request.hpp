@@ -653,7 +653,8 @@ void Request::print()
 	std::cout << "QueryString: " << getQueryString() << "\n" << "\n";
 
 	std::cout << "Body: " << getBody() << "\n" << "\n";
-	std::cout << "Location Path: " << _location->getPath() << "\n" << "\n";
+	if (_location != NULL)
+		std::cout << "Location Path: " << _location->getPath() << "\n" << "\n";
 
 	HeaderMap tmp = getHeaders();
 	std::cout << "Headers: " << getBody() << "\n" << "\n";
