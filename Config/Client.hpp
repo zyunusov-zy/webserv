@@ -5,7 +5,9 @@
 #include <map>
 #include <string>
 #include "Request.hpp"
+#include "Response.hpp"
 #include "ErrorCodes.hpp"
+
 
 class Client
 {
@@ -23,9 +25,10 @@ private:
 	bool _toServe;
 	std::string _clienIP;
 	t_serv _serv;
-
-
 	void parseEnvVar();
+	
+	Response _resp;
+
 public:
 	bool readRequest();
 	Client(int new_socket, char *clien_ip,  t_serv s);
@@ -36,8 +39,14 @@ public:
 	std::string	getClienIP();
 	Request getReq();
 	bool getQuer();
+	Response getResp();
 
 };
+
+Response Client::getResp()
+{
+	return (_resp);
+}
 
 bool Client::getQuer()
 {

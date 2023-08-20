@@ -98,28 +98,28 @@ void Server::sendHTMLResponse(int fd, std::string filepath)
         std::cerr << "Failed to open " << filepath << std::endl;
     }
 
-    std::string suffix = filepath.substr(filepath.rfind(".") + 1);
-    if (suffix == "html")
+    std::string extention = filepath.substr(filepath.rfind(".") + 1);
+    if (extention == "html")
         content_type = "text/html";
-    else if (suffix == "css")
+    else if (extention == "css")
         content_type = "text/css";
-    else if (suffix == "txt")
+    else if (extention == "txt")
         content_type = "text/plain";
-    else if (suffix == "ico")
+    else if (extention == "ico")
         content_type = "image/x-icon";
-    else if (suffix == "jpg" || suffix == "jpeg")
+    else if (extention == "jpg" || extention == "jpeg")
         content_type = "image/jpeg";
-    else if (suffix == "png")
+    else if (extention == "png")
         content_type = "image/png";
-    else if (suffix == "gif")
+    else if (extention == "gif")
         content_type = "image/gif";
-    else if (suffix == "pdf")
+    else if (extention == "pdf")
         content_type = "application/pdf";
-    else if (suffix == "mp3")
+    else if (extention == "mp3")
         content_type = "audio/mpeg";
-    else if (suffix == "mp4")
+    else if (extention == "mp4")
         content_type = "audio/mpeg";
-    else if (suffix == "avi")
+    else if (extention == "avi")
         content_type = "video/x-msvideo";
     else
         content_type = "application/octet-stream";
@@ -134,17 +134,6 @@ void Server::sendHTMLResponse(int fd, std::string filepath)
 
 
     send(fd, buff, strlen(buff), 0);
-
-    // Send the content of the HTML file to the client using send
-    // while (file.good()) {
-    //     file.read(buff, sizeof(buff));
-    //     int bytesRead = file.gcount();
-    //     if (bytesRead > 0) {
-    //         send(fd, buff, bytesRead, 0);
-    //     }
-    // }
-
-    // int bytesRead = file.gcount();
 
     while (file.good())
     {
@@ -162,7 +151,7 @@ void Server::sendHTMLResponse(int fd, std::string filepath)
             // No more data to send
             break;
         }
-        std::cerr << "\n in the loop\n" << std::endl;
+        // std::cerr << "\n in the loop\n" << std::endl;
 
     }
 
@@ -178,7 +167,9 @@ void Server::launchCgi(class Client client, int fd)
 
     std::cerr << "\n\n ***** in CGI   \n";
 
-    const char* out_filename = "output_file";
+    std::string string_filename = "output_file" + client.getClienIP();
+    const char* out_filename = string_filename.c_str();
+
     int outfile = open(out_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
     if (outfile == -1) {
         std::cerr << "cgi: Error opening the outfile.\n";
@@ -212,17 +203,9 @@ void Server::launchCgi(class Client client, int fd)
 			dup2(infile, STDIN_FILENO);
 			close(infile);
 		}
-        // dup2(infile, STDIN_FILENO);
-        // close(infile);
 
         char* script_path = (char*)(client.getReq().getUriCGI().c_str());
-        // const char* path_to_script = "/Users/cgreenpo/our_webserv/Config/cgi-bin/script.py";
         const char* path_to_py = "/usr/local/bin/python3";
-
-    
-
-
-        // const char* path_to_script = "/Users/cgreenpo/our_webserv/Config/cgi-bin/script";
         char* _args[] = {const_cast<char*>(path_to_py), const_cast<char*>(script_path), nullptr};
 
         dup2(pipe_d[READ_END], STDIN_FILENO);
@@ -244,9 +227,11 @@ void Server::launchCgi(class Client client, int fd)
         std::cerr << "cgi: error with process handling\n";
     }
 
+
+    client.getResp().setFilename(string_filename);
     char header[200];
 
-    std::ifstream outFileStream("output_file");
+    std::ifstream outFileStream(out_filename);
     if (!outFileStream) {
         std::cerr << "Failed to open output file for reading." << std::endl;
     }
@@ -264,20 +249,12 @@ void Server::launchCgi(class Client client, int fd)
 
     outFileStream.close();
     remove(out_filename);
-
-    remove(out_filename);
     close(fd); // Close the client socket
 }
 
 void Server::setUp()
 {
-    // std::cout << _conf.servers[0].host << std::endl;
     std::vector<int> port_numbers;
-    // port_numbers.push_back(9999);
-    // port_numbers.push_back(9998);
-    // port_numbers.push_back(9997);
-    // port_numbers.push_back((int)_conf.servers[0].port[0]);
-
 	std::map<int, int> fd_to_port;
 	std::map<int, t_serv*> port_to_serv;
 
@@ -392,7 +369,8 @@ void Server::setUp()
         {
             int fd = pollfds[i].fd;
 
-            if (pollfds[i].revents & POLLIN) {
+            if (pollfds[i].revents & POLLIN) 
+            {
                 // int fd = pollfds[i].fd;
 
                 // // Handle incoming data from the client
@@ -421,10 +399,6 @@ void Server::setUp()
                     exit(1);// need to change
                 }
 
-
-                // std::cout << "HERE11111" << std::endl;
-                // std::cout << "File descriptor: " << pollfds[i].fd << std::endl;
-                // std::cout << _conf.servers[0].host << std::endl;
                 std::cout << "HEL YEAH!" << std::endl;
                 int listnfd_tmp = conn_to_listen[pollfds[i].fd];
 
@@ -433,7 +407,6 @@ void Server::setUp()
                 if (serv_tmp)
                 {
                     Client cl(pollfds[i].fd, client_ip, *serv_tmp);
-                    // exit(0);
                     try
                     {
                         cl.readRequest();
@@ -450,6 +423,8 @@ void Server::setUp()
                         sendHTMLResponse(fd, cl.getReq().getResource());
 
                     }
+
+                    // cl.getResp().sendResponse();
                 }
                 
 
