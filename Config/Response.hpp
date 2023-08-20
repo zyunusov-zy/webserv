@@ -18,7 +18,7 @@ public:
     void setBody(const std::string& body);
 	void assembleHeader();
 	void setFilename(std::string &name);
-	void sendResponse();
+	void sendResponse(std::string content_type);
 	void setFd(int fd);
 
 
@@ -57,10 +57,21 @@ Response::Response()
 
 }
 
-void Response::sendResponse() 
+int calculateContentLength(std::ifstream& file) {
+        file.seekg(0, std::ios::end);
+        int length = static_cast<int>(file.tellg());
+        file.seekg(0, std::ios::beg);
+        return length;
+    }
+
+void Response::sendResponse(std::string content_type) 
 {
 
 	std::ifstream file(_filename.c_str());
+
+    if (!file.is_open()) {
+    std::cerr << "Failed to open " << _filename << std::endl;
+    }
     std::cerr << "\n in response" << _filename << "\n";
 
 	char buff[BUFF_SIZE];
@@ -80,9 +91,16 @@ void Response::sendResponse()
     //     output += line + "\n";
     // }
 
-    snprintf(header, sizeof(header), "HTTP/1.0 200 OK\r\nContent-Type: %s\r\n\r\n", "text/html");
+    // snprintf(header, sizeof(header), "HTTP/1.0 200 OK\r\nContent-Type: %s\r\n\r\n", "text/html");
+    snprintf(buff, sizeof(buff), "HTTP/1.1 200 OK\r\n"
+                                         "Content-Type: %s\r\n"
+                                         "Content-Length: %d\r\n"
+                                         "Connection: keep-alive\r\n"
+                                         "\r\n", content_type.c_str(), calculateContentLength(file));
+    send(_target_fd, buff, strlen(buff), 0);
 
-    send(_target_fd, header, strlen(header), 0);
+    
+    // send(_target_fd, header, strlen(header), 0);
     // send(_target_fd, output.c_str(), output.size(), 0);
 
     // outFileStream.close();

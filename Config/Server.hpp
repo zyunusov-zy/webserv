@@ -44,7 +44,7 @@ public:
 	void conf(std::string filename);
 	void setUp();
 	void launchCgi(Client cl, int fd);
-    void sendHTMLResponse(int fd, std::string filepath);
+    void sendHTMLResponse(class Client client, int fd, std::string filepath);
 
 
 };
@@ -75,14 +75,14 @@ std::string Server::readFile(const std::string & filename)
 #define WRITE_END 1
 #define READ_END 0
 
-int calculateContentLength(std::ifstream& file) {
-        file.seekg(0, std::ios::end);
-        int length = static_cast<int>(file.tellg());
-        file.seekg(0, std::ios::beg);
-        return length;
-    }
+// int calculateContentLength(std::ifstream& file) {
+//         file.seekg(0, std::ios::end);
+//         int length = static_cast<int>(file.tellg());
+//         file.seekg(0, std::ios::beg);
+//         return length;
+//     }
 
-void Server::sendHTMLResponse(int fd, std::string filepath) 
+void Server::sendHTMLResponse(class Client client, int fd, std::string filepath) 
 {
     char buff[8192];
     char head[300];
@@ -126,34 +126,38 @@ void Server::sendHTMLResponse(int fd, std::string filepath)
 
     // snprintf(head, sizeof(head), "HTTP/1.0 200 OK\r\nContent-Type: %s\r\n\r\n", "text/html");
 
-    snprintf(buff, sizeof(buff), "HTTP/1.1 200 OK\r\n"
-                                         "Content-Type: %s\r\n"
-                                         "Content-Length: %d\r\n"
-                                         "Connection: keep-alive\r\n"
-                                         "\r\n", content_type.c_str(), calculateContentLength(file));
+    // snprintf(buff, sizeof(buff), "HTTP/1.1 200 OK\r\n"
+    //                                      "Content-Type: %s\r\n"
+    //                                      "Content-Length: %d\r\n"
+    //                                      "Connection: keep-alive\r\n"
+    //                                      "\r\n", content_type.c_str(), calculateContentLength(file));
 
 
-    send(fd, buff, strlen(buff), 0);
+    // send(fd, buff, strlen(buff), 0);
 
-    while (file.good())
-    {
-        file.read(buff, sizeof(buff));
-        int bytesRead = file.gcount();
-        if (bytesRead > 0) {
-            int bytesSent = send(fd, buff, bytesRead, 0);
-            if (bytesSent < 0) {
-                std::cerr << "Send error" << std::endl;
-                break;
-            }
-        }
-        else 
-        {
-            // No more data to send
-            break;
-        }
-        // std::cerr << "\n in the loop\n" << std::endl;
+    client.getResp().setFilename(filepath);
+    client.getResp().setFd(fd);
+    client.getResp().sendResponse(content_type);
 
-    }
+    // while (file.good())
+    // {
+    //     file.read(buff, sizeof(buff));
+    //     int bytesRead = file.gcount();
+    //     if (bytesRead > 0) {
+    //         int bytesSent = send(fd, buff, bytesRead, 0);
+    //         if (bytesSent < 0) {
+    //             std::cerr << "Send error" << std::endl;
+    //             break;
+    //         }
+    //     }
+    //     else 
+    //     {
+    //         // No more data to send
+    //         break;
+    //     }
+    //     // std::cerr << "\n in the loop\n" << std::endl;
+
+    // }
 
     file.close();
     std::cerr << "\n after file closing\n" << std::endl;
@@ -238,7 +242,7 @@ void Server::launchCgi(class Client client, int fd)
 
     client.getResp().setFilename(string_filename);
     client.getResp().setFd(fd);
-    client.getResp().sendResponse();
+    client.getResp().sendResponse("text/html");
 
     // char header[200];
 
@@ -436,7 +440,7 @@ void Server::setUp()
                     }
                     else
                     {
-                        sendHTMLResponse(fd, cl.getReq().getResource());
+                        sendHTMLResponse(cl, fd, cl.getReq().getResource());
 
                     }
 
