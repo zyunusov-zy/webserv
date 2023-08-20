@@ -35,7 +35,14 @@ public:
 	char **get_env();
 	std::string	getClienIP();
 	Request getReq();
+	bool getQuer();
+
 };
+
+bool Client::getQuer()
+{
+	return (_quer);
+}
 
 Request Client::getReq()
 {

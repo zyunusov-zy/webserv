@@ -92,7 +92,7 @@ void Server::sendHTMLResponse(int fd, std::string filepath)
       std::cout << " \n In file returning \n";
 
 
-    filepath = "/Users/cgreenpo/our_webserv" + filepath;
+    // filepath = "/Users/cgreenpo/our_webserv" + filepath;
     std::ifstream file(filepath);
     if (!file.is_open()) {
         std::cerr << "Failed to open " << filepath << std::endl;
@@ -202,11 +202,18 @@ void Server::launchCgi(class Client client, int fd)
     }
 
     if (cgi_pid == 0) {
+
+
         dup2(outfile, STDOUT_FILENO);
         close(outfile);
 
-        dup2(infile, STDIN_FILENO);
-        close(infile);
+		if(client.getQuer() == false)
+		{
+			dup2(infile, STDIN_FILENO);
+			close(infile);
+		}
+        // dup2(infile, STDIN_FILENO);
+        // close(infile);
 
         char* script_path = (char*)(client.getReq().getUriCGI().c_str());
         // const char* path_to_script = "/Users/cgreenpo/our_webserv/Config/cgi-bin/script.py";
