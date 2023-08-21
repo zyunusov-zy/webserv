@@ -22,9 +22,9 @@ int main(int argc, char** av)
 		// serv.conf(av[1], servers);
 		Server serv;
 
-		exit(1);
+		// exit(1);
 
-		// serv.setUp(servers);
+		serv.setUp(servers);
 	}
 	else
 	{

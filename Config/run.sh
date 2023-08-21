@@ -1,1 +1,1 @@
-c++  main.cpp Server.cpp Config.cpp Location.cpp ErrorCodes.cpp -o server 
+c++  main.cpp Client.cpp Server.cpp Config.cpp Location.cpp ErrorCodes.cpp Request.cpp Response.cpp -o server 

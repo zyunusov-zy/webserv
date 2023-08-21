@@ -22,20 +22,13 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-// #include "Client.hpp"
+#include "Client.hpp"
 // #include "Config.hpp"
 #include "mainIn.hpp"
-// #include "Request.hpp"
+#include "Request.hpp"
 // #include "Response.hpp"
 
-typedef struct s_serv
-{
-	std::string								name;
-	std::string 							host;
-	std::vector<int>						port;
-	std::map<int, std::string>				errorPages;
-	std::multimap<std::string, Location>			loc;
-}	t_serv;
+
 
 
 
@@ -51,9 +44,9 @@ public:
 	~Server();
 
 	// void conf(std::string filename,std::vector<t_serv>& servers);
-	// void setUp(std::vector<t_serv>& s);
-	// void launchCgi(Client cl, int fd);
-    // void sendHTMLResponse(class Client client, int fd, std::string filepath);
+	void setUp(std::vector<t_serv>& s);
+	void launchCgi(Client client, int fd);
+    void sendHTMLResponse(Client client, int fd, std::string filepath);
 
 };
 

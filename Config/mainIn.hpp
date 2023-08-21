@@ -23,9 +23,19 @@
 // #include "Server.hpp"
 // #include "Request.hpp"
 // #include "Client.hpp"
-// #include "Response.hpp"
+#include "Response.hpp"
 #include "ErrorCodes.hpp"
 #include "Location.hpp"
 // #include "Config.hpp"
+
+
+typedef struct s_serv
+{
+	std::string								name;
+	std::string 							host;
+	std::vector<int>						port;
+	std::map<int, std::string>				errorPages;
+	std::multimap<std::string, Location>			loc;
+}	t_serv;
 
 #endif

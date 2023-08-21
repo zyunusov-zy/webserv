@@ -8,7 +8,7 @@
 // #include <cstring>
 // #include <fstream>
 // #include "Config.hpp"
-#include "Server.hpp"
+#include "mainIn.hpp"
 // #include "ErrorCodes.hpp"
 // #include "Location.hpp"
 
@@ -16,7 +16,8 @@
 
 typedef std::map<std::string, std::string> HeaderMap;
 
-// class Config;
+struct Location;
+
 
 class Request 
 {
