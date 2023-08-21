@@ -1,0 +1,85 @@
+In file included from Server.hpp:25,
+                 from main.cpp:1:
+Config.hpp:25:29: error: ‘Location’ was not declared in this scope
+   25 |  std::multimap<std::string, Location>   loc;
+      |                             ^~~~~~~~
+Config.hpp:25:37: error: template argument 2 is invalid
+   25 |  std::multimap<std::string, Location>   loc;
+      |                                     ^
+Config.hpp:25:37: error: template argument 4 is invalid
+In file included from Server.hpp:25,
+                 from Server.cpp:1:
+Config.hpp:25:29: error: ‘Location’ was not declared in this scope
+   25 |  std::multimap<std::string, Location>   loc;
+      |                             ^~~~~~~~
+Config.hpp:25:37: error: template argument 2 is invalid
+   25 |  std::multimap<std::string, Location>   loc;
+      |                                     ^
+Config.hpp:25:37: error: template argument 4 is invalid
+Server.cpp:29:44: error: ‘client’ has incomplete type
+   29 | void Server::sendHTMLResponse(class Client client, int fd, std::string filepath)
+      |                               ~~~~~~~~~~~~~^~~~~~
+In file included from Server.cpp:1:
+Server.hpp:46:33: note: forward declaration of ‘class Client’
+   46 |     void sendHTMLResponse(class Client client, int fd, std::string filepath);
+      |                                 ^~~~~~
+Server.cpp:78:29: error: ‘client’ has incomplete type
+   78 | void launchCgi(class Client client, int fd)
+      |                ~~~~~~~~~~~~~^~~~~~
+In file included from Server.cpp:1:
+Server.hpp:46:33: note: forward declaration of ‘class Client’
+   46 |     void sendHTMLResponse(class Client client, int fd, std::string filepath);
+      |                                 ^~~~~~
+Server.cpp:149:23: error: found ‘:’ in nested-name-specifier, expected ‘::’
+  149 | void Server::setUp(std:vector<t_serv>& s)
+      |                       ^
+      |                       ::
+Server.cpp: In member function ‘void Server::setUp(std::vector<s_serv>&)’:
+Server.cpp:166:81: error: ‘class Config’ has no member named ‘servers’
+  166 |             port_to_serv.insert(std::make_pair((int)servers[i].port[j], &(_conf.servers[i])));
+      |                                                                                 ^~~~~~~
+Server.cpp:279:31: error: variable ‘Client cl’ has initializer but incomplete type
+  279 |                     Client cl(pollfds[i].fd, client_ip, *serv_tmp);
+      |                               ^~~~~~~
+In file included from Config.hpp:11,
+                 from Config.cpp:1:
+Server.hpp:35:2: error: ‘Config’ does not name a type
+   35 |  Config _conf;
+      |  ^~~~~~
+Server.hpp:37:14: error: ‘t_serv’ was not declared in this scope
+   37 |  std::vector<t_serv> servers;
+      |              ^~~~~~
+Server.hpp:37:20: error: template argument 1 is invalid
+   37 |  std::vector<t_serv> servers;
+      |                    ^
+Server.hpp:37:20: error: template argument 2 is invalid
+Server.hpp:43:45: error: ‘t_serv’ was not declared in this scope
+   43 |  void conf(std::string filename,std::vector<t_serv>& servers);
+      |                                             ^~~~~~
+Server.hpp:43:51: error: template argument 1 is invalid
+   43 |  void conf(std::string filename,std::vector<t_serv>& servers);
+      |                                                   ^
+Server.hpp:43:51: error: template argument 2 is invalid
+Server.hpp:44:25: error: ‘t_serv’ was not declared in this scope
+   44 |  void setUp(std::vector<t_serv>& s);
+      |                         ^~~~~~
+Server.hpp:44:31: error: template argument 1 is invalid
+   44 |  void setUp(std::vector<t_serv>& s);
+      |                               ^
+Server.hpp:44:31: error: template argument 2 is invalid
+In file included from Server.hpp:25,
+                 from Location.hpp:5,
+                 from Location.cpp:1:
+Config.hpp:25:29: error: ‘Location’ was not declared in this scope
+   25 |  std::multimap<std::string, Location>   loc;
+      |                             ^~~~~~~~
+Config.hpp:25:37: error: template argument 2 is invalid
+   25 |  std::multimap<std::string, Location>   loc;
+      |                                     ^
+Config.hpp:25:37: error: template argument 4 is invalid
+Location.cpp:3:30: error: definition of implicitly-declared ‘Location::Location()’
+    3 | Location::Location(/* args */)
+      |                              ^
+Location.cpp:15:21: error: definition of implicitly-declared ‘Location::~Location()’
+   15 | Location::~Location()
+      |                     ^

@@ -1,0 +1,224 @@
+In file included from Server.hpp:24,
+                 from main.cpp:1:
+Client.hpp:18:10: error: field ‘_req’ has incomplete type ‘Request’
+   18 |  Request _req;
+      |          ^~~~
+Client.hpp:13:7: note: forward declaration of ‘class Request’
+   13 | class Request;
+      |       ^~~~~~~
+Client.hpp:30:2: error: ‘t_serv’ does not name a type
+   30 |  t_serv _serv;
+      |  ^~~~~~
+Client.hpp:33:2: error: ‘Response’ does not name a type
+   33 |  Response _resp;
+      |  ^~~~~~~~
+Client.hpp:37:42: error: ‘t_serv’ has not been declared
+   37 |  Client(int new_socket, char *clien_ip,  t_serv s);
+      |                                          ^~~~~~
+Client.hpp:45:2: error: ‘Response’ does not name a type
+   45 |  Response &getResp();
+      |  ^~~~~~~~
+In file included from Server.hpp:25,
+                 from main.cpp:1:
+Config.hpp:25:29: error: ‘Location’ was not declared in this scope
+   25 |  std::multimap<std::string, Location>   loc;
+      |                             ^~~~~~~~
+Config.hpp:25:37: error: template argument 2 is invalid
+   25 |  std::multimap<std::string, Location>   loc;
+      |                                     ^
+Config.hpp:25:37: error: template argument 4 is invalid
+In file included from Server.hpp:24,
+                 from Server.cpp:1:
+Client.hpp:18:10: error: field ‘_req’ has incomplete type ‘Request’
+   18 |  Request _req;
+      |          ^~~~
+Client.hpp:13:7: note: forward declaration of ‘class Request’
+   13 | class Request;
+      |       ^~~~~~~
+Client.hpp:30:2: error: ‘t_serv’ does not name a type
+   30 |  t_serv _serv;
+      |  ^~~~~~
+Client.hpp:33:2: error: ‘Response’ does not name a type
+   33 |  Response _resp;
+      |  ^~~~~~~~
+Client.hpp:37:42: error: ‘t_serv’ has not been declared
+   37 |  Client(int new_socket, char *clien_ip,  t_serv s);
+      |                                          ^~~~~~
+Client.hpp:45:2: error: ‘Response’ does not name a type
+   45 |  Response &getResp();
+      |  ^~~~~~~~
+In file included from Server.hpp:25,
+                 from Server.cpp:1:
+Config.hpp:25:29: error: ‘Location’ was not declared in this scope
+   25 |  std::multimap<std::string, Location>   loc;
+      |                             ^~~~~~~~
+Config.hpp:25:37: error: template argument 2 is invalid
+   25 |  std::multimap<std::string, Location>   loc;
+      |                                     ^
+Config.hpp:25:37: error: template argument 4 is invalid
+Server.cpp: In member function ‘void Server::sendHTMLResponse(Client, int, std::string)’:
+Server.cpp:68:12: error: ‘class Client’ has no member named ‘getResp’; did you mean ‘getReq’?
+   68 |     client.getResp().setFilename(filepath);
+      |            ^~~~~~~
+      |            getReq
+Server.cpp:69:12: error: ‘class Client’ has no member named ‘getResp’; did you mean ‘getReq’?
+   69 |     client.getResp().setFd(fd);
+      |            ^~~~~~~
+      |            getReq
+Server.cpp:70:12: error: ‘class Client’ has no member named ‘getResp’; did you mean ‘getReq’?
+   70 |     client.getResp().sendResponse(content_type);
+      |            ^~~~~~~
+      |            getReq
+Server.cpp: In function ‘void launchCgi(Client, int)’:
+Server.cpp:140:12: error: ‘class Client’ has no member named ‘getResp’; did you mean ‘getReq’?
+  140 |     client.getResp().setFilename(string_filename);
+      |            ^~~~~~~
+      |            getReq
+Server.cpp:141:12: error: ‘class Client’ has no member named ‘getResp’; did you mean ‘getReq’?
+  141 |     client.getResp().setFd(fd);
+      |            ^~~~~~~
+      |            getReq
+Server.cpp:142:12: error: ‘class Client’ has no member named ‘getResp’; did you mean ‘getReq’?
+  142 |     client.getResp().sendResponse("text/html");
+      |            ^~~~~~~
+      |            getReq
+Server.cpp: At global scope:
+Server.cpp:149:23: error: found ‘:’ in nested-name-specifier, expected ‘::’
+  149 | void Server::setUp(std:vector<t_serv>& s)
+      |                       ^
+      |                       ::
+Server.cpp: In member function ‘void Server::setUp(std::vector<s_serv>&)’:
+Server.cpp:166:81: error: ‘class Config’ has no member named ‘servers’
+  166 |             port_to_serv.insert(std::make_pair((int)servers[i].port[j], &(_conf.servers[i])));
+      |                                                                                 ^~~~~~~
+Server.cpp:279:66: error: no matching function for call to ‘Client::Client(int&, char [16], t_serv&)’
+  279 |                     Client cl(pollfds[i].fd, client_ip, *serv_tmp);
+      |                                                                  ^
+In file included from Server.hpp:24,
+                 from Server.cpp:1:
+Client.hpp:37:2: note: candidate: ‘Client::Client(int, char*, int)’
+   37 |  Client(int new_socket, char *clien_ip,  t_serv s);
+      |  ^~~~~~
+Client.hpp:37:49: note:   no known conversion for argument 3 from ‘t_serv’ {aka ‘s_serv’} to ‘int’
+   37 |  Client(int new_socket, char *clien_ip,  t_serv s);
+      |                                          ~~~~~~~^
+Client.hpp:15:7: note: candidate: ‘Client::Client(const Client&)’
+   15 | class Client
+      |       ^~~~~~
+Client.hpp:15:7: note:   candidate expects 1 argument, 3 provided
+In file included from Server.hpp:24,
+                 from Config.hpp:11,
+                 from Config.cpp:1:
+Client.hpp:18:10: error: field ‘_req’ has incomplete type ‘Request’
+   18 |  Request _req;
+      |          ^~~~
+Client.hpp:13:7: note: forward declaration of ‘class Request’
+   13 | class Request;
+      |       ^~~~~~~
+Client.hpp:30:2: error: ‘t_serv’ does not name a type
+   30 |  t_serv _serv;
+      |  ^~~~~~
+Client.hpp:33:2: error: ‘Response’ does not name a type
+   33 |  Response _resp;
+      |  ^~~~~~~~
+Client.hpp:37:42: error: ‘t_serv’ has not been declared
+   37 |  Client(int new_socket, char *clien_ip,  t_serv s);
+      |                                          ^~~~~~
+Client.hpp:45:2: error: ‘Response’ does not name a type
+   45 |  Response &getResp();
+      |  ^~~~~~~~
+In file included from Server.hpp:28,
+                 from Config.hpp:11,
+                 from Config.cpp:1:
+Request.hpp:29:3: error: ‘t_serv’ does not name a type
+   29 |   t_serv serv;
+      |   ^~~~~~
+Request.hpp:77:3: error: ‘t_serv’ does not name a type
+   77 |   t_serv getServ();
+      |   ^~~~~~
+In file included from Config.hpp:11,
+                 from Config.cpp:1:
+Server.hpp:35:2: error: ‘Config’ does not name a type
+   35 |  Config _conf;
+      |  ^~~~~~
+Server.hpp:37:14: error: ‘t_serv’ was not declared in this scope
+   37 |  std::vector<t_serv> servers;
+      |              ^~~~~~
+Server.hpp:37:20: error: template argument 1 is invalid
+   37 |  std::vector<t_serv> servers;
+      |                    ^
+Server.hpp:37:20: error: template argument 2 is invalid
+Server.hpp:43:45: error: ‘t_serv’ was not declared in this scope
+   43 |  void conf(std::string filename,std::vector<t_serv>& servers);
+      |                                             ^~~~~~
+Server.hpp:43:51: error: template argument 1 is invalid
+   43 |  void conf(std::string filename,std::vector<t_serv>& servers);
+      |                                                   ^
+Server.hpp:43:51: error: template argument 2 is invalid
+Server.hpp:44:25: error: ‘t_serv’ was not declared in this scope
+   44 |  void setUp(std::vector<t_serv>& s);
+      |                         ^~~~~~
+Server.hpp:44:31: error: template argument 1 is invalid
+   44 |  void setUp(std::vector<t_serv>& s);
+      |                               ^
+Server.hpp:44:31: error: template argument 2 is invalid
+In file included from Server.hpp:24,
+                 from Location.hpp:5,
+                 from Location.cpp:1:
+Client.hpp:18:10: error: field ‘_req’ has incomplete type ‘Request’
+   18 |  Request _req;
+      |          ^~~~
+Client.hpp:13:7: note: forward declaration of ‘class Request’
+   13 | class Request;
+      |       ^~~~~~~
+Client.hpp:30:2: error: ‘t_serv’ does not name a type
+   30 |  t_serv _serv;
+      |  ^~~~~~
+Client.hpp:33:2: error: ‘Response’ does not name a type
+   33 |  Response _resp;
+      |  ^~~~~~~~
+Client.hpp:37:42: error: ‘t_serv’ has not been declared
+   37 |  Client(int new_socket, char *clien_ip,  t_serv s);
+      |                                          ^~~~~~
+Client.hpp:45:2: error: ‘Response’ does not name a type
+   45 |  Response &getResp();
+      |  ^~~~~~~~
+In file included from Server.hpp:25,
+                 from Location.hpp:5,
+                 from Location.cpp:1:
+Config.hpp:25:29: error: ‘Location’ was not declared in this scope
+   25 |  std::multimap<std::string, Location>   loc;
+      |                             ^~~~~~~~
+Config.hpp:25:37: error: template argument 2 is invalid
+   25 |  std::multimap<std::string, Location>   loc;
+      |                                     ^
+Config.hpp:25:37: error: template argument 4 is invalid
+In file included from Server.hpp:28,
+                 from Location.hpp:5,
+                 from Location.cpp:1:
+Request.hpp:38:30: error: ‘Location’ was not declared in this scope
+   38 |   std::multimap<std::string, Location> &_locationMap;
+      |                              ^~~~~~~~
+Request.hpp:38:38: error: template argument 2 is invalid
+   38 |   std::multimap<std::string, Location> &_locationMap;
+      |                                      ^
+Request.hpp:38:38: error: template argument 4 is invalid
+Request.hpp:39:3: error: ‘Location’ does not name a type
+   39 |   Location *_location;
+      |   ^~~~~~~~
+Request.hpp:54:3: error: ‘Location’ does not name a type
+   54 |   Location *getLoc();
+      |   ^~~~~~~~
+Request.hpp:65:38: error: ‘Location’ was not declared in this scope
+   65 |   Request(std::multimap<std::string, Location> &l);
+      |                                      ^~~~~~~~
+Request.hpp:65:46: error: template argument 2 is invalid
+   65 |   Request(std::multimap<std::string, Location> &l);
+      |                                              ^
+Request.hpp:65:46: error: template argument 4 is invalid
+Location.cpp:3:30: error: definition of implicitly-declared ‘Location::Location()’
+    3 | Location::Location(/* args */)
+      |                              ^
+Location.cpp:15:21: error: definition of implicitly-declared ‘Location::~Location()’
+   15 | Location::~Location()
+      |                     ^

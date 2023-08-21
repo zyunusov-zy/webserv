@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include "Config.hpp"
 #include <unistd.h>
 #include <cstdlib>
 #include <iostream>
@@ -14,10 +15,16 @@ int main(int argc, char** av)
 {
 	if (argc == 2)
 	{
-		class Server serv;
-		serv.conf(av[1]);
-		serv.setUp();
+		Config _conf;
+		std::vector<t_serv> servers;
+		_conf.parse(av[1], servers);
+		// std::cout << "EEEEE" << servers[1].host << std::endl;
+		// serv.conf(av[1], servers);
+		Server serv;
+
 		exit(1);
+
+		// serv.setUp(servers);
 	}
 	else
 	{

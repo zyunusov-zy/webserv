@@ -1,6 +1,7 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
+#include "mainIn.hpp"
 #include <iostream>
 // to set up a server
 #include <sys/types.h>
@@ -11,12 +12,7 @@
 #include <sstream>
 #include <fstream>
 #include <arpa/inet.h>
-// #include "Request.hpp"
-#include "Client.hpp"
-#include "Config.hpp"
-#include "ErrorCodes.hpp"
 #include <sys/wait.h>
-
 #include <cstdlib>
 #include <vector>
 #include <map>
@@ -26,39 +22,55 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
+// #include "Client.hpp"
+// #include "Config.hpp"
+#include "mainIn.hpp"
+// #include "Request.hpp"
+// #include "Response.hpp"
+
+typedef struct s_serv
+{
+	std::string								name;
+	std::string 							host;
+	std::vector<int>						port;
+	std::map<int, std::string>				errorPages;
+	std::multimap<std::string, Location>			loc;
+}	t_serv;
+
 
 
 class Server
 {
 private:
-	Config  _conf;
+	// Config _conf;
 	std::string readFile(const std::string & filename);
+	std::vector<t_serv> servers;
 
 public:
 	Server();
 	~Server();
 
-	void conf(std::string filename);
-	void setUp();
+	// void conf(std::string filename,std::vector<t_serv>& servers);
+	// void setUp(std::vector<t_serv>& s);
 	// void launchCgi(Client cl, int fd);
-    void sendHTMLResponse(class Client client, int fd, std::string filepath);
+    // void sendHTMLResponse(class Client client, int fd, std::string filepath);
 
 };
 
-Server::Server()
-{
-}
+// Server::Server()
+// {
+// }
 
-void Server::conf(std::string filename)
-{
-	_conf.parse(filename);
-	// exit(1);
+// void Server::conf(std::string filename)
+// {
+// 	_conf.parse(filename);
+// 	// exit(1);
 	
-}
+// }
 
-Server::~Server()
-{
-}
+// Server::~Server()
+// {
+// }
 
 // std::string Server::readFile(const std::string & filename)
 // {
