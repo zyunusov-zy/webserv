@@ -45,6 +45,7 @@ class Request
 		int _cgiNum;
 		char **_envCGI;
 		std::string _uriCGI;
+		std::string _scriptPath;
 
 		void	resetRequest();
 		void	saveStartLineHeaders(std::string &data);
@@ -91,7 +92,7 @@ Request::Request(std::multimap<std::string, Location> &l): _q(false), _errorCode
 _cgi(false), _buf(new char[RECV_BUFFER_SIZE + 1]), 
 _parseStat(STARTL), _bodySize(0), _isChunkSize(false),
 _chunkSize(0), _isReqDone(false), _locationMap(l), _cgiNum(0), 
-_envCGI(NULL)
+_envCGI(NULL), _scriptPath("")
 {
 }
 
@@ -156,6 +157,7 @@ void Request::resetRequest()
 	_q = false;
 	_cgi = false;
 	_location = NULL;
+	_scriptPath.clear();
 }
 
 int Request::getErrorCode()
@@ -254,7 +256,10 @@ void	Request::validateStartLine(void)
 {
 	_location = getLoc();
 	if (_location == NULL)
+	{
+		std::cout << "HERE!!!" << std::endl;
 		throw ErrorException(404, "Not Found");
+	}
 	//need to get location;
 	if (_version != "HTTP/1.1")
 		throw ErrorException(505, "Http Version Not Supported");
@@ -512,13 +517,14 @@ std::string Request::getURI()
 		return _location->redir.second;
 	}
 	_errorCode = 200;
-	if (_uri.find(_location->getRoot()) == std::string::npos)
+	if (_scriptPath.find(_location->getRoot()) == std::string::npos)
 	{
-		fullPath = _location->getRoot() + _uri;
+		std::cout << "HEEEEEE:" << std::endl;
+		fullPath = _location->getRoot() + _scriptPath;
 	}
 	else
 	{
-		fullPath = _uri;
+		fullPath = _scriptPath;
 	}
 	for(size_t i = 0; i < fullPath.length() - 1; i++)
 	{
@@ -573,26 +579,25 @@ bool  Request::checkCGI()
 	std::cout << _location->getRoot() << std::endl;
 	std::cout << _location->getCGI().empty() << std::endl;
 	std::string ext = "." + _uri.substr(_uri.find_last_of('.') + 1);
+	std::string _scriptName =  _uri.substr(_uri.find_last_of('/') + 1);
 	std::cout << "EXTENSION: "  << ext << std::endl;
 	std::cout << tmp.empty() << std::endl;
 	for(auto v : tmp)
 	{
 		std::cout << v.first << ": " << v.second << std::endl;
 	}
-	// if (tmp.empty()) {
-    // 	_cgi = false;
-    // 	if (access(_uri.c_str(), F_OK) == 0) {
-    //     	// The file exists but isn't in the CGI map
-    //     	throw ErrorException(500, "Server configuration error: File is present but not configured in CGI map.");
-    // 	}
-	// }
+	if (tmp.empty()) {
+    	_cgi = false;
+        throw ErrorException(500, "Server configuration error: File is present but not configured in CGI map.");
+	}
 	std::multimap<std::string,std::string>::const_iterator i = tmp.begin();
 	for(; i != tmp.end(); i++)
 	{
 		if (ext == i->first)
 		{
-			std::cout <<  "path for script: " <<i->second << "]" << std::endl;
-			int n = access(i->second.c_str(), X_OK);
+			_scriptPath = i->second + _scriptName;
+			std::cout <<  "path for script: " <<_scriptPath << "]" << std::endl;
+			int n = access(_scriptPath.c_str(), X_OK);
 			std::cout << "ACEES: " << n << std::endl;
 			if (n == -1)
 			{
@@ -608,7 +613,7 @@ bool  Request::checkCGI()
 	{
 		_cgi = true;
 		_uriCGI = getURI();
-		// std::cout << "CGI_PPPP: " << _uriCGI << std::endl; 
+		std::cout << "CGI_PPPP: " << _uriCGI << std::endl; 
 		getUriEncodedBody();//need to code
 		_headers.insert(std::pair<std::string, std::string>("QUERY_STRING", _queryString));
 		_headers.insert(std::pair<std::string, std::string>("REQUEST_METHOD", _method));
@@ -648,7 +653,8 @@ void Request::print()
 	std::cout << "QueryString: " << getQueryString() << "\n" << "\n";
 
 	std::cout << "Body: " << getBody() << "\n" << "\n";
-	std::cout << "Location Path: " << _location->getPath() << "\n" << "\n";
+	if (_location != NULL)
+		std::cout << "Location Path: " << _location->getPath() << "\n" << "\n";
 
 	HeaderMap tmp = getHeaders();
 	std::cout << "Headers: " << getBody() << "\n" << "\n";

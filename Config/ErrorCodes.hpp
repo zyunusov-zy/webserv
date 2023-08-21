@@ -64,6 +64,7 @@ void trimBegin(std::string & v)
 
 std::uint8_t isDirOrFile(const char *path)
 {
+	std::cout << "CGI_PPPP: " << path << std::endl; 
 	struct stat s;
 	if (stat(path, &s) == -1)
 		return 0;

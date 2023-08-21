@@ -108,6 +108,8 @@ void Location::setRoot(std::string v)
 		std::cerr << "Check root value of the location:" << this->path << std::endl;
 		exit(1);
 	}
+	if (v[v.length() - 1] != '/')
+		v.push_back('/');
 	this->root = v;
 }
 
@@ -158,11 +160,8 @@ void Location::setCGI(std::string k, std::string v)
 		std::cerr << "Check cgi_path value of the location:" << this->path << std::endl;
 		exit(1);
 	}
-	if (v.find(k) == std::string::npos)
-	{
-		std::cerr << "Check the extension of the scipt example: .py=home/script.py" << std::endl;
-		exit(1);
-	}
+	if (v[v.length() - 1] != '/')
+		v.push_back('/');
 	this->cgi.insert(std::pair<std::string, std::string>(k, v));
 }
 
