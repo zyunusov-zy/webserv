@@ -8,19 +8,18 @@
 #define BUFF_SIZE 8192
 
 
-
 class Response {
 public:
     Response();
 
+	void assembleHeader(); // needs to be created
+
     void setStatus(int statusCode);
     void setHeader(const std::string& key, const std::string& value);
     void setBody(const std::string& body);
-	void assembleHeader();
 	void setFilename(std::string &name);
 	void sendResponse(std::string content_type);
 	void setFd(int fd);
-
 
 private:
 
@@ -78,34 +77,15 @@ void Response::sendResponse(std::string content_type)
 
     char header[400];
 
-    // std::ifstream outFileStream(_filename.c_str());
 
-    // if (!outFileStream) {
-    //     std::cerr << "Failed to open output file for reading." << std::endl;
-    // }
-    // std::cerr << "\n" << 5 << "\n";
-
-    // std::string output;
-    // std::string line;
-    // while (std::getline(outFileStream, line)) {
-    //     output += line + "\n";
-    // }
-
-    // snprintf(header, sizeof(header), "HTTP/1.0 200 OK\r\nContent-Type: %s\r\n\r\n", "text/html");
+//the header needs to be sent as a part of a chunk, 
     snprintf(buff, sizeof(buff), "HTTP/1.1 200 OK\r\n"
                                          "Content-Type: %s\r\n"
                                          "Content-Length: %d\r\n"
                                          "Connection: keep-alive\r\n"
                                          "\r\n", content_type.c_str(), calculateContentLength(file));
-    send(_target_fd, buff, strlen(buff), 0);
-
     
-    // send(_target_fd, header, strlen(header), 0);
-    // send(_target_fd, output.c_str(), output.size(), 0);
-
-    // outFileStream.close();
-    // remove(_filename.c_str);
-    // close(fd); // Close the client socket
+	send(_target_fd, buff, strlen(buff), 0);
 
 
 	while (file.good())
@@ -141,57 +121,6 @@ void Response::setFilename(std::string &name) {
 void Response::setStatus(int statusCode) {
     _statusCode = statusCode;
 }
-
-// void Response::setHeader(const std::string& key, const std::string& value) {
-//     _headers.push_back(std::make_pair(key, value));
-// }
-
-// void Response::setBody(const std::string& body) {
-//     _body = body;
-// }
-
-// std::string Response::toString() const {
-//     std::stringstream response;
-
-//     response << "HTTP/1.0 " << _statusCode << " " << _statusMessage << "\r\n";
-
-//     for (size_t i = 0; i < _headers.size(); ++i) {
-//         response << _headers[i].first << ": " << _headers[i].second << "\r\n";
-//     }
-
-//     response << "\r\n" << _body;
-
-//     return response.str();
-// }
-
-
-
-// void assembleHeader()
-// {
-
-// 	std::ostringstream tmp;
-
-// 	if (BUF_SIZE < content_l)
-// 	{
-// 		additional_info = "Transfer-Encoding: chunked";
-// 		is_chunked = true;
-// 	}
-
-// 	this->setDate();
-// 	tmp << protocoll << " " << status_code << "\r\n";
-// 	tmp << "Server: " << server_name << "\r\n";
-// 	tmp << date << "\r\n";
-// 	if (content_length)
-// 	{
-// 		tmp << "Content-Type: " << content_type << "\r\n";
-// 		tmp << "Content-Length: " << content_length << "\r\n";
-// 	}
-// 	if (!additional_info.empty())
-// 		tmp << additional_info << "\r\n";
-// 	tmp << "\r\n";
-
-// 	_header = tmp.str();
-// }
 
 
 
