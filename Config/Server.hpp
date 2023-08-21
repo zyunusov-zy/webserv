@@ -216,7 +216,6 @@ void Server::launchCgi(class Client client, int fd)
 
         dup2(pipe_d[READ_END], STDIN_FILENO);
         close(pipe_d[READ_END]);
-
         if ((execve(_args[0], _args, client.getReq().getENV())) == -1)
             std::cerr << "\ncgi: error with execution\n";
         // std::cerr << "\n4\n";
