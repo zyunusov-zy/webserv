@@ -15,14 +15,6 @@ Server::~Server()
 {
 }
 
-std::string Server::readFile(const std::string & filename)
-{
-	std::ifstream file(filename.c_str());
-	std::stringstream buf;
-	buf << file.rdbuf();
-	return buf.str();
-}
-
 #define WRITE_END 1
 #define READ_END 0
 
@@ -129,7 +121,7 @@ void Server::launchCgi(Client client, int fd)
     }
 
     close(pipe_d[READ_END]);
-    close(outfile);
+    // close(outfile);
 
     int status;
     pid_t terminatedPid = waitpid(cgi_pid, &status, 0);
