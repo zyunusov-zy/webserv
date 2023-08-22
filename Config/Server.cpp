@@ -25,7 +25,7 @@ void Server::sendHTMLResponse(class Client client, int fd, std::string filepath)
 
     std::string content_type;
     // Read the content of the HTML file
-    std::cout << " \n In file returning \n";
+    std::cout << " \n In html \n";
     std::ifstream file(filepath);
     if (!file.is_open()) {
         std::cerr << "Failed to open " << filepath << std::endl;
