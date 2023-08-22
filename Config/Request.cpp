@@ -157,6 +157,7 @@ void	Request::parseUri(void)
 	if (pos != std::string::npos)
 	{
 		_queryString = _uri.substr(pos + 1);
+		_q = true;
 		_uri.erase(pos);
 	}
 	parsePercent(_uri);
@@ -540,6 +541,7 @@ bool  Request::checkCGI()
 	}
 	else
 	{
+		std::cout << " HERE: " << _uri << std::endl;
 		_cgi = false;
 		_errorCode = 200;
 		if (_uri.find(_location->getRoot()) == std::string::npos)
