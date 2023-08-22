@@ -20,9 +20,6 @@ Server::~Server()
 
 void Server::sendHTMLResponse(class Client client, int fd, std::string filepath) 
 {
-    char buff[8192];
-    char head[300];
-
     std::string content_type;
     // Read the content of the HTML file
     std::cout << " \n In html \n";
