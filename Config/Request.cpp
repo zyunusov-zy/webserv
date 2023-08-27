@@ -427,17 +427,31 @@ std::string Request::getURI()
 	if (_location && _location->redir.second.length())
 	{
 		_errorCode = _location->redir.first;
-		return _location->redir.second;
+		fullPath =  _location->redir.second;
+		if (fullPath.find(_location->getRoot()) == std::string::npos)
+			fullPath = _location->getRoot() + fullPath;
+		return fullPath;
 	}
 	_errorCode = 200;
-	if (_scriptPath.find(_location->getRoot()) == std::string::npos)
+	if (_cgi == true)
 	{
-		std::cout << "HEEEEEE:" << std::endl;
-		fullPath = _location->getRoot() + _scriptPath;
+		if (_scriptPath.find(_location->getRoot()) == std::string::npos)
+		{
+			std::cout << "HEEEEEE:" << std::endl;
+			fullPath = _location->getRoot() + _scriptPath;
+		}
+		else
+		{
+			fullPath = _scriptPath;
+		}
 	}
 	else
 	{
-		fullPath = _scriptPath;
+		if (_uri.find(_location->getRoot()) == std::string::npos)
+			fullPath = _location->getRoot() + _uri;
+		else
+			fullPath = _uri;
+		
 	}
 	for(size_t i = 0; i < fullPath.length() - 1; i++)
 	{
@@ -489,9 +503,12 @@ void Request::makeEnv()
 bool  Request::checkCGI()
 {
 	std::multimap<std::string,std::string> tmp = _location->getCGI();
+	std::cout << "URI: "  << _uri << std::endl;
 	std::cout << _location->getRoot() << std::endl;
 	std::cout << _location->getCGI().empty() << std::endl;
-	std::string ext = "." + _uri.substr(_uri.find_last_of('.') + 1);
+	std::string ext = "";
+	if (_uri.find(".") != std::string::npos)
+		ext = "." + _uri.substr(_uri.find_last_of('.') + 1);
 	std::string _scriptName =  _uri.substr(_uri.find_last_of('/') + 1);
 	std::cout << "EXTENSION: "  << ext << std::endl;
 	std::cout << tmp.empty() << std::endl;
@@ -499,7 +516,7 @@ bool  Request::checkCGI()
 	{
 		std::cout << v.first << ": " << v.second << std::endl;
 	}
-	if (tmp.empty()) {
+	if (tmp.empty() && ext == ".py") {
     	_cgi = false;
         throw ErrorException(500, "Server configuration error: File is present but not configured in CGI map.");
 	}
@@ -526,7 +543,8 @@ bool  Request::checkCGI()
 	{
 		_cgi = true;
 		_uriCGI = getURI();
-		std::cout << "CGI_PPPP: " << _uriCGI << std::endl; 
+		std::cout << "CGI_PPPP: " << _uriCGI << std::endl;
+		std::cout << "MBHERE" << std::endl; 
 		getUriEncodedBody();//need to code
 		_headers.insert(std::pair<std::string, std::string>("QUERY_STRING", _queryString));
 		_headers.insert(std::pair<std::string, std::string>("REQUEST_METHOD", _method));
@@ -543,7 +561,11 @@ bool  Request::checkCGI()
 	{
 		std::cout << " HERE: " << _uri << std::endl;
 		_cgi = false;
+		std::cout << " HERECGI: " << _cgi << std::endl;
 		_errorCode = 200;
+		_uri = getURI();
+		std::cout << " HERECGI: " << _cgi << std::endl;
+		std::cout << " HERE2: " << _uri << std::endl;
 		if (_uri.find(_location->getRoot()) == std::string::npos)
 			_uri = _location->getRoot() + _uri;
 		for(size_t i = 0; i < _uri.length() - 1; i++)

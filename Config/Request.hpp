@@ -47,6 +47,7 @@ class Request
 		char **_envCGI;
 		std::string _uriCGI;
 		std::string _scriptPath;
+		
 
 		void	resetRequest();
 		void	saveStartLineHeaders(std::string &data);
