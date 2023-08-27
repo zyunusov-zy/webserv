@@ -56,6 +56,9 @@ bool Client::readRequest()
 		_c = _req.checkCGI();
 		if (_c)
 			env_var = _req.getENV();
+		if (_req.getCon())
+			_isClosed = true;
+		std::cout << "ISCLOSED: " << _isClosed ? "TRUE" : "FALSE";
 	}
 	catch(ErrorException &e)
 	{

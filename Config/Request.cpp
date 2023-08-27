@@ -4,7 +4,7 @@ Request::Request(std::multimap<std::string, Location> &l): _q(false), _errorCode
 _cgi(false), _buf(new char[RECV_BUFFER_SIZE + 1]), 
 _parseStat(STARTL), _bodySize(0), _isChunkSize(false),
 _chunkSize(0), _isReqDone(false), _locationMap(l), _cgiNum(0), 
-_envCGI(NULL), _scriptPath("")
+_envCGI(NULL), _scriptPath(""), _connection(""), _con(false)
 {
 }
 
@@ -47,6 +47,11 @@ t_serv Request::getServ()
 char** Request::getENV()
 {
 	return _envCGI;
+}
+
+bool Request::getCon()
+{
+	return this->_con;
 }
 
 void Request::resetRequest()
@@ -256,6 +261,8 @@ void	Request::saveHeaderLine(std::string headerLine)
 		_bodySize = static_cast<int>(std::atol(headerVal.c_str()));
 	if (headerKey == "Transfer-Encoding")
 		_transEn = headerVal;
+	if (headerKey == "Connection")
+		_connection = headerVal;
 	return ;
 }
 
@@ -573,6 +580,11 @@ bool  Request::checkCGI()
 			if (_uri[i] == '/' && _uri[i + 1] == '/')
 				_uri.erase(i + 1, 1);
 		}
+	}
+	std::cout << "CONNECTION:" << _connection << std::endl;
+	if (_connection == "close")
+	{
+		_con = true;
 	}
 	std::cout << (_cgi ? "TRUE" : "FALSE") << std::endl;
 	return _cgi;

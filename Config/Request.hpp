@@ -47,7 +47,8 @@ class Request
 		char **_envCGI;
 		std::string _uriCGI;
 		std::string _scriptPath;
-		
+		std::string _connection;
+		bool _con;
 
 		void	resetRequest();
 		void	saveStartLineHeaders(std::string &data);
@@ -80,6 +81,7 @@ class Request
 		HeaderMap& getHeaders();
 		char** getENV();
 		void print();
+		bool getCon();
 		
 
 		char	*getBuffer(void) const;
