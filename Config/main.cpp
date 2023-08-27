@@ -17,7 +17,13 @@ int main(int argc, char** av)
 	{
 		Config _conf;
 		std::vector<t_serv> servers;
-		_conf.parse(av[1], servers);
+		try{
+			_conf.parse(av[1], servers);
+		}catch(ErrorException &e)
+		{
+			std::cerr << e.what() << std::endl;
+			return (1);
+		}
 		// std::cout << "EEEEE" << servers[1].host << std::endl;
 		// serv.conf(av[1], servers);
 		Server serv;

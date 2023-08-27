@@ -296,6 +296,29 @@ void Config::checkPathCGI(std::vector<t_serv>& servers)
 	}
 }
 
+void Config::checkServers(std::vector<t_serv>& servers) {
+	std::map<std::string , size_t> ipPortToServerIndex;
+
+	for (size_t i = 0; i < servers.size(); ++i) {
+		// Create ipPort mapping for each server on-the-fly
+		const std::vector<int>& tmp = servers[i].port;
+		for (size_t j = 0; j < tmp.size(); ++j) {
+			std::string key = servers[i].host + std::to_string(tmp[j]);
+			servers[i].ipPort.push_back(key);
+
+			// Check if this IP-port combination already exists
+			if (ipPortToServerIndex.count(key)) {
+				size_t otherIndex = ipPortToServerIndex[key];
+				if (servers[i].name.empty() || servers[otherIndex].name.empty() || servers[i].name == servers[otherIndex].name) {
+					throw ErrorException(-1, "Error: Servers either don't have server names or have the same server names.");
+				}
+			} else {
+				ipPortToServerIndex[key] = i;
+			}
+		}
+	}
+}
+
 int Config::parse(std::string fileName, std::vector<t_serv>& servers)
 {
 	std::vector<std::string> tokens = configRead(fileName);
@@ -332,6 +355,13 @@ int Config::parse(std::string fileName, std::vector<t_serv>& servers)
 			exit(1);
 		}
 	
+	}
+	try{
+
+		checkServers(servers);
+	}catch(ErrorException &e)
+	{
+		throw ;
 	}
 	checkPathCGI(servers);
 

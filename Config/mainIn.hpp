@@ -36,6 +36,7 @@ typedef struct s_serv
 	std::vector<int>						port;
 	std::map<int, std::string>				errorPages;
 	std::multimap<std::string, Location>			loc;
+	std::vector<std::string>				ipPort;
 }	t_serv;
 
 #endif
