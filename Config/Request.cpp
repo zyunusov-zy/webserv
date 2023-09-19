@@ -8,6 +8,11 @@ _envCGI(NULL), _scriptPath(""), _connection(""), _con(false)
 {
 }
 
+void Request::setResource(std::string res)
+{
+	_uri = res;
+}
+
 bool Request::getQ()
 {
 	return _q;
@@ -603,7 +608,7 @@ void Request::print()
 	std::cout << "Body: " << getBody() << "\n" << "\n";
 	if (_location != NULL)
 		std::cout << "Location Path: " << _location->getPath() << "\n" << "\n";
-
+	std::cout << "Error_code: " << _errorCode << std::endl;
 	HeaderMap tmp = getHeaders();
 	std::cout << "Headers: " << getBody() << "\n" << "\n";
 	for (auto header : tmp) {

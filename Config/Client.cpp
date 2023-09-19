@@ -69,6 +69,40 @@ bool Client::readRequest()
 	return (_toServe);
 }
 
+std::string Client::checkErrorMap(int err)
+{
+	std::map<int, std::string> tmp = _serv.errorPages;
+	typedef std::map<int, std::string>::iterator Mapiter;
+	for(Mapiter it = tmp.begin(); it != tmp.end(); it++)
+	{
+		if (it->first == err)
+		{
+			std::ifstream inFile(it->second.c_str());
+			if (!inFile)
+			{
+				std::cout << "Could not open an Error_page need to generate it" << std::endl;
+				break;
+			}
+			return it->second;
+		}
+	}
+	return "";
+}
+
+int  Client::checkError()
+{
+	int err = _req.getErrorCode();
+	std::cout << "ERRRRRRORRRR!!!:" << err << std::endl;
+	if (err == 301 || err == 200 || err == 0 || err == 201)
+		return 0;
+	std::string errorPath = "";
+	errorPath = checkErrorMap(err);
+	std::cout << "Hhhhhhhhhhhhasdfjasfajskf" << errorPath << std::endl;
+	if (errorPath != "")
+		_req.setResource(errorPath);
+	// if (errorPath == "")
+		// need to write Error page generate function
+}
 
 void Client::print()
 {

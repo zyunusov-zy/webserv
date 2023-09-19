@@ -21,7 +21,6 @@ private:
 	bool _quer;
 	bool _c;
 
-
 	int _fdSock;
 	bool _isClosed;
 	bool _isRead;
@@ -43,7 +42,8 @@ public:
 	Request getReq();
 	bool getQuer();
 	Response &getResp();
-
+	int checkError();
+	std::string checkErrorMap(int err);
 };
 
 #endif

@@ -16,8 +16,6 @@
 #define REQUEST_ENTITY_TOO_LARGE 413
 # define UNABLE_TO_FIND 404
 
-
-
 class ErrorException : public std::exception {
 
 public :
@@ -31,10 +29,8 @@ public :
 	}
 
 private:
-
 	const char*	errorMsg;
 	const int	status;
-
 };
 
 bool	isCharWhiteSpace(unsigned char c);

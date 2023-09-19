@@ -1,22 +1,14 @@
 #include "Server.hpp"
 
-Server::Server()
-{
+Server::Server(){
 }
 
-// void Server::conf(std::string filename, std::vector<t_serv>& servers)
-// {
-// 	// _conf.parse(filename, servers);
-// 	// exit(1);
-	
-// }
-
-Server::~Server()
-{
+Server::~Server(){
 }
 
 #define WRITE_END 1
 #define READ_END 0
+
 
 void Server::sendHTMLResponse(class Client client, int fd, std::string filepath) 
 {
@@ -60,9 +52,7 @@ void Server::sendHTMLResponse(class Client client, int fd, std::string filepath)
 
     file.close();
     std::cerr << "\n after file closing\n" << std::endl;
-
 }
-
 
 void Server::launchCgi(Client client, int fd) 
 {
@@ -76,7 +66,6 @@ void Server::launchCgi(Client client, int fd)
     int outfile = open(out_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
     if (outfile == -1) {
         std::cerr << "cgi: Error opening the outfile.\n";
-        // Handle error...
     }
 
     int pipe_d[2];
@@ -92,7 +81,6 @@ void Server::launchCgi(Client client, int fd)
         close(pipe_d[READ_END]);
         close(outfile);
         std::cerr << "Error with fork\n";
-        // Handle error...
     }
 
     if (cgi_pid == 0) {
@@ -113,12 +101,8 @@ void Server::launchCgi(Client client, int fd)
         close(pipe_d[READ_END]);
         if ((execve(_args[0], _args, client.getReq().getENV())) == -1)
             std::cerr << "\ncgi: error with execution\n";
-
-        // Handle execve error...
     }
-
     close(pipe_d[READ_END]);
-    // close(outfile);
 
     int status;
     pid_t terminatedPid = waitpid(cgi_pid, &status, 0);
@@ -132,8 +116,9 @@ void Server::launchCgi(Client client, int fd)
 
     remove(out_filename);
     close(fd); // Close the client socket
-
 }
+
+
 
 void Server::setUp(std::vector<t_serv>& s)
 {
@@ -142,8 +127,7 @@ void Server::setUp(std::vector<t_serv>& s)
 	std::map<int, int> fd_to_port;
 	std::map<int, t_serv*> port_to_serv;
 
-    int i;
-    int j;
+    int i, j;
 
     i = 0;
     while(i < servers.size())
@@ -153,9 +137,6 @@ void Server::setUp(std::vector<t_serv>& s)
         {
             port_numbers.push_back((int)servers[i].port[j]);
             port_to_serv.insert(std::make_pair((int)servers[i].port[j], &(servers[i])));
-            // std::cerr << "\n server struct pointer = " << port_to_serv[(int)_conf.servers[i].port[j]] << "\n";
-            // std::cerr << "\n server struct value = " << port_to_serv[(int)_conf.servers[i].port[j]]->port[0] << "\n";
-
             j++;
         }
         i++;
@@ -169,10 +150,7 @@ void Server::setUp(std::vector<t_serv>& s)
     std::vector<pollfd> pollfds;
     std::map<int, int> conn_to_listen;
 
-
-    // Create listen sockets and bind them to different port numbers
-    for (size_t i = 0; i < port_numbers.size(); ++i) 
-    {
+    for (size_t i = 0; i < port_numbers.size(); ++i) {
         int listenfd = socket(AF_INET, SOCK_STREAM, 0);
         if (listenfd < 0) 
         {
@@ -195,31 +173,21 @@ void Server::setUp(std::vector<t_serv>& s)
             std::cout << "Failed to listen on socket. errno: " << errno << std::endl;
             exit(EXIT_FAILURE);
         }
-
         fd_to_port.insert(std::make_pair(listenfd, port_numbers[i]));
-
         pollfd listen_pollfd;
         listen_pollfd.fd = listenfd;
         listen_pollfd.events = POLLIN; // Check for incoming data
         pollfds.push_back(listen_pollfd);
         listenfds.push_back(listenfd);
     }
-
     std::vector<int> connected_fds;
-
-    // Main server loop
-    while (1) 
-    {
+    while (1) {
         int activity = poll(&pollfds[0], pollfds.size(), -1); // Wait indefinitely until an event occurs
         if (activity < 0) {
             std::cout << "Error in poll. errno: " << errno << std::endl;
             exit(EXIT_FAILURE);
         }
-
-        // Check for new connections on each listen socket
-
-        for (size_t i = 0; i < listenfds.size(); ++i) 
-        {
+        for (size_t i = 0; i < listenfds.size(); ++i) {
             if (pollfds[i].revents & POLLIN) 
             {
                 std::cout << "\n\nWaiting for a connection on port " << port_numbers[i] << std::endl;
@@ -231,22 +199,15 @@ void Server::setUp(std::vector<t_serv>& s)
                 }
                 connected_fds.push_back(connfd);
                 std::cout << "Client connected on port: " << port_numbers[i] << std::endl;
-                // Add the new connected socket to the pollfds array
-                pollfd new_pollfd;
+                pollfd new_pollfd; // Add the new connected socket to the pollfds array
                 new_pollfd.fd = connfd;
                 new_pollfd.events = POLLIN; // Check for incoming data
                 pollfds.push_back(new_pollfd);
-
                 conn_to_listen.insert(std::make_pair(connfd, listenfds[i]));
-
-
             }
         }
-        // Check connected client sockets for incoming data and handle them separately
-        std::vector<int> sockets_to_remove;
-
-        for (size_t i = listenfds.size(); i < pollfds.size(); ++i)
-        {
+        std::vector<int> sockets_to_remove;// Check connected client sockets for incoming data and handle them separately
+        for (size_t i = listenfds.size(); i < pollfds.size(); ++i){
             int fd = pollfds[i].fd;
 
             if (pollfds[i].revents & POLLIN) 
@@ -257,45 +218,30 @@ void Server::setUp(std::vector<t_serv>& s)
                     std::cerr << "Error converting IP address to string: " << strerror(errno) << std::endl;
                     exit(1);// need to change
                 }
-
                 std::cout << "HEL YEAH!" << std::endl;
                 int listnfd_tmp = conn_to_listen[pollfds[i].fd];
 
                 int port_tmp = fd_to_port[listnfd_tmp];
                 t_serv  *serv_tmp = port_to_serv[port_tmp];
-                if (serv_tmp)
-                {
+                if (serv_tmp) {
                     Client cl(pollfds[i].fd, client_ip, *serv_tmp);
-                    try
-                    {
+                    try {
                         cl.readRequest();
-                    }
-                    catch(const std::exception& e)
-                    {
+                        cl.print();
+                        cl.checkError();
+                         if (cl.getReq().getCGIB())
+                             launchCgi(cl, fd);
+                          else
+                             sendHTMLResponse(cl, fd, cl.getReq().getResource());
+                    } catch (const std::exception& e) {
                         std::cerr << e.what() << '\n';
-                    }
-                    cl.print();
-                    if (cl.getReq().getCGIB())
-                    {
-                        launchCgi(cl, fd);
-                        // cl.getResp().sendResponse();
-
-                    }
-                    else
-                    {
-                        sendHTMLResponse(cl, fd, cl.getReq().getResource());
-
                     }
                 }
             }
         }
-
-        for (size_t i = 0; i < sockets_to_remove.size(); ++i) 
-        {
+        for (size_t i = 0; i < sockets_to_remove.size(); ++i) {
             int fd = sockets_to_remove[i];
-
-            // Remove the closed socket from the connected_fds vector
-            for (size_t j = 0; j < connected_fds.size(); ++j) 
+            for (size_t j = 0; j < connected_fds.size(); ++j)// Remove the closed socket from the connected_fds vector
             {
                 if (connected_fds[j] == fd) 
                 {
@@ -303,10 +249,7 @@ void Server::setUp(std::vector<t_serv>& s)
                     break;
                 }
             }
-
-            // Remove the closed socket from the pollfds array
-            for (std::vector<pollfd>::iterator it = pollfds.begin() + listenfds.size(); it != pollfds.end(); ++it) 
-            {
+            for (std::vector<pollfd>::iterator it = pollfds.begin() + listenfds.size(); it != pollfds.end(); ++it) {// Remove the closed socket from the pollfds array
                 if (it->fd == fd) 
                 {
                     pollfds.erase(it);

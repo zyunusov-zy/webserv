@@ -4,12 +4,8 @@
 #include <cstdlib>
 #include <iostream>
 
-
-
 # define RED "\033[31m"
 # define NORMAL "\033[0m"
- 
-
 
 int main(int argc, char** av)
 {

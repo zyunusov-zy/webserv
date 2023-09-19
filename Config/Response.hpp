@@ -45,5 +45,4 @@ private:
 };
 
 
-
 #endif // RESPONSE_H

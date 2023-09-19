@@ -70,6 +70,7 @@ class Request
 		bool getQ();
 		std::string& getMethod();
 		std::string& getResource();
+		void setResource(std::string res);
 		std::string& getVersion();
 		std::string& getBody();
 		std::string& getQueryString();
