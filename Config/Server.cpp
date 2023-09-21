@@ -228,11 +228,14 @@ void Server::setUp(std::vector<t_serv>& s)
                     try {
                         cl.readRequest();
                         cl.print();
-                        cl.checkError();
-                         if (cl.getReq().getCGIB())
-                             launchCgi(cl, fd);
-                          else
-                             sendHTMLResponse(cl, fd, cl.getReq().getResource());
+                        if (cl.checkError())
+                        {
+                            std::cout << "I Am HERE \n";
+                            if (cl.getReq().getCGIB())
+                                launchCgi(cl, fd);
+                            else
+                                sendHTMLResponse(cl, fd, cl.getReq().getResource());
+                        }
                     } catch (const std::exception& e) {
                         std::cerr << e.what() << '\n';
                     }

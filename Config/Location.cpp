@@ -132,11 +132,11 @@ void Location::mapingMethods(std::string &str)
 	{
 		methods["GET"] = false;
 	}
-	if (str.find("POST") == std::string::npos)
+	else if (str.find("POST") == std::string::npos)
 	{
 		methods["POST"] = false;
 	}
-	if (str.find("DELETE") == std::string::npos)
+	else if (str.find("DELETE") == std::string::npos)
 	{
 		methods["DELETE"] = false;
 	}

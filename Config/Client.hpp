@@ -30,7 +30,11 @@ private:
 	void parseEnvVar();
 	
 	Response _resp;
+	int _errBodySize;
 
+	std::string	genErrPage(int err);
+	std::string errorMap(int err);
+	void sendErrHTML(std::string _errPage, int err);
 public:
 	bool readRequest();
 	Client(int new_socket, char *clien_ip,  t_serv s);
