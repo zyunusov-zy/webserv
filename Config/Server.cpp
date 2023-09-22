@@ -10,6 +10,36 @@ Server::~Server(){
 #define READ_END 0
 
 
+// void sendPostResponse(class Client client, int fd, std::string filepath)
+// {
+//     client.getQuer()
+// }
+
+
+
+void Response::generateDeleteResponse()
+{
+	status_code = "204 No Content";
+	content_type = "text/plain";
+	additional_info.clear();
+	content_length = 0;
+	buildResponseHeader();
+}
+
+void sendDeleteResponse(class Client client, int fd, std::string filepath)
+{
+	int i = std::remove(filepath);
+	// if (i != 0)
+	// {
+	// 	fds_clients.at(client_fd).setError("409");
+	// 	return;
+	// }
+	fds_clients.at(client_fd).response.generateDeleteResponse();
+    client.getResp().sendResponse(content_type);
+
+	// fds_clients.at(client_fd).request_processed = true;
+}
+
 void Server::sendHTMLResponse(class Client client, int fd, std::string filepath) 
 {
     std::string content_type;
@@ -233,8 +263,13 @@ void Server::setUp(std::vector<t_serv>& s)
                             std::cout << "I Am HERE \n";
                             if (cl.getReq().getCGIB())
                                 launchCgi(cl, fd);
-                            else
+                            else if (cl.getReq().getMethod() == "GET")
                                 sendHTMLResponse(cl, fd, cl.getReq().getResource());
+                            else if (cl.getReq().getMethod() == "POST")
+                                sendPostResponse(cl, fd, cl.getReq().getResource());
+                            // else if (cl.getReq().getMethod() == "DELETE")
+                            //     sendDeleteResponse(cl, fd, cl.getReq().getResource());
+
                         }
                     } catch (const std::exception& e) {
                         std::cerr << e.what() << '\n';

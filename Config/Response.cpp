@@ -23,6 +23,32 @@ int calculateContentLength(std::ifstream& file) {
         return length;
     }
 
+void	Response::createHeader()
+{
+	std::ostringstream tmp;
+
+	if (BUF_SIZE < content_length)
+	{
+		additional_info = "Transfer-Encoding: chunked";
+		is_chunked = true;
+	}
+
+	this->setDate();
+	tmp << protocoll << " " << status_code << "\r\n";
+	tmp << "Server: " << server_name << "\r\n";
+	tmp << date << "\r\n";
+	if (content_length)
+	{
+		tmp << "Content-Type: " << content_type << "\r\n";
+		tmp << "Content-Length: " << content_length << "\r\n";
+	}
+	if (!additional_info.empty())
+		tmp << additional_info << "\r\n";
+	tmp << "\r\n";
+
+	header = tmp.str();
+}
+
 void Response::sendResponse(std::string content_type) 
 {
 
