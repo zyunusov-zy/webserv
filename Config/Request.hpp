@@ -54,7 +54,6 @@ class Request
 		void	saveStartLineHeaders(std::string &data);
 		void	saveStartLine(std::string startLine);
 		void	validateStartLine(void);
-		Location *getLoc();
 		void	parseUri(void);
 		void	parsePercent(std::string &s);
 		void	saveHeaderLine(std::string headerLine);
@@ -64,6 +63,7 @@ class Request
 		void	saveSimpleBody(std::string &data);
 		void getUriEncodedBody();
 		void makeEnv();
+		Location *getLoc();
 	public:
 		Request(std::multimap<std::string, Location> &l);
 		~Request();
@@ -83,6 +83,7 @@ class Request
 		char** getENV();
 		void print();
 		bool getCon();
+		Location *getLocation();
 		
 
 		char	*getBuffer(void) const;

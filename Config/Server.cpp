@@ -227,10 +227,10 @@ void Server::setUp(std::vector<t_serv>& s)
                     Client cl(pollfds[i].fd, client_ip, *serv_tmp);
                     try {
                         cl.readRequest();
-                        cl.print();
+                        // cl.print();
                         if (cl.checkError())
                         {
-                            std::cout << "I Am HERE \n";
+                            // std::cout << "I Am HERE \n";
                             if (cl.getReq().getCGIB())
                                 launchCgi(cl, fd);
                             else
