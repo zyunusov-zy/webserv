@@ -610,6 +610,8 @@ void Request::print()
 		std::cout << "Location Path: " << _location->getPath() << "\n" << "\n";
 	std::cout << "Error_code: " << _errorCode << std::endl;
 	HeaderMap tmp = getHeaders();
+	std::cout << "THISSS " << _errorCode << std::endl;
+
 	std::cout << "Headers: " << getBody() << "\n" << "\n";
 	for (auto header : tmp) {
         std::cout << header.first << " = " << header.second << "\n";

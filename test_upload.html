@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text File Upload</title>
+</head>
+<body>
+    <h1>Upload Text as a File</h1>
+    <form id="textForm">
+        <label for="text">Enter your text:</label>
+        <textarea id="text" rows="5" cols="40" required></textarea>
+        <br>
+        <input type="submit" value="Upload">
+    </form>
+
+    <script>
+        document.getElementById("textForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+            const textArea = document.getElementById("text");
+            const text = textArea.value;
+
+            // Create a Blob containing the text
+            const blob = new Blob([text], { type: "text/plain" });
+
+            // Create a FormData object and append the Blob
+            const formData = new FormData();
+            formData.append("file", blob, "user_input.txt");
+
+            // Send the FormData to the server using fetch
+            fetch("upload", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log("Text has been uploaded as a file.");
+                    // You can redirect or show a success message here
+                } else {
+                    console.error("Failed to upload text as a file.");
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+            });
+        });
+    </script>
+</body>
+</html>
+
+
+
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <title>POST Method Test</title>
+</head>
+<body>
+    <h1>POST Method Test</h1>
+    
+    <p>This HTML page allows you to test the POST method on your server.</p>
+    
+    <form action="/submit" method="post">
+        <label for="input-text">Enter some text:</label>
+        <input type="text" id="input-text" name="text" required>
+        <br>
+        <input type="submit" value="Submit">
+    </form>
+</body>
+</html> -->
