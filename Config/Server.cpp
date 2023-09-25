@@ -4,6 +4,9 @@
 // #include <iostream>
 #include <map>
 #include <string>
+#include <iostream>
+#include <fstream>
+
 Server::Server(){
 }
 
@@ -14,14 +17,18 @@ Server::~Server(){
 #define READ_END 0
 
 
-void handleFileUpload(const std::string& filename, const std::string& fileContent) {
-    // Replace this with your logic to handle the file upload.
-    // In a real web server, you would parse the request and save the file to a specified location.
+void handleFileUpload(const std::string& filename, const std::string& fileContent, const size_t file_size, const size_t upload_header_size) 
+{
 
-    // Simulate saving the file content to a file on the server.
-    std::ofstream outputFile(filename, std::ios::binary);
+    std::ofstream outputFile(filename.c_str(), std::ios::binary | std::ios::trunc);
+    // std::ofstream outputFile(filename, std::ios::binary);
     if (outputFile.is_open()) {
-        outputFile << fileContent;
+        // outputFile << fileContent;
+    // size_t file_size = ds_clients.at(client_fd).request.rfind(boundary) - upload_header_size;
+
+    // Write the uploaded file data to the file
+    outputFile.write(fileContent.substr(upload_header_size, file_size).c_str(), file_size);
+
         outputFile.close();
         std::cout << "File uploaded successfully.\n";
     } else {
@@ -73,83 +80,36 @@ std::string extractFilename(const std::string& contentDispositionHeader) {
 void sendPostResponse(class Client client, int fd, std::string filepath)
  {
     std::cout << "IN POST RESP ----- \n\n";
-
+    size_t upload_header_size;
+    std::string upload_header;
     std::string filename = extractFilename(client.getReq().getBody());
-    // Simulate receiving an HTTP request with a file upload.
-    // std::string request = "POST /upload HTTP/1.1\r\n"
-    //                       "Content-Length: 18\r\n"
-    //                       "Content-Type: multipart/form-data; boundary=----boundary\r\n"
-    //                       "\r\n"
-    //                       "------boundary\r\n"
-    //                       "Content-Disposition: form-data; name=\"file\"; filename=\"example.txt\"\r\n"
-    //                       "\r\n"
-    //                       "File content here\r\n"
-    //                       "------boundary--";
 
-    // std::string filename = client.getReq().getHeaders().(*begin)();
+    upload_header_size = client.getReq().getBody().find("\r\n\r\n") + 4;
+    upload_header = client.getReq().getBody().substr(0, upload_header_size);
 
-    // if (filename.length())
-    // {
-        std::map<std::string, std::string>::iterator it = client.getReq().getHeaders().begin();
-        std::map<std::string, std::string> tmp;
+    // std::ofstream createFile(file_path.c_str(), std::ios::binary | std::ios::trunc);
 
-        std::string boundary = extractBoundary(client.getReq().getHeaders()["Content-Type"]);
+    std::map<std::string, std::string> tmp;
+    std::ifstream dmm(client.getReq().getBody());
+
+    std::string boundary = extractBoundary(client.getReq().getHeaders()["Content-Type"]);
 
 
-        tmp = client.getReq().getHeaders(); 
-        std::string val = it->second;
-        std::string requestBody = client.getReq().getBody();
-        std::cerr << "filename" << "\n";
-        std::cerr << filename << "\n";
-        std::cerr << boundary << "\n";
+    tmp = client.getReq().getHeaders(); 
+    // std::string val = it->second;
+    std::string requestBody = client.getReq().getBody();
+    std::cerr << "filename" << "\n";
+    std::cerr << filename << "\n";
+    std::cerr << boundary << "\n";
 
 
 
-    // Find the positions of the boundaries
-    size_t start = requestBody.find("\r\n\r\n") + 4;
-    size_t end = requestBody.rfind(boundary);
+    
+    // std::cout << "Extracted Content:\n" << tmp << std::endl;
+    size_t file_size = requestBody.rfind("\r\n--" + boundary + "--") - upload_header_size;
 
-    if (start == std::string::npos || end == std::string::npos) {
-        std::cerr << "Boundary not found in request body." << std::endl;
-        return;
-    }
+    handleFileUpload(filename, requestBody, file_size, upload_header_size);
 
-    // Find the position of the end of the last boundary
-    size_t lastBoundaryEnd = requestBody.rfind("\n", end);
-
-    // Extract the content between the boundaries
-    std::string content = requestBody.substr(start + boundary.length(), lastBoundaryEnd - (start + boundary.length()));
-
-    // Print the extracted content
-    std::cout << "Extracted Content:\n" << content << std::endl;
-    // return ;
-
-    // // std::string boundary = "------WebKitFormBoundarySYw3J90peFMr6zy3";
-
-    // // Find the position of the first occurrence of the boundary
-    // size_t start = fileContent.find(boundary);
-    // if (start == std::string::npos) {
-    //     std::cerr << "Boundary not found in request body." << std::endl;
-    //     return;
-    // }
-
-    // // Find the position of the end of the headers
-    // size_t headersEnd = fileContent.find("\n\n", start);
-    // if (headersEnd == std::string::npos) {
-    //     std::cerr << "Headers end not found in request body." << std::endl;
-    //     return;
-    // }
-
-    // // Extract the content after the headers
-    // std::string content = fileContent.substr(headersEnd + 2);
-
-    // // Print the extracted content
-    // std::cout << "Extracted Content:\n" << content << std::endl;
-
-
-        // Handle the file upload.
-        handleFileUpload(filename, content);
-    // }
 
 }
 
