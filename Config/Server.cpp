@@ -371,7 +371,8 @@ void Server::setUp(std::vector<t_serv>& s)
 		// std::unordered_map<int, Client>::iterator client_it;
 
         std::vector<int> sockets_to_remove;// Check connected client sockets for incoming data and handle them separately
-        for (size_t i = listenfds.size(); i < pollfds.size(); ++i){
+        for (size_t i = listenfds.size(); i < pollfds.size(); ++i)
+		{
             int fd = pollfds[i].fd;
 
             if (pollfds[i].revents & POLLIN) 
@@ -424,6 +425,11 @@ void Server::setUp(std::vector<t_serv>& s)
 				if (client_it != this->fd_to_clients.end() && (!client_it->second.getResp().response_complete))
 				{
                 	client_it->second.getResp().sendResponse(client_it->second.getResp().content_type);
+				}
+				else
+				{
+					sockets_to_remove.push_back(pollfds[i].fd);
+
 				}
 				
             }
