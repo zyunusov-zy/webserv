@@ -26,6 +26,18 @@ public:
 	void sendResponse(std::string content_type);
 	void setFd(int fd);
 
+	std::string	status_code;
+	std::string	content_type;
+	size_t	content_len;
+	std::string	additional_info;
+
+	std::string header;
+	std::streampos	position;
+	bool 	header_sent;
+	bool	response_complete;
+	bool 	is_chunked;
+    std::string body;
+
 private:
 
     int _statusCode;

@@ -1,1 +1,1 @@
-c++  main.cpp Client.cpp Server.cpp Config.cpp Location.cpp ErrorCodes.cpp Request.cpp Response.cpp -o webserv
+c++  -w main.cpp Client.cpp Server.cpp Config.cpp Location.cpp ErrorCodes.cpp Request.cpp Response.cpp -o webserv

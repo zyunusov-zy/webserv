@@ -342,7 +342,8 @@ void Server::setUp(std::vector<t_serv>& s)
         listenfds.push_back(listenfd);
     }
     std::vector<int> connected_fds;
-    while (1) {
+    while (1) 
+	{
         int activity = poll(&pollfds[0], pollfds.size(), -1); // Wait indefinitely until an event occurs
         if (activity < 0) {
             std::cout << "Error in poll. errno: " << errno << std::endl;
@@ -367,6 +368,8 @@ void Server::setUp(std::vector<t_serv>& s)
                 conn_to_listen.insert(std::make_pair(connfd, listenfds[i]));
             }
         }
+		// std::unordered_map<int, Client>::iterator client_it;
+
         std::vector<int> sockets_to_remove;// Check connected client sockets for incoming data and handle them separately
         for (size_t i = listenfds.size(); i < pollfds.size(); ++i){
             int fd = pollfds[i].fd;
@@ -384,9 +387,14 @@ void Server::setUp(std::vector<t_serv>& s)
 
                 int port_tmp = fd_to_port[listnfd_tmp];
                 t_serv  *serv_tmp = port_to_serv[port_tmp];
-                if (serv_tmp) {
+                if (serv_tmp) 
+				{
+
                     Client cl(pollfds[i].fd, client_ip, *serv_tmp);
-                    try {
+					fd_to_clients.insert(std::make_pair(pollfds[i].fd, cl));
+
+                    try 
+					{
                         cl.readRequest();
                         cl.print();
                         if (cl.checkError())
@@ -402,11 +410,28 @@ void Server::setUp(std::vector<t_serv>& s)
                                 sendDeleteResponse(cl, fd, cl.getReq().getResource());
 
                         }
-                    } catch (const std::exception& e) {
+                    } 
+					catch (const std::exception& e) 
+					{
                         std::cerr << e.what() << '\n';
                     }
                 }
             }
+			// else if (pollfds[i].revents & POLLOUT && !fd_to_clients[pollfds[i].fd].getResp().response_complete)
+			else if (pollfds[i].revents & POLLOUT)
+            {
+				client_it  = this->fd_to_clients.find(fd);
+				if (client_it != this->fd_to_clients.end() && (!client_it->second.getResp().response_complete))
+				{
+                	client_it->second.getResp().sendResponse(client_it->second.getResp().content_type);
+				}
+				
+            }
+			// else if (pollfds[i].revents & POLLOUT && fd_to_clients[pollfds[i].fd].getResp().response_complete)
+			// {
+			// 	sockets_to_remove.push_back(pollfds[i].fd);
+			// }
+
         }
         for (size_t i = 0; i < sockets_to_remove.size(); ++i) {
             int fd = sockets_to_remove[i];
@@ -415,6 +440,11 @@ void Server::setUp(std::vector<t_serv>& s)
                 if (connected_fds[j] == fd) 
                 {
                     connected_fds.erase(connected_fds.begin() + j);
+					std::vector<int>::iterator it = std::find(sockets_to_remove.begin(), sockets_to_remove.end(), fd);					
+					if (it != sockets_to_remove.end()) 
+					{
+    					sockets_to_remove.erase(it);
+					}
                     break;
                 }
             }
