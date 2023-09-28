@@ -31,6 +31,8 @@ private:
 	// Config _conf;
 	std::string readFile(const std::string & filename);
 	std::vector<t_serv> servers;
+
+
 public:
 	Server();
 	~Server();

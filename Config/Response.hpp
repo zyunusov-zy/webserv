@@ -8,9 +8,11 @@
 #include <iostream>
 #include <fstream>
 #include <sys/socket.h>
-// #include "Server.hpp"
+#include <poll.h>
 
-#define BUFF_SIZE 8192
+// #include "Server.hpp" 
+
+#define BUFF_SIZE 1020
 
 
 class Response {
@@ -25,6 +27,8 @@ public:
 	void setFilename(std::string &name);
 	void sendResponse(std::string content_type);
 	void setFd(int fd);
+
+	pollfd	*pollstruct;
 
 	std::string	status_code;
 	std::string	content_type;

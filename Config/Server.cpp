@@ -16,7 +16,6 @@ Server::~Server(){
 #define WRITE_END 1
 #define READ_END 0
 
-
 void handleFileUpload(const std::string& filename, const std::string& fileContent, const size_t file_size, const size_t upload_header_size) 
 {
 
@@ -36,14 +35,16 @@ void handleFileUpload(const std::string& filename, const std::string& fileConten
     }
 }
 
-#include <iostream>
-#include <string>
+// #include <iostream>
+// #include <string>
 
-std::string extractBoundary(const std::string& contentTypeHeader) {
+std::string extractBoundary(const std::string& contentTypeHeader) 
+{
     std::string boundary;
     
     size_t boundaryPos = contentTypeHeader.find("boundary=");
-    if (boundaryPos != std::string::npos) {
+    if (boundaryPos != std::string::npos) 
+    {
         boundaryPos += 9; // Move to the start of the boundary
         size_t semicolonPos = contentTypeHeader.find(";", boundaryPos);
         if (semicolonPos != std::string::npos) {
@@ -54,7 +55,6 @@ std::string extractBoundary(const std::string& contentTypeHeader) {
             boundary = contentTypeHeader.substr(boundaryPos);
         }
     }
-
     return boundary;
 }
 
@@ -80,6 +80,7 @@ std::string extractFilename(const std::string& contentDispositionHeader) {
 void sendPostResponse(class Client client, int fd, std::string filepath)
  {
     std::cout << "IN POST RESP ----- \n\n";
+
     size_t upload_header_size;
     std::string upload_header;
     std::string filename = extractFilename(client.getReq().getBody());
@@ -96,7 +97,6 @@ void sendPostResponse(class Client client, int fd, std::string filepath)
 
 
     tmp = client.getReq().getHeaders(); 
-    // std::string val = it->second;
     std::string requestBody = client.getReq().getBody();
     std::cerr << "filename" << "\n";
     std::cerr << filename << "\n";
@@ -111,49 +111,15 @@ void sendPostResponse(class Client client, int fd, std::string filepath)
     handleFileUpload(filename, requestBody, file_size, upload_header_size);
 
 
+    client.getResp().status_code = "201 Created";
+	client.getResp().content_type = "text/plain";
+	client.getResp().body = "File was uploaded succesfully";
+	client.getResp().content_len = client.getResp().body.size();
+	client.getResp().additional_info = "Location: " + filepath;
+
+    client.getResp().sendResponse("text/plain");
+
 }
-
-
-// void sendPostResponse(class Client client, int fd, std::string filepath)
-// {
-//     client.getQuer()
-
-//     std::string upload_header;
-// 	size_t upload_header_size;
-
-
-// 	upload_header_size = fds_clients.at(client_fd).request.find("\r\n\r\n") + 4;
-// 	upload_header = fds_clients.at(client_fd).request.substr(0, upload_header_size);
-
-// 	std::string boundary_end = "\r\n--" + fds_clients.at(client_fd).request_header.at("boundary") + "--";
-
-
-// 	std::string filename = upload_header.substr(upload_header.find("filename=") + 10);
-// 	filename = filename.substr(0, filename.find("\""));
-// 	if (!validateFilename(filename))
-// 	{
-// 		fds_clients.at(client_fd).setError("400");
-// 		return;
-// 	}
-// 	std::string file_path = fds_clients.at(client_fd).path_on_server + filename;
-// 	std::ofstream createFile(file_path.c_str(), std::ios::binary | std::ios::trunc);
-// 	if (!createFile.is_open())
-// 	{
-// 		fds_clients.at(client_fd).setError("500");
-// 		return;
-//     }
-// }
-
-
-
-// void Response::generateDeleteResponse()
-// {
-// 	status_code = "204 No Content";
-// 	content_type = "text/plain";
-// 	additional_info.clear();
-// 	content_length = 0;
-// 	buildResponseHeader();
-// }
 
 void sendDeleteResponse(class Client client, int fd, std::string filepath)
 {
@@ -163,10 +129,13 @@ void sendDeleteResponse(class Client client, int fd, std::string filepath)
 	// 	fds_clients.at(client_fd).setError("409");
 	// 	return;
 	// }
-	// fds_clients.at(client_fd).response.generateDeleteResponse();
-    // client.getResp().sendResponse(content_type);
+    client.getResp().status_code = "204 No Content";
+	client.getResp().content_type = "text/plain";
+	// additional_info.clear();
+	client.getResp().content_len = 0;
 
-	// fds_clients.at(client_fd).request_processed = true;
+    client.getResp().sendResponse("text/plain");
+	client.getResp().response_complete = true;
 }
 
 void Server::sendHTMLResponse(class Client client, int fd, std::string filepath) 
@@ -209,7 +178,7 @@ void Server::sendHTMLResponse(class Client client, int fd, std::string filepath)
     client.getResp().setFd(fd);
     client.getResp().sendResponse(content_type);
 
-    file.close();
+    // file.close();
     std::cerr << "\n after file closing\n" << std::endl;
 }
 
@@ -279,8 +248,6 @@ void Server::launchCgi(Client client, int fd)
     close(fd); // Close the client socket
 }
 
-
-
 void Server::setUp(std::vector<t_serv>& s)
 {
     servers = s;
@@ -337,7 +304,8 @@ void Server::setUp(std::vector<t_serv>& s)
         fd_to_port.insert(std::make_pair(listenfd, port_numbers[i]));
         pollfd listen_pollfd;
         listen_pollfd.fd = listenfd;
-        listen_pollfd.events = POLLIN; // Check for incoming data
+        listen_pollfd.events = POLLIN;  // Check for incoming data
+        listen_pollfd.revents = 0;
         pollfds.push_back(listen_pollfd);
         listenfds.push_back(listenfd);
     }
@@ -376,7 +344,7 @@ void Server::setUp(std::vector<t_serv>& s)
             int fd = pollfds[i].fd;
 
             if (pollfds[i].revents & POLLIN) 
-            {                    
+            {
                 char client_ip[INET_ADDRSTRLEN];
                 if(inet_ntop(AF_INET, &(servaddr.sin_addr), client_ip, INET_ADDRSTRLEN) == NULL)
                 {
@@ -398,6 +366,7 @@ void Server::setUp(std::vector<t_serv>& s)
 					{
                         cl.readRequest();
                         cl.print();
+                        cl.getResp().pollstruct = &(pollfds[i]);
                         if (cl.checkError())
                         {
                             std::cout << "I Am HERE \n";
@@ -409,9 +378,9 @@ void Server::setUp(std::vector<t_serv>& s)
                                 sendPostResponse(cl, fd, cl.getReq().getResource());
                             else if (cl.getReq().getMethod() == "DELETE")
                                 sendDeleteResponse(cl, fd, cl.getReq().getResource());
-
+                            poll.events = pollout;
                         }
-                    } 
+                    }
 					catch (const std::exception& e) 
 					{
                         std::cerr << e.what() << '\n';
@@ -421,11 +390,22 @@ void Server::setUp(std::vector<t_serv>& s)
 			// else if (pollfds[i].revents & POLLOUT && !fd_to_clients[pollfds[i].fd].getResp().response_complete)
 			else if (pollfds[i].revents & POLLOUT)
             {
+                //can only send here
+                std::cerr << "POLLOUTTTT" << '\n';
+
 				client_it  = this->fd_to_clients.find(fd);
 				if (client_it != this->fd_to_clients.end() && (!client_it->second.getResp().response_complete))
 				{
                 	client_it->second.getResp().sendResponse(client_it->second.getResp().content_type);
-				}
+                    // if (client_it->second.getReq().getCGIB())
+                    //     launchCgi(client_it->second, fd);
+                    // else if (client_it->second.getReq().getMethod() == "GET")
+                    //     sendHTMLResponse(client_it->second, fd, client_it->second.getReq().getResource());
+                    // else if (client_it->second.getReq().getMethod() == "POST")
+                    //     sendPostResponse(client_it->second, fd, client_it->second.getReq().getResource());
+                    // else if (client_it->second.getReq().getMethod() == "DELETE")
+                    //     sendDeleteResponse(client_it->second, fd, client_it->second.getReq().getResource());				
+                }
 				else
 				{
 					sockets_to_remove.push_back(pollfds[i].fd);
@@ -433,13 +413,10 @@ void Server::setUp(std::vector<t_serv>& s)
 				}
 				
             }
-			// else if (pollfds[i].revents & POLLOUT && fd_to_clients[pollfds[i].fd].getResp().response_complete)
-			// {
-			// 	sockets_to_remove.push_back(pollfds[i].fd);
-			// }
 
         }
-        for (size_t i = 0; i < sockets_to_remove.size(); ++i) {
+        for (size_t i = 0; i < sockets_to_remove.size(); ++i) 
+        {
             int fd = sockets_to_remove[i];
             for (size_t j = 0; j < connected_fds.size(); ++j)// Remove the closed socket from the connected_fds vector
             {
