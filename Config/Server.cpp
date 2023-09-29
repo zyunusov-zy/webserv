@@ -111,13 +111,13 @@ void sendPostResponse(class Client client, int fd, std::string filepath)
     handleFileUpload(filename, requestBody, file_size, upload_header_size);
 
 
-    client.getResp().status_code = "201 Created";
-	client.getResp().content_type = "text/plain";
-	client.getResp().body = "File was uploaded succesfully";
-	client.getResp().content_len = client.getResp().body.size();
-	client.getResp().additional_info = "Location: " + filepath;
+    client.status_code = "201 Created";
+	client.content_type = "text/plain";
+	client.body = "File was uploaded succesfully";
+	client.content_len = client.body.size();
+	client.additional_info = "Location: " + filepath;
 
-    // client.getResp().sendResponse("text/plain");
+    // client.sendResponse("text/plain");
 
 }
 
@@ -129,13 +129,13 @@ void sendDeleteResponse(class Client client, int fd, std::string filepath)
 	// 	fds_clients.at(client_fd).setError("409");
 	// 	return;
 	// }
-    client.getResp().status_code = "204 No Content";
-	client.getResp().content_type = "text/plain";
+    client.status_code = "204 No Content";
+	client.content_type = "text/plain";
 	// additional_info.clear();
-	client.getResp().content_len = 0;
+	client.content_len = 0;
 
-    // client.getResp().sendResponse("text/plain");
-	client.getResp().response_complete = true;
+    // client.sendResponse("text/plain");
+	client.response_complete = true;
 }
 
 void Server::sendHTMLResponse(class Client client, int fd, std::string filepath) 
@@ -174,9 +174,10 @@ void Server::sendHTMLResponse(class Client client, int fd, std::string filepath)
     else
         content_type = "application/octet-stream";
 
-    client._filename = filepath;
-    client.fd = fd;
-    // client.getResp().sendResponse(content_type);
+    client.filename = filepath;
+    client.content_type = content_type;
+    // client.fd = fd;
+    // client.sendResponse(content_type);
 
     // file.close();
     std::cerr << "\n after file closing\n" << std::endl;
@@ -240,9 +241,9 @@ void Server::launchCgi(Client client, int fd)
         std::cerr << "cgi: error with process handling\n";
     }
 
-    client.getResp().setFilename(string_filename);
-    client.getResp().setFd(fd);
-    // client.getResp().sendResponse("text/html");
+    client.filename = string_filename;
+    client.fd = fd;
+    // client.sendResponse("text/html");
 
     remove(out_filename);
     close(fd); // Close the client socket
@@ -312,6 +313,7 @@ void Server::setUp(std::vector<t_serv>& s)
     std::vector<int> connected_fds;
     while (1) 
 	{
+
         int activity = poll(&pollfds[0], pollfds.size(), -1); // Wait indefinitely until an event occurs
         if (activity < 0) {
             std::cout << "Error in poll. errno: " << errno << std::endl;
@@ -341,6 +343,7 @@ void Server::setUp(std::vector<t_serv>& s)
         std::vector<int> sockets_to_remove;// Check connected client sockets for incoming data and handle them separately
         for (size_t i = listenfds.size(); i < pollfds.size(); ++i)
 		{
+            std::cerr << "\nIN THE LOOP" << '\n';
             int fd = pollfds[i].fd;
 
             if (pollfds[i].revents & POLLIN) 
@@ -358,7 +361,7 @@ void Server::setUp(std::vector<t_serv>& s)
                 t_serv  *serv_tmp = port_to_serv[port_tmp];
                 if (serv_tmp) 
 				{
-
+                    // Client* myCl = new Client();
                     Client cl(pollfds[i].fd, client_ip, *serv_tmp);
 					fd_to_clients.insert(std::make_pair(pollfds[i].fd, cl));
 
@@ -366,7 +369,7 @@ void Server::setUp(std::vector<t_serv>& s)
 					{
                         cl.readRequest();
                         cl.print();
-                        cl.getResp().pollstruct = &(pollfds[i]);
+                        cl.pollstruct = &(pollfds[i]);
                         if (cl.checkError())
                         {
                             std::cout << "I Am HERE \n";
@@ -387,14 +390,14 @@ void Server::setUp(std::vector<t_serv>& s)
                     }
                 }
             }
-			// else if (pollfds[i].revents & POLLOUT && !fd_to_clients[pollfds[i].fd].getResp().response_complete)
+			// else if (pollfds[i].revents & POLLOUT && !fd_to_clients[pollfds[i].fd].response_complete)
 			else if (pollfds[i].revents & POLLOUT)
             {
                 //can only send here
                 std::cerr << "POLLOUTTTT" << '\n';
 
 				client_it  = this->fd_to_clients.find(fd);
-				if (client_it != this->fd_to_clients.end() && (!client_it->second.getResp().response_complete))
+				if (client_it != this->fd_to_clients.end() && (!client_it->second.response_complete))
 				{
                 	client_it->second.sendResponse(client_it->second.content_type);
                     // if (client_it->second.getReq().getCGIB())

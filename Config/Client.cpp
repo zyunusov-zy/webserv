@@ -1,9 +1,9 @@
 #include "Client.hpp"
 
-Response &Client::getResp()
-{
-	return (_resp);
-}
+// Response &Client::getResp()
+// {
+// 	return (_resp);
+// }
 
 bool Client::getQuer()
 {
@@ -28,7 +28,7 @@ std::string	Client::getClienIP()
 Client::Client(int new_socket, char *clien_ip, t_serv s): _serv(s),
 	 _req(_serv.loc), _c(false)
 {
-	// std::cout << std::endl << std::endl << "MBHERE?" << std::endl << std::endl;
+	std::cout << std::endl << std::endl << "_*)*)*)*)*)*)Client constructor _*_*_*_*_*_*" << std::endl << std::endl;
 	_clienIP = clien_ip;
 	_fdSock = new_socket;
 	_serv = s;
@@ -53,7 +53,7 @@ Client::Client(int new_socket, char *clien_ip, t_serv s): _serv(s),
     content_type = "";
     _date = "";
     status_code = "";
-	_filename = "";
+	filename = "";
 	_target_fd = 0;
 }
 
@@ -213,18 +213,23 @@ int calculateContentLength(std::ifstream& file) {
 
 void Client::sendResponse(std::string content_type) 
 {
-    std::cerr << "\n in response" << _filename << "\n";
+    std::cerr << "\n in response" << filename << "\n";
     std::string chunk = "";
 
     // std::ifstream file(_filename.c_str());
-	int _target_fd = fd;
+	int _target_fd = _fdSock;
+	std::cerr << _target_fd << filename << "\n";
+	std::cerr << "   contet type   " << "\n";
+	std::cerr << content_type << "\n";
+
+
     char buff[BUFF_SIZE];
     std::string head;
     
-    std::ifstream file(_filename.c_str(), std::ios::binary);
+    std::ifstream file(filename.c_str(), std::ios::binary);
     if (!file.is_open()) 
     {
-        std::cerr << "Failed to open " << _filename << std::endl;
+        std::cerr << "Failed to open " << filename << std::endl;
     }
     if (!header_sent)
     {
@@ -232,7 +237,7 @@ void Client::sendResponse(std::string content_type)
         // chunk += header;
 
         snprintf(buff, sizeof(buff), "HTTP/1.1 200 OK\r\n"
-                                         "Content-Type:  %s\r\n"
+                                         "Content-Type: %\r\n"
                                          "Content-Length: %d\r\n"
                                          "Connection: close\r\n"
                                         //  "Transfer-Encoding: chunked\r\n"
@@ -264,7 +269,7 @@ void Client::sendResponse(std::string content_type)
     int bytesRead = file.gcount();
     if (bytesRead > 0) 
     {
-        std::cerr << "*******READING " << _filename << std::endl;
+        std::cerr << "*******READING " << filename << std::endl;
 
         int bytesSent = send(_target_fd, buff, bytesRead, 0);
         if (bytesSent < 0) {
@@ -275,14 +280,14 @@ void Client::sendResponse(std::string content_type)
 
 
     }
-    else if (file.eof() || bytesRead == 0)
+    if (file.eof() || bytesRead == 0)
 	{
-        std::cerr << "*******EOF " << _filename << std::endl;
+        std::cerr << "*******EOF " << filename << std::endl;
 
 		file.close();
 		response_complete = true;
         // pollstruct->revents = POLLOUT;
-        std::cerr << "all read " << _filename << std::endl;
+        std::cerr << "all read " << filename << std::endl;
 
 	}
 	// close(_target_fd);

@@ -1,6 +1,8 @@
 #ifndef CLIENT_HPP
 # define CLIENT_HPP
 
+#define BUFF_SIZE 1020
+
 // #include <iostream>
 // #include <map>
 // #include <string>
@@ -30,7 +32,7 @@ private:
 	t_serv _serv;
 	void parseEnvVar();
 	
-	Response _resp;
+	// Response _resp;
 	int _errBodySize;
 
 	std::string	genErrPage(int err);
@@ -47,23 +49,23 @@ public:
 	std::string	getClienIP();
 	Request getReq();
 	bool getQuer();
-	Response &getResp();
+	// Response &getResp();
 	int checkError();
 	std::string checkErrorMap(int err);
 
-	void sendResponse(std::string content_type);
+	// void sendResponse(std::string content_type);
 
 
     // void setStatus(int statusCode);
     // void setHeader(const std::string& key, const std::string& value);
     // void setBody(const std::string& body);
 	// void setFilename(std::string &name);
-	// void sendResponse(std::string content_type);
+	void sendResponse(std::string content_type);
 	// void setFd(int fd);
 
 	int _statusCode;
 	int fd;
-	std::string	_filename;
+	std::string	filename;
 
 
 	pollfd	*pollstruct;
