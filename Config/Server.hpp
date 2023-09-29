@@ -37,8 +37,8 @@ public:
 	Server();
 	~Server();
 
-	std::map<int, Client> fd_to_clients;
-	std::map<int, Client>::iterator client_it;
+	std::map<int, Client*> fd_to_clients;
+	std::map<int, Client*>::iterator client_it;
 	// void conf(std::string filename,std::vector<t_serv>& servers);
 	void setUp(std::vector<t_serv>& s);
 	void launchCgi(Client client, int fd);

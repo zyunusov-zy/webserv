@@ -361,26 +361,26 @@ void Server::setUp(std::vector<t_serv>& s)
                 t_serv  *serv_tmp = port_to_serv[port_tmp];
                 if (serv_tmp) 
 				{
-                    // Client* myCl = new Client();
-                    Client cl(pollfds[i].fd, client_ip, *serv_tmp);
-					fd_to_clients.insert(std::make_pair(pollfds[i].fd, cl));
+                    Client* myCl = new Client(pollfds[i].fd, client_ip, *serv_tmp);
+                    // Client cl(pollfds[i].fd, client_ip, *serv_tmp);
+					fd_to_clients.insert(std::make_pair(pollfds[i].fd, myCl));
 
                     try 
 					{
-                        cl.readRequest();
-                        cl.print();
-                        cl.pollstruct = &(pollfds[i]);
-                        if (cl.checkError())
+                    myCl->readRequest();
+                    myCl->print();
+                    myCl->pollstruct = &(pollfds[i]);
+                        if (myCl->checkError())
                         {
                             std::cout << "I Am HERE \n";
-                            if (cl.getReq().getCGIB())
-                                launchCgi(cl, fd);
-                            else if (cl.getReq().getMethod() == "GET")
-                                sendHTMLResponse(cl, fd, cl.getReq().getResource());
-                            else if (cl.getReq().getMethod() == "POST")
-                                sendPostResponse(cl, fd, cl.getReq().getResource());
-                            else if (cl.getReq().getMethod() == "DELETE")
-                                sendDeleteResponse(cl, fd, cl.getReq().getResource());
+                            if (myCl->getReq().getCGIB())
+                                launchCgi(*myCl, myCl-> fd);
+                            else if (myCl->getReq().getMethod() == "GET")
+                                sendHTMLResponse(*myCl, myCl->fd, myCl->getReq().getResource());
+                            else if (myCl->getReq().getMethod() == "POST")
+                                sendPostResponse(*myCl, myCl->fd, myCl->getReq().getResource());
+                            else if (myCl->getReq().getMethod() == "DELETE")
+                                sendDeleteResponse(*myCl, myCl->fd, myCl->getReq().getResource());
                             pollfds[i].events = POLLOUT;
                         }
                     }
@@ -397,9 +397,9 @@ void Server::setUp(std::vector<t_serv>& s)
                 std::cerr << "POLLOUTTTT" << '\n';
 
 				client_it  = this->fd_to_clients.find(fd);
-				if (client_it != this->fd_to_clients.end() && (!client_it->second.response_complete))
+				if (client_it != this->fd_to_clients.end() && !client_it->second->response_complete)
 				{
-                	client_it->second.sendResponse(client_it->second.content_type);
+                	client_it->second->sendResponse(client_it->second->content_type);
                     // if (client_it->second.getReq().getCGIB())
                     //     launchCgi(client_it->second, fd);
                     // else if (client_it->second.getReq().getMethod() == "GET")
