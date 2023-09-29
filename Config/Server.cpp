@@ -117,7 +117,7 @@ void sendPostResponse(class Client client, int fd, std::string filepath)
 	client.getResp().content_len = client.getResp().body.size();
 	client.getResp().additional_info = "Location: " + filepath;
 
-    client.getResp().sendResponse("text/plain");
+    // client.getResp().sendResponse("text/plain");
 
 }
 
@@ -134,7 +134,7 @@ void sendDeleteResponse(class Client client, int fd, std::string filepath)
 	// additional_info.clear();
 	client.getResp().content_len = 0;
 
-    client.getResp().sendResponse("text/plain");
+    // client.getResp().sendResponse("text/plain");
 	client.getResp().response_complete = true;
 }
 
@@ -176,7 +176,7 @@ void Server::sendHTMLResponse(class Client client, int fd, std::string filepath)
 
     client.getResp().setFilename(filepath);
     client.getResp().setFd(fd);
-    client.getResp().sendResponse(content_type);
+    // client.getResp().sendResponse(content_type);
 
     // file.close();
     std::cerr << "\n after file closing\n" << std::endl;
@@ -242,7 +242,7 @@ void Server::launchCgi(Client client, int fd)
 
     client.getResp().setFilename(string_filename);
     client.getResp().setFd(fd);
-    client.getResp().sendResponse("text/html");
+    // client.getResp().sendResponse("text/html");
 
     remove(out_filename);
     close(fd); // Close the client socket
@@ -378,7 +378,7 @@ void Server::setUp(std::vector<t_serv>& s)
                                 sendPostResponse(cl, fd, cl.getReq().getResource());
                             else if (cl.getReq().getMethod() == "DELETE")
                                 sendDeleteResponse(cl, fd, cl.getReq().getResource());
-                            poll.events = pollout;
+                            pollfds[i].events = POLLOUT;
                         }
                     }
 					catch (const std::exception& e) 

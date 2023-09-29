@@ -106,7 +106,7 @@ void Response::sendResponse(std::string content_type)
         if (bytesSent < 0) {
             std::cerr << "Send error" << std::endl;
         }
-        pollstruct->events = POLLOUT;
+        // pollstruct->events = POLLOUT;
 		response_complete = false;
 
 
@@ -117,7 +117,7 @@ void Response::sendResponse(std::string content_type)
 
 		file.close();
 		response_complete = true;
-        pollstruct->revents = POLLOUT;
+        // pollstruct->revents = POLLOUT;
         std::cerr << "all read " << _filename << std::endl;
 
 	}
