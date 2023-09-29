@@ -36,6 +36,25 @@ Client::Client(int new_socket, char *clien_ip, t_serv s): _serv(s),
 	_isRead = false;
 	_toServe = false;
 	_errBodySize = 0;
+
+
+    status_code = "200 OK";
+	is_chunked = false;
+    _proto = "HTTP/1.1";
+    position = 0;
+    additional_info = "";
+    response_complete = false;
+    header_sent = false;
+
+    header = "";
+    body = "";
+    _status = "";
+    _chunking = "";
+    content_type = "";
+    _date = "";
+    status_code = "";
+	_filename = "";
+	_target_fd = 0;
 }
 
 
@@ -183,6 +202,90 @@ void Client::print()
 	// 	std::cout << env_var[i] << std::endl;
 	// }
 	// std::cout << "hello222" << std::endl;
+}
+
+int calculateContentLength(std::ifstream& file) {
+        file.seekg(0, std::ios::end);
+        int length = static_cast<int>(file.tellg());
+        file.seekg(0, std::ios::beg);
+        return length;
+    }
+
+void Client::sendResponse(std::string content_type) 
+{
+    std::cerr << "\n in response" << _filename << "\n";
+    std::string chunk = "";
+
+    // std::ifstream file(_filename.c_str());
+	int _target_fd = fd;
+    char buff[BUFF_SIZE];
+    std::string head;
+    
+    std::ifstream file(_filename.c_str(), std::ios::binary);
+    if (!file.is_open()) 
+    {
+        std::cerr << "Failed to open " << _filename << std::endl;
+    }
+    if (!header_sent)
+    {
+        // createHeader();
+        // chunk += header;
+
+        snprintf(buff, sizeof(buff), "HTTP/1.1 200 OK\r\n"
+                                         "Content-Type:  %s\r\n"
+                                         "Content-Length: %d\r\n"
+                                         "Connection: close\r\n"
+                                        //  "Transfer-Encoding: chunked\r\n"
+                                         "\r\n", content_type.c_str(), calculateContentLength(file));
+
+        // snprintf(buff, sizeof(buff), "HTTP/1.1 200 OK\r\n"
+        //                                  "Content-Type: %s\r\n"
+        //                                  "Content-Length: %d\r\n"
+        //                                  "Connection: keep-alive\r\n"
+        //                                  "Transfer-Encoding: chunked\r\n"
+        //                                  "\r\n", "multipart/form-data", calculateContentLength(file));
+
+                                        //  "\r\n", content_type.c_str(), calculateContentLength(file));
+    
+	    send(_target_fd, buff, strlen(buff), 0);
+        header_sent = true;
+    }
+
+	// std::ifstream file(_filename.c_str(), std::ios::binary);
+
+
+	// char buff[BUFF_SIZE];
+
+    file.seekg(position);
+    file.read(buff, sizeof(buff));
+    std::streampos currentPos = file.tellg();
+
+
+    int bytesRead = file.gcount();
+    if (bytesRead > 0) 
+    {
+        std::cerr << "*******READING " << _filename << std::endl;
+
+        int bytesSent = send(_target_fd, buff, bytesRead, 0);
+        if (bytesSent < 0) {
+            std::cerr << "Send error" << std::endl;
+        }
+        // pollstruct->events = POLLOUT;
+		response_complete = false;
+
+
+    }
+    else if (file.eof() || bytesRead == 0)
+	{
+        std::cerr << "*******EOF " << _filename << std::endl;
+
+		file.close();
+		response_complete = true;
+        // pollstruct->revents = POLLOUT;
+        std::cerr << "all read " << _filename << std::endl;
+
+	}
+	// close(_target_fd);
 }
 
 Client::~Client()

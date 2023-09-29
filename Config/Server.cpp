@@ -174,8 +174,8 @@ void Server::sendHTMLResponse(class Client client, int fd, std::string filepath)
     else
         content_type = "application/octet-stream";
 
-    client.getResp().setFilename(filepath);
-    client.getResp().setFd(fd);
+    client._filename = filepath;
+    client.fd = fd;
     // client.getResp().sendResponse(content_type);
 
     // file.close();
@@ -396,7 +396,7 @@ void Server::setUp(std::vector<t_serv>& s)
 				client_it  = this->fd_to_clients.find(fd);
 				if (client_it != this->fd_to_clients.end() && (!client_it->second.getResp().response_complete))
 				{
-                	client_it->second.getResp().sendResponse(client_it->second.getResp().content_type);
+                	client_it->second.sendResponse(client_it->second.content_type);
                     // if (client_it->second.getReq().getCGIB())
                     //     launchCgi(client_it->second, fd);
                     // else if (client_it->second.getReq().getMethod() == "GET")
