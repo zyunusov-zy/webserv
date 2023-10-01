@@ -310,6 +310,8 @@ void Server::setUp(std::vector<t_serv>& s)
         i++;
     }
 
+    std::cout << servers.size() << std::endl;
+
     std::vector<int> listenfds;
     struct sockaddr_in servaddr;
     char buff[200];
@@ -350,7 +352,7 @@ void Server::setUp(std::vector<t_serv>& s)
         listenfds.push_back(listenfd);
     }
     std::vector<int> connected_fds;
-    while (1) 
+    while (1)
 	{
 
 		std::cerr << "in main LOOP" << '\n';
@@ -479,6 +481,7 @@ void Server::setUp(std::vector<t_serv>& s)
         	removeSocket(fd, connected_fds, sockets_to_remove, fd_to_clients, pollfds, listenfds);
 			std::cerr << pollfds.size() << '\n';
 			std::cerr << listenfds.size() << '\n';
+            close(fd);
 
 
    		}
