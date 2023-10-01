@@ -298,6 +298,7 @@ void Server::setUp(std::vector<t_serv>& s)
     int i, j;
 
     i = 0;
+    std::cout << "Server size:" << servers.size() << std::endl;
     while(i < servers.size())
     {
         j = 0;
@@ -310,7 +311,6 @@ void Server::setUp(std::vector<t_serv>& s)
         i++;
     }
 
-    std::cout << servers.size() << std::endl;
 
     std::vector<int> listenfds;
     struct sockaddr_in servaddr;

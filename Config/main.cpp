@@ -25,6 +25,7 @@ int main(int argc, char** av)
 		Server serv;
 
 		// exit(1);
+    	std::cout << "Server size:" << servers.size() << std::endl;
 
 		serv.setUp(servers);
 	}
