@@ -1,7 +1,10 @@
 #ifndef CLIENT_HPP
 # define CLIENT_HPP
 
-#define BUFF_SIZE 1020
+
+#define BUFF_SIZE 8192
+
+// #define BUFF_SIZE 16384
 
 // #include <iostream>
 // #include <map>

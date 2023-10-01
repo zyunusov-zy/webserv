@@ -42,7 +42,7 @@ public:
 	// void conf(std::string filename,std::vector<t_serv>& servers);
 	void setUp(std::vector<t_serv>& s);
 	void launchCgi(Client client, int fd);
-    void sendHTMLResponse(Client client, int fd, std::string filepath);
+    void sendHTMLResponse(Client *client, int fd, std::string filepath);
 	//-----
 	
 	//-----

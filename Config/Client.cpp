@@ -213,14 +213,14 @@ int calculateContentLength(std::ifstream& file) {
 
 void Client::sendResponse(std::string content_type) 
 {
-    std::cerr << "\n in response" << filename << "\n";
+    // std::cerr << "\n in response" << filename << "\n";
     std::string chunk = "";
 
     // std::ifstream file(_filename.c_str());
 	int _target_fd = _fdSock;
-	std::cerr << _target_fd << filename << "\n";
-	std::cerr << "   contet type   " << "\n";
-	std::cerr << content_type << "\n";
+	// std::cerr << _target_fd << filename << "\n";
+	// std::cerr << "   contet type   " << "\n";
+	// std::cerr << content_type << "\n";
 
 
     char buff[BUFF_SIZE];
@@ -235,11 +235,12 @@ void Client::sendResponse(std::string content_type)
     {
         // createHeader();
         // chunk += header;
+        std::cerr << "\nSending header " << filename << std::endl;
 
         snprintf(buff, sizeof(buff), "HTTP/1.1 200 OK\r\n"
                                          "Content-Type: %\r\n"
                                          "Content-Length: %d\r\n"
-                                         "Connection: close\r\n"
+                                         "Connection: keep-alive\r\n"
                                         //  "Transfer-Encoding: chunked\r\n"
                                          "\r\n", content_type.c_str(), calculateContentLength(file));
 
@@ -269,7 +270,7 @@ void Client::sendResponse(std::string content_type)
     int bytesRead = file.gcount();
     if (bytesRead > 0) 
     {
-        std::cerr << "*******READING " << filename << std::endl;
+        // std::cerr << "*******READING " << filename << std::endl;
 
         int bytesSent = send(_target_fd, buff, bytesRead, 0);
         if (bytesSent < 0) {
@@ -277,10 +278,13 @@ void Client::sendResponse(std::string content_type)
         }
         // pollstruct->events = POLLOUT;
 		response_complete = false;
+	    std::cerr << "**** " << filename << std::endl;
 
 
     }
-    if (file.eof() || bytesRead == 0)
+    // if (file.eof() || bytesRead == 0)
+	else if (file.eof() || bytesRead == 0)
+	// else if (bytesRead == 0)
 	{
         std::cerr << "*******EOF " << filename << std::endl;
 
@@ -290,6 +294,7 @@ void Client::sendResponse(std::string content_type)
         std::cerr << "all read " << filename << std::endl;
 
 	}
+	position = file.tellg();
 	// close(_target_fd);
 }
 

@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/Config/webserv",
-            "args": ["/Users/cgreenpo/our_webserv/Config/kris.conf"],
+            "args": ["/Users/kris/our_webserv2/Config/krishome.conf"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],
