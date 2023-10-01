@@ -215,13 +215,7 @@ void Client::sendResponse(std::string content_type)
 {
     // std::cerr << "\n in response" << filename << "\n";
     std::string chunk = "";
-
-    // std::ifstream file(_filename.c_str());
 	int _target_fd = _fdSock;
-	// std::cerr << _target_fd << filename << "\n";
-	// std::cerr << "   contet type   " << "\n";
-	// std::cerr << content_type << "\n";
-
 
     char buff[BUFF_SIZE];
     std::string head;
@@ -244,23 +238,9 @@ void Client::sendResponse(std::string content_type)
                                         //  "Transfer-Encoding: chunked\r\n"
                                          "\r\n", content_type.c_str(), calculateContentLength(file));
 
-        // snprintf(buff, sizeof(buff), "HTTP/1.1 200 OK\r\n"
-        //                                  "Content-Type: %s\r\n"
-        //                                  "Content-Length: %d\r\n"
-        //                                  "Connection: keep-alive\r\n"
-        //                                  "Transfer-Encoding: chunked\r\n"
-        //                                  "\r\n", "multipart/form-data", calculateContentLength(file));
-
-                                        //  "\r\n", content_type.c_str(), calculateContentLength(file));
-    
 	    send(_target_fd, buff, strlen(buff), 0);
         header_sent = true;
     }
-
-	// std::ifstream file(_filename.c_str(), std::ios::binary);
-
-
-	// char buff[BUFF_SIZE];
 
     file.seekg(position);
     file.read(buff, sizeof(buff));
@@ -276,13 +256,8 @@ void Client::sendResponse(std::string content_type)
         if (bytesSent < 0) {
             std::cerr << "Send error" << std::endl;
         }
-        // pollstruct->events = POLLOUT;
 		response_complete = false;
-	    std::cerr << "**** " << filename << std::endl;
-
-
     }
-    // if (file.eof() || bytesRead == 0)
 	else if (file.eof() || bytesRead == 0)
 	// else if (bytesRead == 0)
 	{
@@ -290,9 +265,7 @@ void Client::sendResponse(std::string content_type)
 
 		file.close();
 		response_complete = true;
-        // pollstruct->revents = POLLOUT;
         std::cerr << "all read " << filename << std::endl;
-
 	}
 	position = file.tellg();
 	// close(_target_fd);
