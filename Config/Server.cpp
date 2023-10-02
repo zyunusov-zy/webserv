@@ -16,8 +16,12 @@ Server::~Server(){
 #define WRITE_END 1
 #define READ_END 0
 
-void handleFileUpload(const std::string& filename, const std::string& fileContent, const size_t file_size, const size_t upload_header_size) 
+int handleFileUpload(const std::string& filename, const std::string& fileContent, const size_t file_size, const size_t upload_header_size) 
 {
+    std::string full_path = filename;
+    std::cout << "PLOAD PATH " << std::endl;
+
+    std::cout << filename << std::endl;
 
     std::ofstream outputFile(filename.c_str(), std::ios::binary | std::ios::trunc);
     // std::ofstream outputFile(filename, std::ios::binary);
@@ -30,8 +34,10 @@ void handleFileUpload(const std::string& filename, const std::string& fileConten
 
         outputFile.close();
         std::cout << "File uploaded successfully.\n";
+        return (true);
     } else {
         std::cerr << "Failed to upload the file.\n";
+        return (false);
     }
 }
 
@@ -84,7 +90,7 @@ void sendPostResponse(class Client *client, int fd, std::string filepath)
     size_t upload_header_size;
     std::string upload_header;
     std::string filename = extractFilename(client->getReq().getBody());
-
+    filename = client->getReq().getLoc()->root + filename;
     upload_header_size = client->getReq().getBody().find("\r\n\r\n") + 4;
     upload_header = client->getReq().getBody().substr(0, upload_header_size);
 
@@ -108,7 +114,7 @@ void sendPostResponse(class Client *client, int fd, std::string filepath)
     // std::cout << "Extracted Content:\n" << tmp << std::endl;
     size_t file_size = requestBody.rfind("\r\n--" + boundary + "--") - upload_header_size;
 
-    handleFileUpload(filename, requestBody, file_size, upload_header_size);
+    if (handleFileUpload(filename, requestBody, file_size, upload_header_size));
 
 
     client->getResp()->status_code = "201 Created";
