@@ -1,9 +1,9 @@
 #include "Client.hpp"
 
-// Response &Client::getResp()
-// {
-// 	return (_resp);
-// }
+Response *Client::getResp()
+{
+	return (_resp);
+}
 
 bool Client::getQuer()
 {
@@ -37,24 +37,23 @@ Client::Client(int new_socket, char *clien_ip, t_serv s): _serv(s),
 	_toServe = false;
 	_errBodySize = 0;
 
+    // status_code = "200 OK";
+	// is_chunked = false;
+    // _proto = "HTTP/1.1";
+    // position = 0;
+    // additional_info = "";
+    // response_complete = false;
+    // header_sent = false;
 
-    status_code = "200 OK";
-	is_chunked = false;
-    _proto = "HTTP/1.1";
-    position = 0;
-    additional_info = "";
-    response_complete = false;
-    header_sent = false;
-
-    header = "";
-    body = "";
-    _status = "";
-    _chunking = "";
-    content_type = "";
-    _date = "";
-    status_code = "";
-	filename = "";
-	_target_fd = 0;
+    // header = "";
+    // body = "";
+    // _status = "";
+    // _chunking = "";
+    // content_type = "";
+    // _date = "";
+    // status_code = "";
+	// filename = "";
+	// _target_fd = 0;
 }
 
 
@@ -204,72 +203,72 @@ void Client::print()
 	// std::cout << "hello222" << std::endl;
 }
 
-int calculateContentLength(std::ifstream& file) {
-        file.seekg(0, std::ios::end);
-        int length = static_cast<int>(file.tellg());
-        file.seekg(0, std::ios::beg);
-        return length;
-    }
+// int calculateContentLength(std::ifstream& file) {
+//         file.seekg(0, std::ios::end);
+//         int length = static_cast<int>(file.tellg());
+//         file.seekg(0, std::ios::beg);
+//         return length;
+//     }
 
-void Client::sendResponse(std::string content_type) 
-{
-    // std::cerr << "\n in response" << filename << "\n";
-    std::string chunk = "";
-	int _target_fd = _fdSock;
+// void Client::sendResponse(std::string content_type) 
+// {
+//     // std::cerr << "\n in response" << filename << "\n";
+//     std::string chunk = "";
+// 	int _target_fd = _fdSock;
 
-    char buff[BUFF_SIZE];
-    std::string head;
+//     char buff[BUFF_SIZE];
+//     std::string head;
     
-    std::ifstream file(filename.c_str(), std::ios::binary);
-    if (!file.is_open()) 
-    {
-        std::cerr << "Failed to open " << filename << std::endl;
-    }
-    if (!header_sent)
-    {
-        // createHeader();
-        // chunk += header;
-        std::cerr << "\nSending header " << filename << std::endl;
+//     std::ifstream file(filename.c_str(), std::ios::binary);
+//     if (!file.is_open()) 
+//     {
+//         std::cerr << "Failed to open " << filename << std::endl;
+//     }
+//     if (!header_sent)
+//     {
+//         // createHeader();
+//         // chunk += header;
+//         std::cerr << "\nSending header " << filename << std::endl;
 
-        snprintf(buff, sizeof(buff), "HTTP/1.1 200 OK\r\n"
-                                         "Content-Type: %\r\n"
-                                         "Content-Length: %d\r\n"
-                                         "Connection: keep-alive\r\n"
-                                        //  "Transfer-Encoding: chunked\r\n"
-                                         "\r\n", content_type.c_str(), calculateContentLength(file));
+//         snprintf(buff, sizeof(buff), "HTTP/1.1 200 OK\r\n"
+//                                          "Content-Type: %\r\n"
+//                                          "Content-Length: %d\r\n"
+//                                          "Connection: keep-alive\r\n"
+//                                         //  "Transfer-Encoding: chunked\r\n"
+//                                          "\r\n", content_type.c_str(), calculateContentLength(file));
 
-	    send(_target_fd, buff, strlen(buff), 0);
-        header_sent = true;
-    }
+// 	    send(_target_fd, buff, strlen(buff), 0);
+//         header_sent = true;
+//     }
 
-    file.seekg(position);
-    file.read(buff, sizeof(buff));
-    std::streampos currentPos = file.tellg();
+//     file.seekg(position);
+//     file.read(buff, sizeof(buff));
+//     std::streampos currentPos = file.tellg();
 
 
-    int bytesRead = file.gcount();
-    if (bytesRead > 0) 
-    {
-        // std::cerr << "*******READING " << filename << std::endl;
+//     int bytesRead = file.gcount();
+//     if (bytesRead > 0) 
+//     {
+//         // std::cerr << "*******READING " << filename << std::endl;
 
-        int bytesSent = send(_target_fd, buff, bytesRead, 0);
-        if (bytesSent < 0) {
-            std::cerr << "Send error" << std::endl;
-        }
-		response_complete = false;
-    }
-	else if (file.eof() || bytesRead == 0)
-	// else if (bytesRead == 0)
-	{
-        std::cerr << "*******EOF " << filename << std::endl;
+//         int bytesSent = send(_target_fd, buff, bytesRead, 0);
+//         if (bytesSent < 0) {
+//             std::cerr << "Send error" << std::endl;
+//         }
+// 		response_complete = false;
+//     }
+// 	else if (file.eof() || bytesRead == 0)
+// 	// else if (bytesRead == 0)
+// 	{
+//         std::cerr << "*******EOF " << filename << std::endl;
 
-		file.close();
-		response_complete = true;
-        std::cerr << "all read " << filename << std::endl;
-	}
-	position = file.tellg();
-	// close(_target_fd);
-}
+// 		file.close();
+// 		response_complete = true;
+//         std::cerr << "all read " << filename << std::endl;
+// 	}
+// 	position = file.tellg();
+// 	// close(_target_fd);
+// }
 
 Client::~Client()
 {

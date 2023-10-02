@@ -19,7 +19,7 @@ Response::Response()
     content_type = "";
     _date = "";
     status_code = "";
-	_filename = "";
+	filename = "";
 	_target_fd = 0;
 
 }
@@ -47,50 +47,41 @@ int calculateContentLength(std::ifstream& file) {
         return length;
     }
 
+
 void Response::sendResponse(std::string content_type) 
 {
-    std::cerr << "\n in response" << _filename << "\n";
+    // std::cerr << "\n in response" << filename << "\n";
     std::string chunk = "";
-
-    // std::ifstream file(_filename.c_str());
+	// int _target_fd = _fdSock;
 
     char buff[BUFF_SIZE];
     std::string head;
     
-    std::ifstream file(_filename.c_str(), std::ios::binary);
+    std::ifstream file(filename.c_str(), std::ios::binary);
     if (!file.is_open()) 
     {
-        std::cerr << "Failed to open " << _filename << std::endl;
+        std::cerr << "Failed to open " << filename << std::endl;
     }
     if (!header_sent)
     {
         // createHeader();
         // chunk += header;
+        std::cerr << "\nSending header " << filename << std::endl;
 
         snprintf(buff, sizeof(buff), "HTTP/1.1 200 OK\r\n"
-                                         "Content-Type:  %s\r\n"
+                                         "Content-Type: %\r\n"
                                          "Content-Length: %d\r\n"
-                                         "Connection: close\r\n"
+                                         "Connection: keep-alive\r\n"
                                         //  "Transfer-Encoding: chunked\r\n"
                                          "\r\n", content_type.c_str(), calculateContentLength(file));
+        std::cerr << "\nSending header " << content_type << std::endl;
+        std::cerr << "\nSending header " << _target_fd << std::endl;
 
-        // snprintf(buff, sizeof(buff), "HTTP/1.1 200 OK\r\n"
-        //                                  "Content-Type: %s\r\n"
-        //                                  "Content-Length: %d\r\n"
-        //                                  "Connection: keep-alive\r\n"
-        //                                  "Transfer-Encoding: chunked\r\n"
-        //                                  "\r\n", "multipart/form-data", calculateContentLength(file));
 
-                                        //  "\r\n", content_type.c_str(), calculateContentLength(file));
-    
+
 	    send(_target_fd, buff, strlen(buff), 0);
         header_sent = true;
     }
-
-	// std::ifstream file(_filename.c_str(), std::ios::binary);
-
-
-	// char buff[BUFF_SIZE];
 
     file.seekg(position);
     file.read(buff, sizeof(buff));
@@ -100,102 +91,164 @@ void Response::sendResponse(std::string content_type)
     int bytesRead = file.gcount();
     if (bytesRead > 0) 
     {
-        std::cerr << "*******READING " << _filename << std::endl;
+        // std::cerr << "*******READING " << filename << std::endl;
 
         int bytesSent = send(_target_fd, buff, bytesRead, 0);
         if (bytesSent < 0) {
             std::cerr << "Send error" << std::endl;
         }
-        // pollstruct->events = POLLOUT;
 		response_complete = false;
-
-
     }
-    else if (file.eof() || bytesRead == 0)
+	else if (file.eof() || bytesRead == 0)
+	// else if (bytesRead == 0)
 	{
-        std::cerr << "*******EOF " << _filename << std::endl;
+        std::cerr << "*******EOF " << filename << std::endl;
 
 		file.close();
 		response_complete = true;
-        // pollstruct->revents = POLLOUT;
-        std::cerr << "all read " << _filename << std::endl;
-
+        std::cerr << "all read " << filename << std::endl;
 	}
+	position = file.tellg();
 	// close(_target_fd);
 }
 
-// void Response::sendResponse(std::string content_type) 
+// void Client::sendResponse(std::string content_type) 
 // {
+//     // std::cerr << "\n in response" << filename << "\n";
+//     std::string chunk = "";
+// 	int _target_fd = _fdSock;
 
-// 	std::ifstream file(_filename.c_str());
-
-//     if (!file.is_open()) {
-//     std::cerr << "Failed to open " << _filename << std::endl;
+//     char buff[BUFF_SIZE];
+//     std::string head;
+    
+//     std::ifstream file(filename.c_str(), std::ios::binary);
+//     if (!file.is_open()) 
+//     {
+//         std::cerr << "Failed to open " << filename << std::endl;
 //     }
-//     std::cerr << "\n in response" << _filename << "\n";
+//     if (!header_sent)
+//     {
+//         // createHeader();
+//         // chunk += header;
+//         std::cerr << "\nSending header " << filename << std::endl;
 
-// 	char buff[BUFF_SIZE];
-
-//     char header[400];
-
-
-// //the header needs to be sent as a part of a chunk, 
-//     snprintf(buff, sizeof(buff), "HTTP/1.1 200 OK\r\n"
-//                                          "Content-Type: %s\r\n"
+//         snprintf(buff, sizeof(buff), "HTTP/1.1 200 OK\r\n"
+//                                          "Content-Type: %\r\n"
 //                                          "Content-Length: %d\r\n"
 //                                          "Connection: keep-alive\r\n"
+//                                         //  "Transfer-Encoding: chunked\r\n"
 //                                          "\r\n", content_type.c_str(), calculateContentLength(file));
-    
-// 	send(_target_fd, buff, strlen(buff), 0);
+
+// 	    send(_target_fd, buff, strlen(buff), 0);
+//         header_sent = true;
+//     }
+
+//     file.seekg(position);
+//     file.read(buff, sizeof(buff));
+//     std::streampos currentPos = file.tellg();
 
 
-// 	while (file.good())
+//     int bytesRead = file.gcount();
+//     if (bytesRead > 0) 
 //     {
-//         file.read(buff, sizeof(buff));
-//         int bytesRead = file.gcount();
-//         if (bytesRead > 0) 
-// 		{
-//             int bytesSent = send(_target_fd, buff, bytesRead, 0);
-//             if (bytesSent < 0) {
-//                 std::cerr << "Send error" << std::endl;
-//                 break;
-//             }
+//         // std::cerr << "*******READING " << filename << std::endl;
+
+//         int bytesSent = send(_target_fd, buff, bytesRead, 0);
+//         if (bytesSent < 0) {
+//             std::cerr << "Send error" << std::endl;
 //         }
-//         else 
-//         {
-//             // No more data to send
-//             break;
+// 		response_complete = false;
+//     }
+// 	else if (file.eof() || bytesRead == 0)
+// 	// else if (bytesRead == 0)
+// 	{
+//         std::cerr << "*******EOF " << filename << std::endl;
+
+// 		file.close();
+// 		response_complete = true;
+//         std::cerr << "all read " << filename << std::endl;
+// 	}
+// 	position = file.tellg();
+// 	// close(_target_fd);
+// }
+
+// void Response::sendResponse(std::string content_type) 
+// {
+//     std::cerr << "\n in response" << _filename << "\n";
+//     std::string chunk = "";
+
+//     // std::ifstream file(_filename.c_str());
+
+//     char buff[BUFF_SIZE];
+//     std::string head;
+    
+//     std::ifstream file(_filename.c_str(), std::ios::binary);
+//     if (!file.is_open()) 
+//     {
+//         std::cerr << "Failed to open " << _filename << std::endl;
+//     }
+//     if (!header_sent)
+//     {
+//         // createHeader();
+//         // chunk += header;
+
+//         snprintf(buff, sizeof(buff), "HTTP/1.1 200 OK\r\n"
+//                                          "Content-Type:  %s\r\n"
+//                                          "Content-Length: %d\r\n"
+//                                          "Connection: close\r\n"
+//                                         //  "Transfer-Encoding: chunked\r\n"
+//                                          "\r\n", content_type.c_str(), calculateContentLength(file));
+
+//         // snprintf(buff, sizeof(buff), "HTTP/1.1 200 OK\r\n"
+//         //                                  "Content-Type: %s\r\n"
+//         //                                  "Content-Length: %d\r\n"
+//         //                                  "Connection: keep-alive\r\n"
+//         //                                  "Transfer-Encoding: chunked\r\n"
+//         //                                  "\r\n", "multipart/form-data", calculateContentLength(file));
+
+//                                         //  "\r\n", content_type.c_str(), calculateContentLength(file));
+    
+// 	    send(_target_fd, buff, strlen(buff), 0);
+//         header_sent = true;
+//     }
+
+// 	// std::ifstream file(_filename.c_str(), std::ios::binary);
+
+
+// 	// char buff[BUFF_SIZE];
+
+//     file.seekg(position);
+//     file.read(buff, sizeof(buff));
+//     std::streampos currentPos = file.tellg();
+
+
+//     int bytesRead = file.gcount();
+//     if (bytesRead > 0) 
+//     {
+//         std::cerr << "*******READING " << _filename << std::endl;
+
+//         int bytesSent = send(_target_fd, buff, bytesRead, 0);
+//         if (bytesSent < 0) {
+//             std::cerr << "Send error" << std::endl;
 //         }
+//         // pollstruct->events = POLLOUT;
+// 		response_complete = false;
+
+
+//     }
+//     else if (file.eof() || bytesRead == 0)
+// 	{
+//         std::cerr << "*******EOF " << _filename << std::endl;
+
+// 		file.close();
+// 		response_complete = true;
+//         // pollstruct->revents = POLLOUT;
+//         std::cerr << "all read " << _filename << std::endl;
+
 // 	}
 // 	// close(_target_fd);
 // }
 
-
-// void	Response::createHeader()
-// {
-// 	std::ostringstream tmp;
-
-// 	if (BUF_SIZE < content_length)
-// 	{
-// 		additional_info = "Transfer-Encoding: chunked";
-// 		is_chunked = true;
-// 	}
-
-// 	this->setDate();
-// 	tmp << protocoll << " " << status_code << "\r\n";
-// 	tmp << "Server: " << server_name << "\r\n";
-// 	tmp << date << "\r\n";
-// 	if (content_length)
-// 	{
-// 		tmp << "Content-Type: " << content_type << "\r\n";
-// 		tmp << "Content-Length: " << content_length << "\r\n";
-// 	}
-// 	if (!additional_info.empty())
-// 		tmp << additional_info << "\r\n";
-// 	tmp << "\r\n";
-
-// 	header = tmp.str();
-// }
 
 
 void Response::setFd(int fd) {
@@ -203,8 +256,8 @@ void Response::setFd(int fd) {
 }
 
 void Response::setFilename(std::string &name) {
-    _filename = name;
-    std::cout << "\n\nset name " << _filename << "\n";
+    filename = name;
+    std::cout << "\n\nset name " << filename << "\n";
 }
 
 void Response::setStatus(int statusCode) {

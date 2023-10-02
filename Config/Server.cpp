@@ -77,27 +77,27 @@ std::string extractFilename(const std::string& contentDispositionHeader) {
     return filename;
 }
 
-void sendPostResponse(class Client client, int fd, std::string filepath)
+void sendPostResponse(class Client *client, int fd, std::string filepath)
  {
     std::cout << "IN POST RESP ----- \n\n";
 
     size_t upload_header_size;
     std::string upload_header;
-    std::string filename = extractFilename(client.getReq().getBody());
+    std::string filename = extractFilename(client->getReq().getBody());
 
-    upload_header_size = client.getReq().getBody().find("\r\n\r\n") + 4;
-    upload_header = client.getReq().getBody().substr(0, upload_header_size);
+    upload_header_size = client->getReq().getBody().find("\r\n\r\n") + 4;
+    upload_header = client->getReq().getBody().substr(0, upload_header_size);
 
     // std::ofstream createFile(file_path.c_str(), std::ios::binary | std::ios::trunc);
 
     std::map<std::string, std::string> tmp;
-    std::ifstream dmm(client.getReq().getBody());
+    std::ifstream dmm(client->getReq().getBody());
 
-    std::string boundary = extractBoundary(client.getReq().getHeaders()["Content-Type"]);
+    std::string boundary = extractBoundary(client->getReq().getHeaders()["Content-Type"]);
 
 
-    tmp = client.getReq().getHeaders(); 
-    std::string requestBody = client.getReq().getBody();
+    tmp = client->getReq().getHeaders(); 
+    std::string requestBody = client->getReq().getBody();
     std::cerr << "filename" << "\n";
     std::cerr << filename << "\n";
     std::cerr << boundary << "\n";
@@ -111,17 +111,17 @@ void sendPostResponse(class Client client, int fd, std::string filepath)
     handleFileUpload(filename, requestBody, file_size, upload_header_size);
 
 
-    client.status_code = "201 Created";
-	client.content_type = "text/plain";
-	client.body = "File was uploaded succesfully";
-	client.content_len = client.body.size();
-	client.additional_info = "Location: " + filepath;
+    client->getResp()->status_code = "201 Created";
+	client->getResp()->content_type = "text/plain";
+	client->getResp()->body = "File was uploaded succesfully";
+	client->getResp()->content_len = client->getResp()->body.size();
+	client->getResp()->additional_info = "Location: " + filepath;
 
     // client.sendResponse("text/plain");
 
 }
 
-void sendDeleteResponse(class Client client, int fd, std::string filepath)
+void sendDeleteResponse(class Client *client, int fd, std::string filepath)
 {
 	int i = std::remove(filepath.c_str());
 	// if (i != 0)
@@ -129,13 +129,13 @@ void sendDeleteResponse(class Client client, int fd, std::string filepath)
 	// 	fds_clients.at(client_fd).setError("409");
 	// 	return;
 	// }
-    client.status_code = "204 No Content";
-	client.content_type = "text/plain";
+    client->getResp()->status_code = "204 No Content";
+	client->getResp()->content_type = "text/plain";
 	// additional_info.clear();
-	client.content_len = 0;
+	client->getResp()->content_len = 0;
 
     // client.sendResponse("text/plain");
-	client.response_complete = true;
+	client->getResp()->response_complete = true;
 }
 
 void Server::sendHTMLResponse(class Client *client, int fd, std::string filepath) 
@@ -174,8 +174,10 @@ void Server::sendHTMLResponse(class Client *client, int fd, std::string filepath
     else
         content_type = "application/octet-stream";
 
-    client->filename = filepath;
-    client->content_type = content_type;
+    // client->filename = filepath;
+    client->getResp()->content_type = content_type;
+    client->getResp()->filename = filepath;
+
     // client.fd = fd;
     // client.sendResponse(content_type);
 
@@ -274,6 +276,7 @@ void removeSocket(int fd, std::vector<int>& connected_fds,
     // Remove the socket from fd_to_clients
     std::map<int, Client*>::iterator clp = fd_to_clients.find(fd);
     if (clp != fd_to_clients.end()) {
+        delete clp->second;
         fd_to_clients.erase(clp);
     }
 
@@ -411,6 +414,8 @@ void Server::setUp(std::vector<t_serv>& s)
                 if (serv_tmp) 
 				{
                     Client* myCl = new Client(pollfds[i].fd, client_ip, *serv_tmp);
+                    Response* myResp = new Response();
+                    myCl->_resp = myResp;
                     // Client cl(pollfds[i].fd, client_ip, *serv_tmp);
 					fd_to_clients.insert(std::make_pair(pollfds[i].fd, myCl));
 
@@ -419,20 +424,28 @@ void Server::setUp(std::vector<t_serv>& s)
                     myCl->readRequest();
                     myCl->print();
                     myCl->pollstruct = &(pollfds[i]);
+                    
                     	if (myCl->checkError())
                         {
                             std::cout << "I Am HERE \n";
                             if (myCl->getReq().getCGIB())
-                                launchCgi(*myCl, myCl-> fd);
+                                launchCgi(*myCl, fd);
                             else if (myCl->getReq().getMethod() == "GET")
-                                sendHTMLResponse(myCl, myCl->fd, myCl->getReq().getResource());
+                                sendHTMLResponse(myCl, fd, myCl->getReq().getResource());
                             else if (myCl->getReq().getMethod() == "POST")
-                                sendPostResponse(*myCl, myCl->fd, myCl->getReq().getResource());
+                                sendPostResponse(myCl, fd, myCl->getReq().getResource());
                             else if (myCl->getReq().getMethod() == "DELETE")
-                                sendDeleteResponse(*myCl, myCl->fd, myCl->getReq().getResource());
+                                sendDeleteResponse(myCl, fd, myCl->getReq().getResource());
                             pollfds[i].events = POLLOUT;
 							std::cout << "1 FILEname  \n";
-							std::cout << myCl->filename << std::endl;
+                            myCl->getResp()->_target_fd = fd;
+                            // myCl->getResp().filename = myCl->fd;
+                            std::cout << myCl->getResp()->_target_fd << "\n";
+
+                            std::cout << "resp  \n";
+							std::cout << myCl->getResp()->filename << std::endl;
+
+
 
                         }
                     }
@@ -448,10 +461,10 @@ void Server::setUp(std::vector<t_serv>& s)
                 //can only send here
 
 				client_it  = this->fd_to_clients.find(fd);
-				if (client_it != this->fd_to_clients.end() && !client_it->second->response_complete)
+				if (client_it != this->fd_to_clients.end() && !client_it->second->getResp()->response_complete)
 				{
 					std::cerr << "POLLOUTTTT send" << '\n';
-                	client_it->second->sendResponse(client_it->second->content_type);
+                	client_it->second->getResp()->sendResponse(client_it->second->getResp()->content_type);
 					client_it = fd_to_clients.end();
 					// exit(0);		
                 }

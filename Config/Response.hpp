@@ -41,16 +41,16 @@ public:
 	bool	response_complete;
 	bool 	is_chunked;
     std::string body;
+	int _target_fd;
+    std::string filename;
 
 private:
 
     int _statusCode;
 
-    std::string _filename;
 	std::string _header;
     std::string _body;
     std::string _status;
-	int _target_fd;
 
 	std::string	_date;
 	std::string	_proto;
