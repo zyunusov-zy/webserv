@@ -25,6 +25,11 @@ std::string	Client::getClienIP()
 	return (_clienIP);
 }
 
+t_serv	Client::getServ()
+{
+	return (_serv);
+}
+
 Client::Client(int new_socket, char *clien_ip, t_serv s): _serv(s),
 	 _req(_serv.loc), _c(false)
 {

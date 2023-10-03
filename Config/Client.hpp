@@ -58,6 +58,8 @@ public:
 	Response *getResp();
 	int checkError();
 	std::string checkErrorMap(int err);
+	t_serv getServ();
+
 
 	// void sendResponse(std::string content_type);
 

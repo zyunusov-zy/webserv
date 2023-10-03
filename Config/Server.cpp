@@ -6,6 +6,10 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <sys/stat.h>
+#include <signal.h>
+
+
 
 Server::Server(){
 }
@@ -193,26 +197,44 @@ void Server::sendHTMLResponse(class Client *client, int fd, std::string filepath
     // std::cerr << "\n after file closing\n" << std::endl;
 }
 
-void Server::launchCgi(Client client, int fd) 
+static volatile sig_atomic_t timeoutOccurred = 0;
+
+void handleTimeout(int signum) {
+    (void)signum;
+    std::cerr << "\n\n ---- timeout handling   \n";
+
+    timeoutOccurred = 1;
+}
+
+
+void Server::launchCgi(Client *client, int fd) 
 {
-    int infile = 0; // Redirect input from /dev/null
+    
+    const int timeoutDuration = 3; 
+    
+    int infile = 0; 
 
     std::cerr << "\n\n ***** in CGI   \n";
 
-    std::string string_filename = "output_file" + client.getClienIP();
+    std::cerr << "\n kjrgkjnrjnrel " << client->getServ().errorPages[500] << std::endl;
+
+
+    std::string string_filename = "output_file" + client->getClienIP();
     const char* out_filename = string_filename.c_str();
 
     int outfile = open(out_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
     if (outfile == -1) {
         std::cerr << "cgi: Error opening the outfile.\n";
+        // Handle error...
     }
 
     int pipe_d[2];
     if (pipe(pipe_d) == -1) {
         std::cerr << "Pipe Error\n";
+        // Handle error...
     }
 
-    write(pipe_d[WRITE_END], client.getReq().getBody().c_str(), client.getReq().getBody().size());
+    write(pipe_d[WRITE_END], client->getReq().getBody().c_str(), client->getReq().getBody().size());
     close(pipe_d[WRITE_END]);
 
     int cgi_pid = fork();
@@ -220,44 +242,152 @@ void Server::launchCgi(Client client, int fd)
         close(pipe_d[READ_END]);
         close(outfile);
         std::cerr << "Error with fork\n";
+        // Handle error...
     }
 
     if (cgi_pid == 0) {
+        timeoutOccurred = 0;
 
         dup2(outfile, STDOUT_FILENO);
         close(outfile);
 
-		if(client.getQuer() == false)
-		{
-			dup2(infile, STDIN_FILENO);
-			close(infile);
-		}
-        char* script_path = (char*)(client.getReq().getUriCGI().c_str());
+        if (client->getQuer() == false) {
+            dup2(infile, STDIN_FILENO);
+            close(infile);
+        }
+        // char* script_path = (char*)(client->getReq().getUriCGI().c_str());
         const char* path_to_py = "/usr/local/bin/python3";
-        // const char* path_to_py = "/usr/bin/php";
+        // /Users/cgreenpo/our_webserv/Config/cgi-bin/script_get.py
+        char* script_path = "/Users/cgreenpo/our_webserv/Config/cgi-bin/script_get.py";
 
         char* _args[] = {const_cast<char*>(path_to_py), const_cast<char*>(script_path), nullptr};
 
         dup2(pipe_d[READ_END], STDIN_FILENO);
         close(pipe_d[READ_END]);
-        if ((execve(_args[0], _args, client.getReq().getENV())) == -1)
+
+        struct sigaction sa;
+        memset(&sa, 0, sizeof(sa));
+        sa.sa_handler = handleTimeout;
+        
+        if (sigaction(SIGALRM, &sa, NULL) == -1) {
+            perror("sigaction");
+            // Handle error...
+        }
+        alarm(timeoutDuration);
+
+        if ((execve(_args[0], _args, client->getReq().getENV())) == -1) {
             std::cerr << "\ncgi: error with execution\n";
+            // Handle error...
+        }
+        throw(CgiException());
+
+        std::cerr << "\n =====timeout value \n";
+        std::cerr << '\n' << timeoutOccurred << '\n' << std::endl;
+
     }
+
+    // if (timeoutOccurred) {
+    //     std::cerr << "***Timeout occurred. Child process was terminated." << std::endl;
+    //     string_filename = "/Users/cgreenpo/our_webserv/Config/error_pages/500.html";
+    // }
     close(pipe_d[READ_END]);
+    // close(outfile);
 
     int status;
     pid_t terminatedPid = waitpid(cgi_pid, &status, 0);
     if (terminatedPid == -1) {
         std::cerr << "cgi: error with process handling\n";
+        // Handle error...
     }
 
-    client.filename = string_filename;
-    client.fd = fd;
-    // client.sendResponse("text/html");
+    if (WIFEXITED(status)) 
+    {
+        std::cout << "Child process exited with status: " << WEXITSTATUS(status) << std::endl;
+    }
+    else if (WIFSIGNALED(status))
+    {
+        std::cerr << "Child process terminated due to signal: " << WTERMSIG(status) << std::endl;
+        // string_filename = "/Users/cgreenpo/our_webserv/error_pages/500.html";
+        string_filename = client->getServ().errorPages[500];
+    }
+    client->getResp()->filename = string_filename;
+    client->getResp()->content_type = "text/html";
 
-    remove(out_filename);
-    close(fd); // Close the client socket
+    client->getResp()->setFd(fd);
+    // client->getResp()->sendResponse("text/html");
+
+    // remove(out_filename);
+    // close(fd); // Close the client socket
+
+    alarm(0);
 }
+
+
+// void Server::launchCgi(Client client, int fd) 
+// {
+//     int infile = 0; // Redirect input from /dev/null
+
+//     std::cerr << "\n\n ***** in CGI   \n";
+
+//     std::string string_filename = "output_file" + client.getClienIP();
+//     const char* out_filename = string_filename.c_str();
+
+//     int outfile = open(out_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+//     if (outfile == -1) {
+//         std::cerr << "cgi: Error opening the outfile.\n";
+//     }
+
+//     int pipe_d[2];
+//     if (pipe(pipe_d) == -1) {
+//         std::cerr << "Pipe Error\n";
+//     }
+
+//     write(pipe_d[WRITE_END], client.getReq().getBody().c_str(), client.getReq().getBody().size());
+//     close(pipe_d[WRITE_END]);
+
+//     int cgi_pid = fork();
+//     if (cgi_pid < 0) {
+//         close(pipe_d[READ_END]);
+//         close(outfile);
+//         std::cerr << "Error with fork\n";
+//     }
+
+//     if (cgi_pid == 0) {
+
+//         dup2(outfile, STDOUT_FILENO);
+//         close(outfile);
+
+// 		if(client.getQuer() == false)
+// 		{
+// 			dup2(infile, STDIN_FILENO);
+// 			close(infile);
+// 		}
+//         char* script_path = (char*)(client.getReq().getUriCGI().c_str());
+//         const char* path_to_py = "/usr/local/bin/python3";
+//         // const char* path_to_py = "/usr/bin/php";
+
+//         char* _args[] = {const_cast<char*>(path_to_py), const_cast<char*>(script_path), nullptr};
+
+//         dup2(pipe_d[READ_END], STDIN_FILENO);
+//         close(pipe_d[READ_END]);
+//         if ((execve(_args[0], _args, client.getReq().getENV())) == -1)
+//             std::cerr << "\ncgi: error with execution\n";
+//     }
+//     close(pipe_d[READ_END]);
+
+//     int status;
+//     pid_t terminatedPid = waitpid(cgi_pid, &status, 0);
+//     if (terminatedPid == -1) {
+//         std::cerr << "cgi: error with process handling\n";
+//     }
+
+//     client.filename = string_filename;
+//     client.fd = fd;
+//     // client.sendResponse("text/html");
+
+//     remove(out_filename);
+//     close(fd); // Close the client socket
+// }
 
 void removeSocket(int fd, std::vector<int>& connected_fds,
                   std::vector<int>& sockets_to_remove,
@@ -435,7 +565,7 @@ void Server::setUp(std::vector<t_serv>& s)
                         {
                             std::cout << "I Am HERE \n";
                             if (myCl->getReq().getCGIB())
-                                launchCgi(*myCl, fd);
+                                launchCgi(myCl, fd);
                             else if (myCl->getReq().getMethod() == "GET")
                                 sendHTMLResponse(myCl, fd, myCl->getReq().getResource());
                             else if (myCl->getReq().getMethod() == "POST")
