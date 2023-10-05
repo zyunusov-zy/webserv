@@ -586,8 +586,6 @@ void Server::setUp(std::vector<t_serv>& s)
 							std::cout << myCl->getResp()->filename << std::endl;
 
 
-
-
                         }
                     }
 					catch (const std::exception& e)

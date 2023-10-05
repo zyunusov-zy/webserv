@@ -9,7 +9,7 @@ form = cgi.FieldStorage()
 name = form.getvalue('name')
 
 # Print the response header
-print("Content-type: text/html\n")
+# print("Content-type: text/html\n")
 
 # Print the HTML response
 print("<!DOCTYPE html>")
