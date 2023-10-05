@@ -59,6 +59,7 @@ bool Request::getCon()
 	return this->_con;
 }
 
+
 void Request::resetRequest()
 {
 	_headers.clear();
@@ -126,6 +127,11 @@ Location *Request::getLoc()
 		tmp = tmp.substr(0, lastSlash);
 	}
 	return NULL;
+}
+
+Location *Request::getLocation()
+{
+	return _location;
 }
 
 void	Request::parsePercent(std::string &s)

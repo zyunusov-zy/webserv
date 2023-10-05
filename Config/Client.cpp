@@ -116,12 +116,29 @@ std::string Client::checkErrorMap(int err)
 int  Client::checkError()
 {
 	int err = _req.getErrorCode();
-	std::cout << "ERRRRRRORRRR!!!:" << err << std::endl;
+	// std::cout << "ERRRRRRORRRR!!!:" << err << std::endl;
 	if (err == 301 || err == 200 || err == 0 || err == 201)
 		return 1;
+	if (err == 1)
+	{
+		std::string urr = _req.getURI();
+		if (urr[urr.length() - 1] != '/')
+			urr.push_back('/');
+		std::cout << urr << std::endl << std::endl;
+		std::string indexAuto = fileList(urr, err, _req.getLocation());
+
+		std::cout << indexAuto << std::endl << std::endl;
+		if (err == 200)
+		{
+			std::cout << "HERE AUTOINDEX 2222222222222222222" << std::endl;
+			sendErrHTML(indexAuto, err);
+			return 0;
+		}
+			//call function to send html
+	}
 	std::string errorPath = "";
 	errorPath = checkErrorMap(err);
-	std::cout << "Hhhhhhhhhhhhasdfjasfajskf" << errorPath << std::endl;
+	// std::cout << "Hhhhhhhhhhhhasdfjasfajskf" << errorPath << std::endl;
 	if (errorPath != "")
 	{
 		_req.setResource(errorPath);
@@ -129,12 +146,87 @@ int  Client::checkError()
 	}
 	else if (errorPath == "")
 	{
-		std::cerr << " MB HERE????? \n";
-		std::cout << "ERRRRRRORRRR!!!:" << err << std::endl;
+		// std::cerr << " MB HERE????? \n";
+		// std::cout << "ERRRRRRORRRR!!!:" << err << std::endl;
 		std::string _errPage = genErrPage(err);
 		sendErrHTML(_errPage, err); // function to send generated error pages
 	}
 	return 0;
+}
+
+static std::string buildPath(std::string &path, const Location *loc, std::string fileName)
+{
+	std::string resPath;
+	std::string tmp;
+	size_t pos;
+
+	std::cout << std::endl << std::endl;
+	std::cout << "FILENAME: " << fileName << std::endl;
+	std::cout << "PATH: " << path << std::endl;
+
+	std::cout << "Location: " << loc->root << std::endl;
+	pos = path.rfind(loc->root);
+	std::cout << pos << std::endl;
+	if (fileName == "." || fileName == ".." || pos == std::string::npos)
+	{
+		std::cout << "HERE1" << std::endl;
+		return ".";
+	}
+	tmp = path.substr(pos + loc->root.length());
+	if (!tmp.length())
+		tmp = "/";
+	if (tmp[0] != '/')
+		tmp.insert(tmp.begin(), '/');
+	pos = tmp.find(loc->path);
+	std::cout << tmp << std::endl;
+	if (pos == std::string::npos)
+	{
+		std::cout << "HERE2" << std::endl;
+		return ".";
+	}
+	if (tmp == "/")
+		return fileName;
+	return (tmp.substr(pos) + "/" + fileName);
+}
+
+std::string Client::fileList(std::string path, int &err, const Location *loc)
+{
+	std::string htmlB;
+	DIR  		*dirPtr; // It is used as a handle for directory operations such as opening a directory and reading its contents.
+	struct dirent *dirent;
+	std::string pathToFile;
+	if (!loc)
+	{
+		err = 404;
+		return NULL;
+	}
+	dirPtr = opendir(path.c_str());
+	if (!dirPtr)
+	{
+		err = 403;
+		return NULL;
+	}
+
+	htmlB = "<!DOCTYPE html>\n";
+	htmlB += "<html>\n";
+	htmlB += "<head><title>AutoIndexON</title></head>\n";
+	htmlB += "<body>\n<h1>Files in current directory</h1>\n";
+	dirent = readdir(dirPtr);
+	while(dirent)
+	{
+		pathToFile = buildPath(path, loc, dirent->d_name);
+		std::cout << "Path TO FILE: " << pathToFile << std::endl;
+		if (pathToFile != ".")
+		{
+			htmlB  += "<div><a href=\"" + pathToFile + "\"><h2>"
+				+ dirent->d_name + "</a></h2>\n";
+		}
+		dirent = readdir(dirPtr);
+	}
+	closedir(dirPtr);
+	htmlB += "</body>\n</html>\n";
+	err = 200;
+	return htmlB;// need to count boySize while sendning
 }
 
 void Client::sendErrHTML(std::string _errPage, int err)
@@ -180,7 +272,7 @@ std::string Client::errorMap(int err)
 
 std::string	Client::genErrPage(int err)
 {
-	std::cerr << " MB HERE????? \n";
+	// std::cerr << " MB HERE????? \n";
 	std::stringstream buff;
 	buff <<  "<html>\n";
 	buff <<  "<head><title>" + std::to_string(err) + errorMap(err) + "</title></head>\n";

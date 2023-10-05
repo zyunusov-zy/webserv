@@ -20,6 +20,8 @@ int main(int argc, char** av)
 			std::cerr << e.what() << std::endl;
 			return (1);
 		}
+
+		std::cout << "SIZE_OF_VECTOR: " << servers.size() << std::endl;
 		// std::cout << "EEEEE" << servers[1].host << std::endl;
 		// serv.conf(av[1], servers);
 		Server serv;

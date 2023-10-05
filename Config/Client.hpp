@@ -15,9 +15,9 @@
 // #include "Request.hpp"
 #include "Response.hpp"
 // #include "ErrorCodes.hpp"
-
 #include "mainIn.hpp"
 #include "Request.hpp"
+#include <dirent.h>
 
 class Request;
 
@@ -38,11 +38,14 @@ private:
 	t_serv _serv;
 	void parseEnvVar();
 	
+	Response _resp;
 	int _errBodySize;
 
 	std::string	genErrPage(int err);
 	std::string errorMap(int err);
 	void sendErrHTML(std::string _errPage, int err);
+	// static std::string buildPath(std::string &path, const Location *loc, std::string fileName);
+	std::string fileList(std::string path, int &err, const Location *loc);
 
 public:
 	Response *_resp;

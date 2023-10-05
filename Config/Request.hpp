@@ -63,6 +63,7 @@ class Request
 		void	saveSimpleBody(std::string &data);
 		void getUriEncodedBody();
 		void makeEnv();
+		Location *getLoc();
 	public:
 		Location *getLoc();
 		Request(std::multimap<std::string, Location> &l);
@@ -83,6 +84,7 @@ class Request
 		char** getENV();
 		void print();
 		bool getCon();
+		Location *getLocation();
 		
 
 		char	*getBuffer(void) const;

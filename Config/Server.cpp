@@ -20,7 +20,7 @@ Server::~Server(){
 #define WRITE_END 1
 #define READ_END 0
 
-int handleFileUpload(const std::string& filename, const std::string& fileContent, const size_t file_size, const size_t upload_header_size) 
+int handleFileUpload(const std::string& filename, const std::string& fileContent, const size_t file_size, const size_t upload_header_size)
 {
     std::string full_path = filename;
     std::cout << "PLOAD PATH " << std::endl;
@@ -48,12 +48,12 @@ int handleFileUpload(const std::string& filename, const std::string& fileContent
 // #include <iostream>
 // #include <string>
 
-std::string extractBoundary(const std::string& contentTypeHeader) 
+std::string extractBoundary(const std::string& contentTypeHeader)
 {
     std::string boundary;
-    
+
     size_t boundaryPos = contentTypeHeader.find("boundary=");
-    if (boundaryPos != std::string::npos) 
+    if (boundaryPos != std::string::npos)
     {
         boundaryPos += 9; // Move to the start of the boundary
         size_t semicolonPos = contentTypeHeader.find(";", boundaryPos);
@@ -73,7 +73,7 @@ std::string extractBoundary(const std::string& contentTypeHeader)
 
 std::string extractFilename(const std::string& contentDispositionHeader) {
     std::string filename;
-    
+
     size_t filenamePos = contentDispositionHeader.find("filename=");
     if (filenamePos != std::string::npos) {
         filenamePos += 10; // Move to the start of the filename
@@ -106,7 +106,7 @@ void sendPostResponse(class Client *client, int fd, std::string filepath)
     std::string boundary = extractBoundary(client->getReq().getHeaders()["Content-Type"]);
 
 
-    tmp = client->getReq().getHeaders(); 
+    tmp = client->getReq().getHeaders();
     std::string requestBody = client->getReq().getBody();
     std::cerr << "filename" << "\n";
     std::cerr << filename << "\n";
@@ -114,7 +114,7 @@ void sendPostResponse(class Client *client, int fd, std::string filepath)
 
 
 
-    
+
     // std::cout << "Extracted Content:\n" << tmp << std::endl;
     size_t file_size = requestBody.rfind("\r\n--" + boundary + "--") - upload_header_size;
 
@@ -148,7 +148,7 @@ void sendDeleteResponse(class Client *client, int fd, std::string filepath)
 	client->getResp()->response_complete = true;
 }
 
-void Server::sendHTMLResponse(class Client *client, int fd, std::string filepath) 
+void Server::sendHTMLResponse(class Client *client, int fd, std::string filepath)
 {
     std::string content_type;
     // Read the content of the HTML file
@@ -207,12 +207,12 @@ void handleTimeout(int signum) {
 }
 
 
-void Server::launchCgi(Client *client, int fd) 
+void Server::launchCgi(Client *client, int fd)
 {
-    
-    const int timeoutDuration = 3; 
-    
-    int infile = 0; 
+
+    const int timeoutDuration = 3;
+
+    int infile = 0;
 
     std::cerr << "\n\n ***** in CGI   \n";
 
@@ -272,7 +272,7 @@ void Server::launchCgi(Client *client, int fd)
         struct sigaction sa;
         memset(&sa, 0, sizeof(sa));
         sa.sa_handler = handleTimeout;
-        
+
         if (sigaction(SIGALRM, &sa, NULL) == -1) {
             perror("sigaction");
             // Handle error...
@@ -304,7 +304,7 @@ void Server::launchCgi(Client *client, int fd)
         // Handle error...
     }
 
-    if (WIFEXITED(status)) 
+    if (WIFEXITED(status))
     {
         std::cout << "Child process exited with status: " << WEXITSTATUS(status) << std::endl;
     }
@@ -327,7 +327,7 @@ void Server::launchCgi(Client *client, int fd)
 }
 
 
-// void Server::launchCgi(Client client, int fd) 
+// void Server::launchCgi(Client client, int fd)
 // {
 //     int infile = 0; // Redirect input from /dev/null
 
@@ -508,7 +508,7 @@ void Server::setUp(std::vector<t_serv>& s)
             std::cout << "Error in poll. errno: " << errno << std::endl;
             exit(EXIT_FAILURE);
         }
-        for (size_t i = 0; i < listenfds.size(); ++i) 
+        for (size_t i = 0; i < listenfds.size(); ++i)
 		{
 			// std::cerr << "in main LOOP" << '\n';
             if (pollfds[i].revents & POLLIN) 
@@ -551,7 +551,7 @@ void Server::setUp(std::vector<t_serv>& s)
 
                 int port_tmp = fd_to_port[listnfd_tmp];
                 t_serv  *serv_tmp = port_to_serv[port_tmp];
-                if (serv_tmp) 
+                if (serv_tmp)
 				{
                     Client* myCl = new Client(pollfds[i].fd, client_ip, *serv_tmp);
                     Response* myResp = new Response();
@@ -559,12 +559,12 @@ void Server::setUp(std::vector<t_serv>& s)
                     // Client cl(pollfds[i].fd, client_ip, *serv_tmp);
 					fd_to_clients.insert(std::make_pair(pollfds[i].fd, myCl));
 
-                    try 
+                    try
 					{
                     myCl->readRequest();
                     myCl->print();
                     myCl->pollstruct = &(pollfds[i]);
-                    
+
                     	if (myCl->checkError())
                         {
                             std::cout << "I Am HERE \n";
@@ -590,7 +590,7 @@ void Server::setUp(std::vector<t_serv>& s)
 
                         }
                     }
-					catch (const std::exception& e) 
+					catch (const std::exception& e)
 					{
                         std::cerr << e.what() << '\n';
                     }
@@ -607,7 +607,7 @@ void Server::setUp(std::vector<t_serv>& s)
 					std::cerr << "POLLOUTTTT send" << '\n';
                 	client_it->second->getResp()->sendResponse(client_it->second->getResp()->content_type);
 					client_it = fd_to_clients.end();
-					// exit(0);		
+					// exit(0);
                 }
 				else
 				{
@@ -618,11 +618,11 @@ void Server::setUp(std::vector<t_serv>& s)
 					std::cerr << sockets_to_remove.size() << '\n';
 
 				}
-				
+
             }
 
         }
- 		for (size_t i = 0; i < sockets_to_remove.size(); ++i) 
+ 		for (size_t i = 0; i < sockets_to_remove.size(); ++i)
 		{
         	std::cerr << "in Removing" << '\n';
 
@@ -640,7 +640,7 @@ void Server::setUp(std::vector<t_serv>& s)
 
    		}
 
-        // for (size_t i = 0; i < sockets_to_remove.size(); ++i) 
+        // for (size_t i = 0; i < sockets_to_remove.size(); ++i)
         // {
 		// 	std::cerr << "in Removing" << '\n';
 
@@ -649,17 +649,17 @@ void Server::setUp(std::vector<t_serv>& s)
         //     {
 		// 		std::cerr << "1" << '\n';
 
-        //         if (connected_fds[j] == fd) 
+        //         if (connected_fds[j] == fd)
         //         {
         //             connected_fds.erase(connected_fds.begin() + j);
-		// 			std::vector<int>::iterator it = std::find(sockets_to_remove.begin(), sockets_to_remove.end(), fd);					
-		// 			if (it != sockets_to_remove.end()) 
+		// 			std::vector<int>::iterator it = std::find(sockets_to_remove.begin(), sockets_to_remove.end(), fd);
+		// 			if (it != sockets_to_remove.end())
 		// 			{
     	// 				sockets_to_remove.erase(it);
 		// 			}
-		// 			// std::map<int, Client*>::iterator clp = std::find(fd_to_clients.begin(), fd_to_clients.end(), fd);					
+		// 			// std::map<int, Client*>::iterator clp = std::find(fd_to_clients.begin(), fd_to_clients.end(), fd);
 		// 			std::map<int, Client*>::iterator clp = fd_to_clients.find(fd);
-		// 			if (clp != fd_to_clients.end()) 
+		// 			if (clp != fd_to_clients.end())
 		// 			{
     	// 				fd_to_clients.erase(clp);
 		// 			}
@@ -667,12 +667,12 @@ void Server::setUp(std::vector<t_serv>& s)
         //         }
         //     }
 		// 	bool deleted = false;
-        //     for (std::vector<pollfd>::iterator it = pollfds.begin() + listenfds.size(); it != pollfds.end() && deleted == false; ++it) 
+        //     for (std::vector<pollfd>::iterator it = pollfds.begin() + listenfds.size(); it != pollfds.end() && deleted == false; ++it)
 		// 	{
 		// 		std::cerr << "2!!!!!" << '\n';
 
 		// 		// Remove the closed socket from the pollfds array
-        //         if (it->fd && it->fd == fd) 
+        //         if (it->fd && it->fd == fd)
         //         {
 		// 			std::cerr << "4!!!!!" << '\n';
         //             pollfds.erase(it);
