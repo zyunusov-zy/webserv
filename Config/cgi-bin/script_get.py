@@ -10,7 +10,7 @@ name = form.getvalue("name")
 email = form.getvalue("email")
 
 # Set the content type to HTML
-print("Content-Type: text/html\n")
+# print("Content-Type: text/html\n")
 
 # Print the response HTML
 print("<html>")

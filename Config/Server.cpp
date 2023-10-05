@@ -255,10 +255,14 @@ void Server::launchCgi(Client *client, int fd)
             dup2(infile, STDIN_FILENO);
             close(infile);
         }
-        // char* script_path = (char*)(client->getReq().getUriCGI().c_str());
+        char* script_path = (char*)(client->getReq().getUriCGI().c_str());
+        std::cerr << "sSCRIPT PATH" << "\n";
+
+        std::cerr << script_path << "\n";
+
         const char* path_to_py = "/usr/local/bin/python3";
         // /Users/cgreenpo/our_webserv/Config/cgi-bin/script_get.py
-        char* script_path = "/Users/cgreenpo/our_webserv/Config/cgi-bin/script_get.py";
+        // char* script_path = "/Users/cgreenpo/our_webserv/Config/cgi-bin/script_get.py";
 
         char* _args[] = {const_cast<char*>(path_to_py), const_cast<char*>(script_path), nullptr};
 
@@ -574,12 +578,13 @@ void Server::setUp(std::vector<t_serv>& s)
                                 sendDeleteResponse(myCl, fd, myCl->getReq().getResource());
                             pollfds[i].events = POLLOUT;
 							std::cout << "1 FILEname  \n";
+                            std::cout << myCl->getReq().getUriCGI().c_str() << "\n";
                             myCl->getResp()->_target_fd = fd;
                             // myCl->getResp().filename = myCl->fd;
                             std::cout << myCl->getResp()->_target_fd << "\n";
-
                             std::cout << "resp  \n";
 							std::cout << myCl->getResp()->filename << std::endl;
+
 
 
 
