@@ -63,7 +63,6 @@ class Request
 		void	saveSimpleBody(std::string &data);
 		void getUriEncodedBody();
 		void makeEnv();
-		Location *getLoc();
 	public:
 		Location *getLoc();
 		Request(std::multimap<std::string, Location> &l);

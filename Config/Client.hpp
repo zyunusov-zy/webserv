@@ -38,7 +38,7 @@ private:
 	t_serv _serv;
 	void parseEnvVar();
 	
-	Response _resp;
+	// Response _resp;
 	int _errBodySize;
 
 	std::string	genErrPage(int err);
