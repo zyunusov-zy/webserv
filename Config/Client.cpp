@@ -10,6 +10,11 @@ bool Client::getQuer()
 	return (_quer);
 }
 
+// Request *Client::getPointReq()
+// {
+// 	return (&_req);
+// }
+
 Request Client::getReq()
 {
 	return (_req);
@@ -41,6 +46,9 @@ Client::Client(int new_socket, char *clien_ip, t_serv s): _serv(s),
 	_isRead = false;
 	_toServe = false;
 	_errBodySize = 0;
+
+	exec_err_code = 0;
+	exec_err = false;
 }
 
 
@@ -97,8 +105,18 @@ std::string Client::checkErrorMap(int err)
 
 int  Client::checkError()
 {
-	int err = _req.getErrorCode();
-	std::cout << "ERRRORRRRR 00000000" << err << std::endl;
+
+	int err;
+
+	if (getResp()->exec_err_code > 0)
+	{
+		err = getResp()->exec_err_code;
+		getResp()->exec_err_code = 0;
+	}
+	else
+		err = _req.getErrorCode();
+
+	std::cout << "ERRRORRRRR 00000000 " << err << std::endl;
 
 	// std::cout << "ERRRRRRORRRR!!!:" << err << std::endl;
 	if (err == 301 || err == 200 || err == 0 || err == 201)

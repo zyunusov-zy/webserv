@@ -30,7 +30,7 @@ bool Request::getCGIB()
 
 void	Request::setErrorStatus(const int s) {
 	_errorCode = s;
-	printf("STATUSSS\n");
+	printf("STATUSSS %i\n", _errorCode);
 }
 
 

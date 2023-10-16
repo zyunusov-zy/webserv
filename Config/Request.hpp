@@ -64,6 +64,8 @@ class Request
 		void getUriEncodedBody();
 		void makeEnv();
 	public:
+
+
 		Location *getLoc();
 		Request(std::multimap<std::string, Location> &l);
 		~Request();

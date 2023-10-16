@@ -87,7 +87,7 @@ std::string extractFilename(const std::string& contentDispositionHeader) {
     return filename;
 }
 
-void sendPostResponse(class Client *client, int fd, std::string filepath)
+void Server::sendPostResponse(class Client *client, int fd, std::string filepath)
  {
     std::cout << "IN POST RESP ----- \n\n";
 
@@ -118,14 +118,20 @@ void sendPostResponse(class Client *client, int fd, std::string filepath)
     // std::cout << "Extracted Content:\n" << tmp << std::endl;
     size_t file_size = requestBody.rfind("\r\n--" + boundary + "--") - upload_header_size;
 
-    if (handleFileUpload(filename, requestBody, file_size, upload_header_size));
+    if (handleFileUpload(filename, requestBody, file_size, upload_header_size))
+	{
+		client->getResp()->status_code = "201 Created";
+		client->getResp()->content_type = "text/plain";
+		client->getResp()->body = "File was uploaded succesfully";
+	}
+	else
+	{
+		client->getResp()->exec_err_code = 500;
+		throw(returnError());
+
+	}
 
 
-    client->getResp()->status_code = "201 Created";
-	client->getResp()->content_type = "text/plain";
-	client->getResp()->body = "File was uploaded succesfully";
-	client->getResp()->content_len = client->getResp()->body.size();
-	client->getResp()->additional_info = "Location: " + filepath;
 
     // client.sendResponse("text/plain");
 
@@ -137,8 +143,10 @@ bool Server::sendDeleteResponse(class Client *client, int fd, std::string filepa
 	if (i != 0)
 	{
 		// client->error_code = 409;
-		client->getReq().setErrorStatus(409);
-		client->checkError();
+		// client->getReq().setErrorStatus(409);
+		// client->checkError();
+		client->getResp()->exec_err_code = 409;
+		throw(returnError());
 
 		// fds_clients.at(client_fd).setError("409");
 		return 1;
@@ -221,24 +229,29 @@ bool Server::launchCgi(Client *client, int fd)
 
     int infile = 0;
 
+
+	client->getResp()->exec_err_code = 500;
+
     std::cerr << "\n\n ***** in CGI   \n";
 
     std::cerr << "\n kjrgkjnrjnrel " << client->getServ().errorPages[500] << std::endl;
 
 
     std::string string_filename = "output_file" + client->getClienIP();
+	client->getResp()->filename = string_filename;
+
     const char* out_filename = string_filename.c_str();
 
     int outfile = open(out_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
     if (outfile == -1) {
         std::cerr << "cgi: Error opening the outfile.\n";
-        // Handle error...
+		returnError();
     }
 
     int pipe_d[2];
     if (pipe(pipe_d) == -1) {
         std::cerr << "Pipe Error\n";
-        // Handle error...
+		returnError();
     }
 
     write(pipe_d[WRITE_END], client->getReq().getBody().c_str(), client->getReq().getBody().size());
@@ -249,7 +262,7 @@ bool Server::launchCgi(Client *client, int fd)
         close(pipe_d[READ_END]);
         close(outfile);
         std::cerr << "Error with fork\n";
-        // Handle error...
+			returnError();
     }
 
     if (cgi_pid == 0) {
@@ -262,14 +275,15 @@ bool Server::launchCgi(Client *client, int fd)
             dup2(infile, STDIN_FILENO);
             close(infile);
         }
-        char* script_path = (char*)(client->getReq().getUriCGI().c_str());
+        // char* script_path = (char*)(client->getReq().getUriCGI().c_str());
         std::cerr << "sSCRIPT PATH" << "\n";
 
-        std::cerr << script_path << "\n";
+        // std::cerr << script_path << "\n";
 
         const char* path_to_py = "/usr/local/bin/python3";
         // /Users/cgreenpo/our_webserv/Config/cgi-bin/script_get.py
-        // char* script_path = "/Users/cgreenpo/our_webserv/Config/cgi-bin/script_get.py";
+        char* script_path = "/Users/kris/our_webserv2/Config/cgi-bin/script_timeout.py";
+
 
         char* _args[] = {const_cast<char*>(path_to_py), const_cast<char*>(script_path), nullptr};
 
@@ -282,33 +296,26 @@ bool Server::launchCgi(Client *client, int fd)
 
         if (sigaction(SIGALRM, &sa, NULL) == -1) {
             perror("sigaction");
-            // Handle error...
+			returnError();
         }
         alarm(timeoutDuration);
 
         if ((execve(_args[0], _args, client->getReq().getENV())) == -1) {
-            std::cerr << "\ncgi: error with execution\n";
-            // Handle error...
+            std::cerr << "\n cgi: error with execution\n";
+			returnError();
         }
-        throw(CgiException());
 
         std::cerr << "\n =====timeout value \n";
         std::cerr << '\n' << timeoutOccurred << '\n' << std::endl;
 
     }
 
-    // if (timeoutOccurred) {
-    //     std::cerr << "***Timeout occurred. Child process was terminated." << std::endl;
-    //     string_filename = "/Users/cgreenpo/our_webserv/Config/error_pages/500.html";
-    // }
     close(pipe_d[READ_END]);
-    // close(outfile);
-
     int status;
     pid_t terminatedPid = waitpid(cgi_pid, &status, 0);
     if (terminatedPid == -1) {
         std::cerr << "cgi: error with process handling\n";
-        // Handle error...
+		returnError();
     }
 
     if (WIFEXITED(status))
@@ -318,22 +325,27 @@ bool Server::launchCgi(Client *client, int fd)
     else if (WIFSIGNALED(status))
     {
         std::cerr << "Child process terminated due to signal: " << WTERMSIG(status) << std::endl;
-        // string_filename = "/Users/cgreenpo/our_webserv/error_pages/500.html";
-		client->getReq().setErrorStatus(500);
-		client->checkError();
+
+        // string_filename = "/Users/kris/our_webserv2/error_pages/500.html";
+		// client->getReq().setErrorStatus(500);
+
+		// client->exec_err_code = 500;
+		// client->exec_err = true;
+
+		// client->getResp()->exec_err_code = 500;
+		client->getResp()->exec_err = true;
+		// client->checkError();
 		client->getResp()->response_complete = true;
+		throw(returnError());
+
 
         // string_filename = client->getServ().errorPages[500];
 		return 1;
     }
-    client->getResp()->filename = string_filename;
+
+    // client->getResp()->filename = string_filename;
     client->getResp()->content_type = "text/html";
-
     client->getResp()->setFd(fd);
-    // client->getResp()->sendResponse("text/html");
-
-    // remove(out_filename);
-    // close(fd); // Close the client socket
 
     alarm(0);
 	return 0;
@@ -508,9 +520,9 @@ void Server::setUp(std::vector<t_serv>& s)
 
                     try
 					{
-                    myCl->readRequest();
-                    myCl->print();
-                    myCl->pollstruct = &(pollfds[i]);
+						myCl->readRequest();
+						myCl->print();
+						myCl->pollstruct = &(pollfds[i]);
 
                     	if (myCl->checkError())
                         {
@@ -538,6 +550,10 @@ void Server::setUp(std::vector<t_serv>& s)
 					catch (const std::exception& e)
 					{
                         std::cerr << e.what() << '\n';
+						myCl->checkError();
+						myCl->getResp()->response_complete = true;
+
+
                     }
                 }
             }
@@ -550,7 +566,9 @@ void Server::setUp(std::vector<t_serv>& s)
 				if (client_it != this->fd_to_clients.end() && !client_it->second->getResp()->response_complete)
 				{
 					std::cerr << "POLLOUTTTT send" << '\n';
-                	client_it->second->getResp()->sendResponse(client_it->second->getResp()->content_type);
+                	if (client_it->second->getResp()->sendResponse(client_it->second->getResp()->content_type) == 1)
+						client_it->second->checkError();
+
 					client_it = fd_to_clients.end();
 					// exit(0);
                 }
@@ -558,7 +576,14 @@ void Server::setUp(std::vector<t_serv>& s)
 				{
 					std::cerr << "POLLOUTTTT remove" << '\n';
 
+					if (client_it->second->getReq().getCGIB())
+					{
+						std::cerr << "+_+_+_+_ cgi filenameeee " << '\n';
 
+						remove(client_it->second->getResp()->filename.c_str());
+						std::cerr << client_it->second->getResp()->filename.c_str() << '\n';
+
+					}
 					sockets_to_remove.push_back(pollfds[i].fd);
 					std::cerr << sockets_to_remove.size() << '\n';
 
@@ -584,53 +609,5 @@ void Server::setUp(std::vector<t_serv>& s)
 
 
    		}
-
-        // for (size_t i = 0; i < sockets_to_remove.size(); ++i)
-        // {
-		// 	std::cerr << "in Removing" << '\n';
-
-        //     int fd = sockets_to_remove[i];
-        //     for (size_t j = 0; j < connected_fds.size(); ++j)// Remove the closed socket from the connected_fds vector
-        //     {
-		// 		std::cerr << "1" << '\n';
-
-        //         if (connected_fds[j] == fd)
-        //         {
-        //             connected_fds.erase(connected_fds.begin() + j);
-		// 			std::vector<int>::iterator it = std::find(sockets_to_remove.begin(), sockets_to_remove.end(), fd);
-		// 			if (it != sockets_to_remove.end())
-		// 			{
-    	// 				sockets_to_remove.erase(it);
-		// 			}
-		// 			// std::map<int, Client*>::iterator clp = std::find(fd_to_clients.begin(), fd_to_clients.end(), fd);
-		// 			std::map<int, Client*>::iterator clp = fd_to_clients.find(fd);
-		// 			if (clp != fd_to_clients.end())
-		// 			{
-    	// 				fd_to_clients.erase(clp);
-		// 			}
-        //             break;
-        //         }
-        //     }
-		// 	bool deleted = false;
-        //     for (std::vector<pollfd>::iterator it = pollfds.begin() + listenfds.size(); it != pollfds.end() && deleted == false; ++it)
-		// 	{
-		// 		std::cerr << "2!!!!!" << '\n';
-
-		// 		// Remove the closed socket from the pollfds array
-        //         if (it->fd && it->fd == fd)
-        //         {
-		// 			std::cerr << "4!!!!!" << '\n';
-        //             pollfds.erase(it);
-		// 			std::cerr << "5!!!!!" << '\n';
-
-		// 			// deleted = true;
-        //             // break;
-        //         }
-		// 		std::cerr << "3!!!!!" << '\n';
-
-        //     }
-		// 	i--;
-        // }
-        std::cerr << "out of  Removing" << '\n';
-    }
+     }
 }

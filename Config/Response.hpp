@@ -43,10 +43,11 @@ public:
     std::string body;
 	int _target_fd;
     std::string filename;
+	bool exec_err;
+	int	exec_err_code;
 
 private:
 
-    int _statusCode;
 
 	std::string _header;
     std::string _body;

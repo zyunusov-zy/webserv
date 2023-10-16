@@ -37,7 +37,7 @@ public:
 	Server();
 	~Server();
 
-	class CgiException : public std::exception
+	class returnError : public std::exception
 	{
 		public:
 			virtual const char *what() const throw()
@@ -53,6 +53,7 @@ public:
 	bool launchCgi(Client *client, int fd);
     void sendHTMLResponse(Client *client, int fd, std::string filepath);
 	bool sendDeleteResponse(class Client *client, int fd, std::string filepath);
+	void sendPostResponse(class Client *client, int fd, std::string filepath);
 
 	//-----
 	
