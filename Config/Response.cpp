@@ -48,32 +48,46 @@ int calculateContentLength(std::ifstream& file) {
     }
 
 
-void Response::sendResponse(std::string content_type) 
+bool Response::sendResponse(std::string content_type) 
 {
     // std::cerr << "\n in response" << filename << "\n";
     std::string chunk = "";
-	// int _target_fd = _fdSock;
+	int	conl = 0;
 
     char buff[BUFF_SIZE];
     std::string head;
-    
-    std::ifstream file(filename.c_str(), std::ios::binary);
-    if (!file.is_open()) 
-    {
-        std::cerr << "Failed to open " << filename << std::endl;
-    }
+	std::ifstream file(filename.c_str(), std::ios::binary);
+    std::cerr << "\n+++++++BODY CONTENT =======  " << std::endl;
+	std::cerr << body << std::endl;
+
+
+	if (body.length())
+	{
+		conl = body.length();
+	}
+	else
+	{
+		if (!file.is_open()) 
+		{
+			std::cerr << "Failed to open " << filename << std::endl;
+		}
+		conl = calculateContentLength(file);
+
+	}
+
     if (!header_sent)
     {
-        // createHeader();
-        // chunk += header;
         std::cerr << "\nSending header " << filename << std::endl;
 
-        snprintf(buff, sizeof(buff), "HTTP/1.1 200 OK\r\n"
+        // snprintf(buff, sizeof(buff), "HTTP/1.1 200 OK\r\n"
+        //                                  "Content-Type: %\r\n"
+        //                                  "Content-Length: %d\r\n"
+        //                                  "Connection: keep-alive\r\n"
+        snprintf(buff, sizeof(buff), "HTTP/1.1 %\r\n"
                                          "Content-Type: %\r\n"
                                          "Content-Length: %d\r\n"
                                          "Connection: keep-alive\r\n"
-                                        //  "Transfer-Encoding: chunked\r\n"
-                                         "\r\n", content_type.c_str(), calculateContentLength(file));
+                                         "\r\n", status_code.c_str(), content_type.c_str(), conl);
         std::cerr << "\nSending header " << content_type << std::endl;
         std::cerr << "\nSending header " << _target_fd << std::endl;
 
@@ -82,6 +96,14 @@ void Response::sendResponse(std::string content_type)
 	    send(_target_fd, buff, strlen(buff), 0);
         header_sent = true;
     }
+
+	if (body.length())
+	{
+		send(_target_fd, buff, strlen(buff), 0);
+		response_complete = true;
+		std::cerr << "\nout of sndinggggg " << std::endl;
+		return 1;
+	}
 
     file.seekg(position);
     file.read(buff, sizeof(buff));

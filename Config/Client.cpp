@@ -41,24 +41,6 @@ Client::Client(int new_socket, char *clien_ip, t_serv s): _serv(s),
 	_isRead = false;
 	_toServe = false;
 	_errBodySize = 0;
-
-    // status_code = "200 OK";
-	// is_chunked = false;
-    // _proto = "HTTP/1.1";
-    // position = 0;
-    // additional_info = "";
-    // response_complete = false;
-    // header_sent = false;
-
-    // header = "";
-    // body = "";
-    // _status = "";
-    // _chunking = "";
-    // content_type = "";
-    // _date = "";
-    // status_code = "";
-	// filename = "";
-	// _target_fd = 0;
 }
 
 
@@ -116,6 +98,8 @@ std::string Client::checkErrorMap(int err)
 int  Client::checkError()
 {
 	int err = _req.getErrorCode();
+	std::cout << "ERRRORRRRR 00000000" << err << std::endl;
+
 	// std::cout << "ERRRRRRORRRR!!!:" << err << std::endl;
 	if (err == 301 || err == 200 || err == 0 || err == 201)
 		return 1;
@@ -261,6 +245,7 @@ std::string Client::errorMap(int err)
 		errMap.insert(std::pair<int, std::string>(400, " Bad Request"));
 		errMap.insert(std::pair<int, std::string>(403, " Forbidden"));
 		errMap.insert(std::pair<int, std::string>(404, " Not Found"));
+		errMap.insert(std::pair<int, std::string>(409, " Conflict"));
 		errMap.insert(std::pair<int, std::string>(405, " Method Not Allowed"));
 		errMap.insert(std::pair<int, std::string>(413, " Payload Too Large"));
 		errMap.insert(std::pair<int, std::string>(500, " Internal Server Error"));

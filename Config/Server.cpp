@@ -131,21 +131,28 @@ void sendPostResponse(class Client *client, int fd, std::string filepath)
 
 }
 
-void sendDeleteResponse(class Client *client, int fd, std::string filepath)
+bool Server::sendDeleteResponse(class Client *client, int fd, std::string filepath)
 {
 	int i = std::remove(filepath.c_str());
-	// if (i != 0)
-	// {
-	// 	fds_clients.at(client_fd).setError("409");
-	// 	return;
-	// }
-    client->getResp()->status_code = "204 No Content";
-	client->getResp()->content_type = "text/plain";
-	// additional_info.clear();
-	client->getResp()->content_len = 0;
+	if (i != 0)
+	{
+		// client->error_code = 409;
+		client->getReq().setErrorStatus(409);
+		client->checkError();
 
-    // client.sendResponse("text/plain");
-	client->getResp()->response_complete = true;
+		// fds_clients.at(client_fd).setError("409");
+		return 1;
+	}
+    client->getResp()->status_code = "204 No Content";
+	client->getResp()->body = "Deleted successfully";
+
+	client->getResp()->content_type = "text/html";
+	// additional_info.clear();
+	// client->getResp()->content_len = 0;
+
+    // client->getResp()->sendResponse("text/plain");
+	// client->getResp()->response_complete = true;
+	return 0;
 }
 
 void Server::sendHTMLResponse(class Client *client, int fd, std::string filepath)
@@ -207,7 +214,7 @@ void handleTimeout(int signum) {
 }
 
 
-void Server::launchCgi(Client *client, int fd)
+bool Server::launchCgi(Client *client, int fd)
 {
 
     const int timeoutDuration = 3;
@@ -312,7 +319,12 @@ void Server::launchCgi(Client *client, int fd)
     {
         std::cerr << "Child process terminated due to signal: " << WTERMSIG(status) << std::endl;
         // string_filename = "/Users/cgreenpo/our_webserv/error_pages/500.html";
-        string_filename = client->getServ().errorPages[500];
+		client->getReq().setErrorStatus(500);
+		client->checkError();
+		client->getResp()->response_complete = true;
+
+        // string_filename = client->getServ().errorPages[500];
+		return 1;
     }
     client->getResp()->filename = string_filename;
     client->getResp()->content_type = "text/html";
@@ -324,74 +336,9 @@ void Server::launchCgi(Client *client, int fd)
     // close(fd); // Close the client socket
 
     alarm(0);
+	return 0;
 }
 
-
-// void Server::launchCgi(Client client, int fd)
-// {
-//     int infile = 0; // Redirect input from /dev/null
-
-//     std::cerr << "\n\n ***** in CGI   \n";
-
-//     std::string string_filename = "output_file" + client.getClienIP();
-//     const char* out_filename = string_filename.c_str();
-
-//     int outfile = open(out_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
-//     if (outfile == -1) {
-//         std::cerr << "cgi: Error opening the outfile.\n";
-//     }
-
-//     int pipe_d[2];
-//     if (pipe(pipe_d) == -1) {
-//         std::cerr << "Pipe Error\n";
-//     }
-
-//     write(pipe_d[WRITE_END], client.getReq().getBody().c_str(), client.getReq().getBody().size());
-//     close(pipe_d[WRITE_END]);
-
-//     int cgi_pid = fork();
-//     if (cgi_pid < 0) {
-//         close(pipe_d[READ_END]);
-//         close(outfile);
-//         std::cerr << "Error with fork\n";
-//     }
-
-//     if (cgi_pid == 0) {
-
-//         dup2(outfile, STDOUT_FILENO);
-//         close(outfile);
-
-// 		if(client.getQuer() == false)
-// 		{
-// 			dup2(infile, STDIN_FILENO);
-// 			close(infile);
-// 		}
-//         char* script_path = (char*)(client.getReq().getUriCGI().c_str());
-//         const char* path_to_py = "/usr/local/bin/python3";
-//         // const char* path_to_py = "/usr/bin/php";
-
-//         char* _args[] = {const_cast<char*>(path_to_py), const_cast<char*>(script_path), nullptr};
-
-//         dup2(pipe_d[READ_END], STDIN_FILENO);
-//         close(pipe_d[READ_END]);
-//         if ((execve(_args[0], _args, client.getReq().getENV())) == -1)
-//             std::cerr << "\ncgi: error with execution\n";
-//     }
-//     close(pipe_d[READ_END]);
-
-//     int status;
-//     pid_t terminatedPid = waitpid(cgi_pid, &status, 0);
-//     if (terminatedPid == -1) {
-//         std::cerr << "cgi: error with process handling\n";
-//     }
-
-//     client.filename = string_filename;
-//     client.fd = fd;
-//     // client.sendResponse("text/html");
-
-//     remove(out_filename);
-//     close(fd); // Close the client socket
-// }
 
 void removeSocket(int fd, std::vector<int>& connected_fds,
                   std::vector<int>& sockets_to_remove,

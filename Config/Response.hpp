@@ -25,7 +25,7 @@ public:
     void setHeader(const std::string& key, const std::string& value);
     void setBody(const std::string& body);
 	void setFilename(std::string &name);
-	void sendResponse(std::string content_type);
+	bool sendResponse(std::string content_type);
 	void setFd(int fd);
 
 	pollfd	*pollstruct;

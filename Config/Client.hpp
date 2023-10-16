@@ -25,7 +25,7 @@ class Client
 {
 private:
 	Request _req;
-	int error_code;
+	// int error_code;
 	char **env_var;
 	bool _quer;
 	bool _c;
@@ -48,6 +48,8 @@ private:
 	std::string fileList(std::string path, int &err, const Location *loc);
 
 public:
+	int error_code;
+
 	Response *_resp;
 	bool readRequest();
 	Client(int new_socket, char *clien_ip,  t_serv s);

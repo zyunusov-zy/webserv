@@ -50,8 +50,10 @@ public:
 	std::map<int, Client*>::iterator client_it;
 	// void conf(std::string filename,std::vector<t_serv>& servers);
 	void setUp(std::vector<t_serv>& s);
-	void launchCgi(Client *client, int fd);
+	bool launchCgi(Client *client, int fd);
     void sendHTMLResponse(Client *client, int fd, std::string filepath);
+	bool sendDeleteResponse(class Client *client, int fd, std::string filepath);
+
 	//-----
 	
 	//-----
