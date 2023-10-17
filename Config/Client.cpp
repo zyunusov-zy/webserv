@@ -372,4 +372,5 @@ void Client::print()
 
 Client::~Client()
 {
+	delete[] _req.getBuffer();
 }
