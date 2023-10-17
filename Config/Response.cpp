@@ -70,6 +70,8 @@ bool Response::sendResponse(std::string content_type)
         std::cerr << "\nSending header " << content_type << std::endl;
         std::cerr << "\nSending header " << _target_fd << std::endl;
 
+		// exit (0);
+
 
 
 	    send(_target_fd, buff, strlen(buff), 0);

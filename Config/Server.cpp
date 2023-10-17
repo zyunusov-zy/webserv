@@ -458,7 +458,7 @@ void Server::setUp(std::vector<t_serv>& s)
 	{
 
 		std::cerr << "in main LOOP" << '\n';
-		std::cerr << pollfds.size() << '\n';
+		// std::cerr << pollfds.size() << '\n';
 
         int activity = poll(&pollfds[0], pollfds.size(), -1); // Wait indefinitely until an event occurs
 
@@ -494,7 +494,7 @@ void Server::setUp(std::vector<t_serv>& s)
         std::vector<int> sockets_to_remove;// Check connected client sockets for incoming data and handle them separately
         for (size_t i = listenfds.size(); i < pollfds.size(); ++i)
 		{
-            std::cerr << "\nIN THE LOOP" << '\n';
+            // std::cerr << "\nIN THE LOOP" << '\n';
             int fd = pollfds[i].fd;
 
             if (pollfds[i].revents & POLLIN) 
