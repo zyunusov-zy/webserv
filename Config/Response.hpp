@@ -12,7 +12,7 @@
 
 // #include "Server.hpp" 
 
-#define BUFF_SIZE 1020
+#define BUFF_SIZE 9000
 
 
 class Response {

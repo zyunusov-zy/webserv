@@ -375,6 +375,7 @@ void removeSocket(int fd, std::vector<int>& connected_fds,
     // Remove the socket from fd_to_clients
     std::map<int, Client*>::iterator clp = fd_to_clients.find(fd);
     if (clp != fd_to_clients.end()) {
+		delete clp->second->_resp;
         delete clp->second;
         fd_to_clients.erase(clp);
     }
@@ -606,6 +607,7 @@ void Server::setUp(std::vector<t_serv>& s)
 			std::cerr << pollfds.size() << '\n';
 			std::cerr << listenfds.size() << '\n';
             close(fd);
+            exit (0);
 
 
    		}
