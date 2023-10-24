@@ -63,6 +63,19 @@ bool Request::getCon()
 
 void Request::resetRequest()
 {
+	if (_buf)
+	{
+		delete [] _buf;
+		_buf = nullptr;
+	}
+	if (_envCGI) {
+		std::cerr << "freeing env " << std::endl;
+		for (size_t i = 0; i < _headers.size(); ++i) {
+			delete[] (_envCGI[i]);
+		}
+		delete[] _envCGI;
+   		_envCGI = nullptr;
+	}
 	_headers.clear();
 	_bodySize = -1;
 	_chunkSize = 0;
@@ -654,11 +667,12 @@ Request::~Request()
 	// 	delete [] _buf;
 	// 	_buf = nullptr;
 	// }
-	// if (_envCGI) {
-	// 	for (size_t i = 0; i < _headers.size(); ++i) {
-	// 		free(_envCGI[i]);
-	// 	}
-	// 	delete[] _envCGI;
-   	// 	_envCGI = nullptr;
-	// }
+	if (_envCGI) {
+		std::cerr << "freeing env in des "  << std::endl;
+		for (size_t i = 0; i < _headers.size(); ++i) {
+			delete[] (_envCGI[i]);
+		}
+		delete[] _envCGI;
+   		_envCGI = nullptr;
+	}
 }
