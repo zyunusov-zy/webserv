@@ -18,7 +18,6 @@ Response::Response()
     _chunking = "";
     content_type = "";
     _date = "";
-    status_code = "";
 	filename = "";
 	_target_fd = 0;
 
@@ -62,8 +61,13 @@ bool Response::sendResponse(std::string content_type)
     if (!header_sent)
     {
         std::cerr << "\nSending header " << filename << std::endl;
-        snprintf(buff, sizeof(buff), "HTTP/1.1 %\r\n"
-                                         "Content-Type: %\r\n"
+        // snprintf(buff, sizeof(buff), "HTTP/1.1 %\r\n"
+        //                                  "Content-Type: %\r\n"
+        //                                  "Content-Length: %d\r\n"
+        //                                  "Connection: keep-alive\r\n"
+        //                                  "\r\n", status_code.c_str(), content_type.c_str(), conl);
+        snprintf(buff, sizeof(buff), "HTTP/1.1 %s\r\n"
+                                         "Content-Type: %s\r\n"
                                          "Content-Length: %d\r\n"
                                          "Connection: keep-alive\r\n"
                                          "\r\n", status_code.c_str(), content_type.c_str(), conl);
