@@ -11,7 +11,9 @@
 
 
 
-Server::Server(){
+Server::Server()
+{
+    servers = std::vector<t_serv>();
 }
 
 Server::~Server(){
@@ -607,8 +609,6 @@ void Server::setUp(std::vector<t_serv>& s)
 			std::cerr << pollfds.size() << '\n';
 			std::cerr << listenfds.size() << '\n';
             close(fd);
-            exit (0);
-
 
    		}
      }
