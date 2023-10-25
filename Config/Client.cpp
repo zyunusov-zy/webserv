@@ -38,7 +38,7 @@ t_serv	Client::getServ()
 Client::Client(int new_socket, char *clien_ip, t_serv s): _serv(s),
 	 _req(_serv.loc), _c(false)
 {
-	std::cout << std::endl << std::endl << "_*)*)*)*)*)*)Client constructor _*_*_*_*_*_*" << std::endl << std::endl;
+	// std::cout << std::endl << std::endl << "_*)*)*)*)*)*)Client constructor _*_*_*_*_*_*" << std::endl << std::endl;
 	_clienIP = clien_ip;
 	_fdSock = new_socket;
 	_serv = s;
@@ -72,7 +72,7 @@ bool Client::readRequest()
 			env_var = _req.getENV();
 		if (_req.getCon())
 			_isClosed = true;
-		std::cout << "ISCLOSED: " << _isClosed ? "TRUE" : "FALSE";
+		// std::cout << "ISCLOSED: " << _isClosed ? "TRUE" : "FALSE";
 	}
 	catch(ErrorException &e)
 	{
@@ -372,5 +372,4 @@ void Client::print()
 
 Client::~Client()
 {
-	delete[] _req.getBuffer();
 }

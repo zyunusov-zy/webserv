@@ -25,9 +25,9 @@ Server::~Server(){
 int handleFileUpload(const std::string& filename, const std::string& fileContent, const size_t file_size, const size_t upload_header_size)
 {
     std::string full_path = filename;
-    std::cout << "PLOAD PATH " << std::endl;
+    // std::cout << "PLOAD PATH " << std::endl;
 
-    std::cout << filename << std::endl;
+    // std::cout << filename << std::endl;
 
     std::ofstream outputFile(filename.c_str(), std::ios::binary | std::ios::trunc);
     // std::ofstream outputFile(filename, std::ios::binary);
@@ -39,7 +39,7 @@ int handleFileUpload(const std::string& filename, const std::string& fileContent
     outputFile.write(fileContent.substr(upload_header_size, file_size).c_str(), file_size);
 
         outputFile.close();
-        std::cout << "File uploaded successfully.\n";
+        // std::cout << "File uploaded successfully.\n";
         return (true);
     } else {
         std::cerr << "Failed to upload the file.\n";
@@ -91,7 +91,7 @@ std::string extractFilename(const std::string& contentDispositionHeader) {
 
 void Server::sendPostResponse(class Client *client, int fd, std::string filepath)
  {
-    std::cout << "IN POST RESP ----- \n\n";
+    // std::cout << "IN POST RESP ----- \n\n";
 
     size_t upload_header_size;
     std::string upload_header;
@@ -110,9 +110,9 @@ void Server::sendPostResponse(class Client *client, int fd, std::string filepath
 
     tmp = client->getReq().getHeaders();
     std::string requestBody = client->getReq().getBody();
-    std::cerr << "filename" << "\n";
-    std::cerr << filename << "\n";
-    std::cerr << boundary << "\n";
+    // std::cerr << "filename" << "\n";
+    // std::cerr << filename << "\n";
+    // std::cerr << boundary << "\n";
 
 
 
@@ -169,7 +169,7 @@ void Server::sendHTMLResponse(class Client *client, int fd, std::string filepath
 {
     std::string content_type;
     // Read the content of the HTML file
-    std::cout << " \n In html \n";
+    // std::cout << " \n In html \n";
     std::ifstream file(filepath);
     if (!file.is_open()) {
         std::cerr << "Failed to open " << filepath << std::endl;
@@ -218,7 +218,7 @@ static volatile sig_atomic_t timeoutOccurred = 0;
 
 void handleTimeout(int signum) {
     (void)signum;
-    std::cerr << "\n\n ---- timeout handling   \n";
+    // std::cerr << "\n\n ---- timeout handling   \n";
 
     timeoutOccurred = 1;
 }
@@ -234,9 +234,9 @@ bool Server::launchCgi(Client *client, int fd)
 
 	client->getResp()->exec_err_code = 500;
 
-    std::cerr << "\n\n ***** in CGI   \n";
+    // std::cerr << "\n\n ***** in CGI   \n";
 
-    std::cerr << "\n kjrgkjnrjnrel " << client->getServ().errorPages[500] << std::endl;
+    // std::cerr << "\n kjrgkjnrjnrel " << client->getServ().errorPages[500] << std::endl;
 
 
     std::string string_filename = "output_file" + client->getClienIP();
@@ -278,13 +278,13 @@ bool Server::launchCgi(Client *client, int fd)
             close(infile);
         }
         // char* script_path = (char*)(client->getReq().getUriCGI().c_str());
-        std::cerr << "sSCRIPT PATH" << "\n";
+        // std::cerr << "sSCRIPT PATH" << "\n";
 
         // std::cerr << script_path << "\n";
 
         const char* path_to_py = "/usr/local/bin/python3";
         // /Users/cgreenpo/our_webserv/Config/cgi-bin/script_get.py
-        char* script_path = "/Users/kris/our_webserv2/Config/cgi-bin/script_timeout.py";
+        char* script_path = "/Users/kris/our_webserv2/Config/cgi-bin/script_timeout.py"; // warning
 
 
         char* _args[] = {const_cast<char*>(path_to_py), const_cast<char*>(script_path), nullptr};
@@ -307,8 +307,8 @@ bool Server::launchCgi(Client *client, int fd)
 			returnError();
         }
 
-        std::cerr << "\n =====timeout value \n";
-        std::cerr << '\n' << timeoutOccurred << '\n' << std::endl;
+        // std::cerr << "\n =====timeout value \n";
+        // std::cerr << '\n' << timeoutOccurred << '\n' << std::endl;
 
     }
 
@@ -322,7 +322,7 @@ bool Server::launchCgi(Client *client, int fd)
 
     if (WIFEXITED(status))
     {
-        std::cout << "Child process exited with status: " << WEXITSTATUS(status) << std::endl;
+        std::cerr << "Child process exited with status: " << WEXITSTATUS(status) << std::endl;
     }
     else if (WIFSIGNALED(status))
     {
@@ -403,7 +403,7 @@ void Server::setUp(std::vector<t_serv>& s)
     int i, j;
 
     i = 0;
-    std::cout << "Server size:" << servers.size() << std::endl;
+    // std::cout << "Server size:" << servers.size() << std::endl;
     while(i < servers.size())
     {
         j = 0;
@@ -438,7 +438,7 @@ void Server::setUp(std::vector<t_serv>& s)
         int listenfd = socket(AF_INET, SOCK_STREAM, 0);
         if (listenfd < 0) 
         {
-            std::cout << "Failed to create socket. errno: " << errno << std::endl;
+            std::cerr << "Failed to create socket. errno: " << errno << std::endl;
             exit(EXIT_FAILURE);
         }
 
@@ -449,12 +449,12 @@ void Server::setUp(std::vector<t_serv>& s)
 		setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
         if (bind(listenfd, (struct sockaddr*)&servaddr, sizeof(servaddr)) < 0) 
         {
-            std::cout << "Failed to bind to port " << port_numbers[i] << ". errno: " << errno << std::endl;
+            std::cerr << "Failed to bind to port " << port_numbers[i] << ". errno: " << errno << std::endl;
             exit(EXIT_FAILURE);
         }
 
         if (listen(listenfd, 10) < 0) {
-            std::cout << "Failed to listen on socket. errno: " << errno << std::endl;
+            std::cerr << "Failed to listen on socket. errno: " << errno << std::endl;
             exit(EXIT_FAILURE);
         }
         fd_to_port.insert(std::make_pair(listenfd, port_numbers[i]));
@@ -476,7 +476,7 @@ void Server::setUp(std::vector<t_serv>& s)
 
         // int activity = poll(&pollfds[0], pollfds.size(), -1); // Wait indefinitely until an event occurs
         if (activity < 0) {
-            std::cout << "Error in poll. errno: " << errno << std::endl;
+            std::cerr << "Error in poll. errno: " << errno << std::endl;
             exit(EXIT_FAILURE);
         }
         for (size_t i = 0; i < listenfds.size(); ++i)
@@ -488,11 +488,11 @@ void Server::setUp(std::vector<t_serv>& s)
                 int connfd = accept(listenfds[i], NULL, NULL);
                 if (connfd < 0) 
                 {
-                    std::cout << "Failed to accept connection. errno: " << errno << std::endl;
+                    std::cerr << "Failed to accept connection. errno: " << errno << std::endl;
                     exit(EXIT_FAILURE);
                 }
                 connected_fds.push_back(connfd);
-                std::cout << "Client connected on port: " << port_numbers[i] << std::endl;
+                // std::cout << "Client connected on port: " << port_numbers[i] << std::endl;
                 pollfd new_pollfd; // Add the new connected socket to the pollfds array
                 new_pollfd.fd = connfd;
                 new_pollfd.events = POLLIN; // Check for incoming data
@@ -522,7 +522,7 @@ void Server::setUp(std::vector<t_serv>& s)
                     std::cerr << "Error converting IP address to string: " << strerror(errno) << std::endl;
                     exit(1);// need to change
                 }
-                std::cout << "HEL YEAH!" << std::endl;
+                // std::cout << "HEL YEAH!" << std::endl;
                 int listnfd_tmp = conn_to_listen[pollfds[i].fd];
 
                 int port_tmp = fd_to_port[listnfd_tmp];
@@ -538,12 +538,12 @@ void Server::setUp(std::vector<t_serv>& s)
                     try
 					{
 						myCl->readRequest();
-						myCl->print();
+						// myCl->print();
 						myCl->pollstruct = &(pollfds[i]);
 
                     	if (myCl->checkError())
                         {
-                            std::cout << "I Am HERE \n";
+                            // std::cout << "I Am HERE \n";
                             if (myCl->getReq().getCGIB())
                                 launchCgi(myCl, fd);
                             else if (myCl->getReq().getMethod() == "GET")
@@ -553,13 +553,13 @@ void Server::setUp(std::vector<t_serv>& s)
                             else if (myCl->getReq().getMethod() == "DELETE")
                                 sendDeleteResponse(myCl, fd, myCl->getReq().getResource());
                             pollfds[i].events = POLLOUT;
-							std::cout << "1 FILEname  \n";
-                            std::cout << myCl->getReq().getUriCGI().c_str() << "\n";
+							// std::cout << "1 FILEname  \n";
+                            // std::cout << myCl->getReq().getUriCGI().c_str() << "\n";
                             myCl->getResp()->_target_fd = fd;
                             // myCl->getResp().filename = myCl->fd;
-                            std::cout << myCl->getResp()->_target_fd << "\n";
-                            std::cout << "resp  \n";
-							std::cout << myCl->getResp()->filename << std::endl;
+                            // std::cout << myCl->getResp()->_target_fd << "\n";
+                            // std::cout << "resp  \n";
+							// std::cout << myCl->getResp()->filename << std::endl;
 
 
                         }
@@ -582,7 +582,7 @@ void Server::setUp(std::vector<t_serv>& s)
 				client_it  = this->fd_to_clients.find(fd);
 				if (client_it != this->fd_to_clients.end() && !client_it->second->getResp()->response_complete)
 				{
-					std::cerr << "POLLOUTTTT send" << '\n';
+					// std::cerr << "POLLOUTTTT send" << '\n';
                 	if (client_it->second->getResp()->sendResponse(client_it->second->getResp()->content_type) == 1)
 						client_it->second->checkError();
 
@@ -591,18 +591,18 @@ void Server::setUp(std::vector<t_serv>& s)
                 }
 				else
 				{
-					std::cerr << "POLLOUTTTT remove" << '\n';
+					// std::cerr << "POLLOUTTTT remove" << '\n';
 
 					if (client_it->second->getReq().getCGIB())
 					{
-						std::cerr << "+_+_+_+_ cgi filenameeee " << '\n';
+						// std::cerr << "+_+_+_+_ cgi filenameeee " << '\n';
 
 						remove(client_it->second->getResp()->filename.c_str());
 						std::cerr << client_it->second->getResp()->filename.c_str() << '\n';
 
 					}
 					sockets_to_remove.push_back(pollfds[i].fd);
-					std::cerr << sockets_to_remove.size() << '\n';
+					// std::cerr << sockets_to_remove.size() << '\n';
 
 				}
 
@@ -611,17 +611,17 @@ void Server::setUp(std::vector<t_serv>& s)
         }
  		for (size_t i = 0; i < sockets_to_remove.size(); ++i)
 		{
-        	std::cerr << "in Removing" << '\n';
+        	// std::cerr << "in Removing" << '\n';
 
         	int fd = sockets_to_remove[i];
 			if (sockets_to_remove.size() > 1)
 				i--;
-			std::cerr << pollfds.size() << '\n';
-			std::cerr << listenfds.size() << '\n';
+			// std::cerr << pollfds.size() << '\n';
+			// std::cerr << listenfds.size() << '\n';
 
         	removeSocket(fd, connected_fds, sockets_to_remove, fd_to_clients, pollfds, listenfds);
-			std::cerr << pollfds.size() << '\n';
-			std::cerr << listenfds.size() << '\n';
+			// std::cerr << pollfds.size() << '\n';
+			// std::cerr << listenfds.size() << '\n';
             close(fd);
 
    		}

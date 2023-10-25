@@ -63,19 +63,6 @@ bool Request::getCon()
 
 void Request::resetRequest()
 {
-	if (_buf)
-	{
-		delete [] _buf;
-		_buf = nullptr;
-	}
-	if (_envCGI) {
-		std::cerr << "freeing env " << std::endl;
-		for (size_t i = 0; i < _headers.size(); ++i) {
-			delete[] (_envCGI[i]);
-		}
-		delete[] _envCGI;
-   		_envCGI = nullptr;
-	}
 	_headers.clear();
 	_bodySize = -1;
 	_chunkSize = 0;
@@ -200,7 +187,7 @@ void	Request::validateStartLine(void)
 	_location = getLoc();
 	if (_location == NULL)
 	{
-		std::cout << "HERE!!!" << std::endl;
+		// std::cout << "HERE!!!" << std::endl;
 		throw ErrorException(404, "Not Found");
 	}
 	//need to get location;
@@ -391,6 +378,11 @@ bool	Request::saveRequestData(ssize_t recv)
 
 	_buf[recv] = '\0';
 	data.append(_buf, recv);
+	if (_buf)
+	{
+		delete[] _buf;
+		_buf = nullptr;
+	}
 	// std::cout << "HERE: " << std::endl << std::endl;
 	// std::cout << std::endl << data << std::endl;
 
@@ -535,19 +527,19 @@ void Request::makeEnv()
 bool  Request::checkCGI()
 {
 	std::multimap<std::string,std::string> tmp = _location->getCGI();
-	std::cout << "URI: "  << _uri << std::endl;
-	std::cout << _location->getRoot() << std::endl;
-	std::cout << _location->getCGI().empty() << std::endl;
+	// std::cout << "URI: "  << _uri << std::endl;
+	// std::cout << _location->getRoot() << std::endl;
+	// std::cout << _location->getCGI().empty() << std::endl;
 	std::string ext = "";
 	if (_uri.find(".") != std::string::npos)
 		ext = "." + _uri.substr(_uri.find_last_of('.') + 1);
 	std::string _scriptName =  _uri.substr(_uri.find_last_of('/') + 1);
-	std::cout << "EXTENSION: "  << ext << std::endl;
-	std::cout << tmp.empty() << std::endl;
-	for(auto v : tmp)
-	{
-		std::cout << v.first << ": " << v.second << std::endl;
-	}
+	// std::cout << "EXTENSION: "  << ext << std::endl;
+	// std::cout << tmp.empty() << std::endl;
+	// for(auto v : tmp)
+	// {
+		// std::cout << v.first << ": " << v.second << std::endl;
+	// }
 	if (tmp.empty() && ext == ".py") {
     	_cgi = false;
         throw ErrorException(500, "Server configuration error: File is present but not configured in CGI map.");
@@ -558,9 +550,9 @@ bool  Request::checkCGI()
 		if (ext == i->first)
 		{
 			_scriptPath = i->second + _scriptName;
-			std::cout <<  "path for script: " <<_scriptPath << "]" << std::endl;
+			// std::cout <<  "path for script: " <<_scriptPath << "]" << std::endl;
 			int n = access(_scriptPath.c_str(), X_OK);
-			std::cout << "ACEES: " << n << std::endl;
+			// std::cout << "ACEES: " << n << std::endl;
 			if (n == -1)
 			{
 				std::cerr << "Error: " << strerror(errno) << std::endl;
@@ -570,13 +562,13 @@ bool  Request::checkCGI()
 			_cgiNum++;
 		}
 	}
-	std::cout << "NUM: "  << _cgiNum << std::endl;
+	// std::cout << "NUM: "  << _cgiNum << std::endl;
 	if (_cgiNum > 0)
 	{
 		_cgi = true;
 		_uriCGI = getURI();
-		std::cout << "CGI_PPPP: " << _uriCGI << std::endl;
-		std::cout << "MBHERE" << std::endl; 
+		// std::cout << "CGI_PPPP: " << _uriCGI << std::endl;
+		// std::cout << "MBHERE" << std::endl; 
 		getUriEncodedBody();//need to code
 		_headers.insert(std::pair<std::string, std::string>("QUERY_STRING", _queryString));
 		_headers.insert(std::pair<std::string, std::string>("REQUEST_METHOD", _method));
@@ -591,13 +583,13 @@ bool  Request::checkCGI()
 	}
 	else
 	{
-		std::cout << " HERE: " << _uri << std::endl;
+		// std::cout << " HERE: " << _uri << std::endl;
 		_cgi = false;
-		std::cout << " HERECGI: " << _cgi << std::endl;
+		// std::cout << " HERECGI: " << _cgi << std::endl;
 		_errorCode = 200;
 		_uri = getURI();
-		std::cout << " HERECGI: " << _cgi << std::endl;
-		std::cout << " HERE2: " << _uri << std::endl;
+		// std::cout << " HERECGI: " << _cgi << std::endl;
+		// std::cout << " HERE2: " << _uri << std::endl;
 		if (_uri.find(_location->getRoot()) == std::string::npos)
 			_uri = _location->getRoot() + _uri;
 		for(size_t i = 0; i < _uri.length() - 1; i++)
@@ -606,12 +598,12 @@ bool  Request::checkCGI()
 				_uri.erase(i + 1, 1);
 		}
 	}
-	std::cout << "CONNECTION:" << _connection << std::endl;
+	// std::cout << "CONNECTION:" << _connection << std::endl;
 	if (_connection == "close")
 	{
 		_con = true;
 	}
-	std::cout << (_cgi ? "TRUE" : "FALSE") << std::endl;
+	// std::cout << (_cgi ? "TRUE" : "FALSE") << std::endl;
 	return _cgi;
 }
 
@@ -662,17 +654,5 @@ std::string& Request::getUriCGI()
 
 Request::~Request()
 {
-	// if (_buf)
-	// {
-	// 	delete [] _buf;
-	// 	_buf = nullptr;
-	// }
-	if (_envCGI) {
-		std::cerr << "freeing env in des "  << std::endl;
-		for (size_t i = 0; i < _headers.size(); ++i) {
-			delete[] (_envCGI[i]);
-		}
-		delete[] _envCGI;
-   		_envCGI = nullptr;
-	}
+
 }

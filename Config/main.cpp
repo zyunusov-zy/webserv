@@ -21,13 +21,13 @@ int main(int argc, char** av)
 			return (1);
 		}
 
-		std::cout << "SIZE_OF_VECTOR: " << servers.size() << std::endl;
+		// std::cout << "SIZE_OF_VECTOR: " << servers.size() << std::endl;
 		// std::cout << "EEEEE" << servers[1].host << std::endl;
 		// serv.conf(av[1], servers);
 		Server serv;
 
 		// exit(1);
-    	std::cout << "Server size:" << servers.size() << std::endl;
+    	// std::cout << "Server size:" << servers.size() << std::endl;
 
 		serv.setUp(servers);
 	}

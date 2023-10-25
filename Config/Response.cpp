@@ -40,8 +40,8 @@ bool Response::sendResponse(std::string content_type)
     char buff[BUFF_SIZE];
     std::string head;
 	std::ifstream file(filename.c_str(), std::ios::binary);
-    std::cerr << "\n+++++++BODY CONTENT =======  " << std::endl;
-	std::cerr << body << std::endl;
+    // std::cerr << "\n+++++++BODY CONTENT =======  " << std::endl;
+	// std::cerr << body << std::endl;
 
 
 	if (body.length())
@@ -71,8 +71,8 @@ bool Response::sendResponse(std::string content_type)
                                          "Content-Length: %d\r\n"
                                          "Connection: keep-alive\r\n"
                                          "\r\n", status_code.c_str(), content_type.c_str(), conl);
-        std::cerr << "\nSending header " << content_type << std::endl;
-        std::cerr << "\nSending header " << _target_fd << std::endl;
+        // std::cerr << "\nSending header " << content_type << std::endl;
+        // std::cerr << "\nSending header " << _target_fd << std::endl;
 
 		// exit (0);
 
@@ -86,7 +86,7 @@ bool Response::sendResponse(std::string content_type)
 	{
 		send(_target_fd, buff, strlen(buff), 0);
 		response_complete = true;
-		std::cerr << "\n out of sndinggggg " << std::endl;
+		// std::cerr << "\n out of sndinggggg " << std::endl;
 		return 0;
 	}
 
@@ -114,11 +114,11 @@ bool Response::sendResponse(std::string content_type)
 	else if (file.eof() || bytesRead == 0)
 	// else if (bytesRead == 0)
 	{
-        std::cerr << "*******EOF " << filename << std::endl;
+        // std::cerr << "*******EOF " << filename << std::endl;
 
 		file.close();
 		response_complete = true;
-        std::cerr << "all read " << filename << std::endl;
+        // std::cerr << "all read " << filename << std::endl;
 	}
 	position = file.tellg();
 	return 0;
@@ -131,5 +131,5 @@ void Response::setFd(int fd) {
 
 void Response::setFilename(std::string &name) {
     filename = name;
-    std::cout << "\n\nset name " << filename << "\n";
+    // std::cout << "\n\nset name " << filename << "\n";
 }
