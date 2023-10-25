@@ -418,11 +418,20 @@ void Server::setUp(std::vector<t_serv>& s)
 
 
     std::vector<int> listenfds;
-    struct sockaddr_in servaddr;
-    char buff[200];
-    char bytes[4048];
+    struct sockaddr_in servaddr = {0};
 
-    std::vector<pollfd> pollfds;
+    // servaddr.sin_family = AF_INET;
+    // servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    // servaddr.sin_port = htons(port_numbers[i]);
+
+
+    std::vector<pollfd> pollfds = {};
+    // pollfds.fd = -1;
+    // pollfds.events = POLLOUT;
+    // pollfds.revents = 0;
+
+
+
     std::map<int, int> conn_to_listen;
 
     for (size_t i = 0; i < port_numbers.size(); ++i) {
@@ -460,7 +469,7 @@ void Server::setUp(std::vector<t_serv>& s)
     while (1)
 	{
 
-		std::cerr << "in main LOOP" << '\n';
+		// std::cerr << "in main LOOP" << '\n';
 		// std::cerr << pollfds.size() << '\n';
 
         int activity = poll(&pollfds[0], pollfds.size(), -1); // Wait indefinitely until an event occurs
@@ -494,7 +503,12 @@ void Server::setUp(std::vector<t_serv>& s)
         }
 		// std::unordered_map<int, Client>::iterator client_it;
 
-        std::vector<int> sockets_to_remove;// Check connected client sockets for incoming data and handle them separately
+
+
+
+
+
+        std::vector<int> sockets_to_remove = {};// Check connected client sockets for incoming data and handle them separately
         for (size_t i = listenfds.size(); i < pollfds.size(); ++i)
 		{
             // std::cerr << "\nIN THE LOOP" << '\n';
