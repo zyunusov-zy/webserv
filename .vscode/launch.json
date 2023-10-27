@@ -20,8 +20,8 @@
       "type": "lldb",
       "request": "launch",
       "args": [],
-      "cwd": "/Users/kris/our_webserv2/Config",
-      "program": "/Users/kris/our_webserv2/Config/build/Debug/outDebug"
+      "cwd": "/Users/kris/wbsv_to_compare/Config",
+      "program": "/Users/kris/wbsv_to_compare/Config/build/Debug/outDebug"
     }
   ]
 }
