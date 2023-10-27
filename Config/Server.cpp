@@ -277,14 +277,14 @@ bool Server::launchCgi(Client *client, int fd)
             dup2(infile, STDIN_FILENO);
             close(infile);
         }
-        // char* script_path = (char*)(client->getReq().getUriCGI().c_str());
+        char* script_path = (char*)(client->getReq().getUriCGI().c_str());
         // std::cerr << "sSCRIPT PATH" << "\n";
 
         // std::cerr << script_path << "\n";
 
         const char* path_to_py = "/usr/local/bin/python3";
         // /Users/cgreenpo/our_webserv/Config/cgi-bin/script_get.py
-        char* script_path = "/Users/kris/our_webserv2/Config/cgi-bin/script_timeout.py"; // warning
+        // char* script_path = "/Users/kris/our_webserv2/Config/cgi-bin/script_timeout.py"; // warning
 
 
         char* _args[] = {const_cast<char*>(path_to_py), const_cast<char*>(script_path), nullptr};
@@ -425,7 +425,7 @@ void Server::setUp(std::vector<t_serv>& s)
     // servaddr.sin_port = htons(port_numbers[i]);
 
 
-    std::vector<pollfd> pollfds = {};
+    std::vector<pollfd> pollfds;
     // pollfds.fd = -1;
     // pollfds.events = POLLOUT;
     // pollfds.revents = 0;
@@ -508,7 +508,7 @@ void Server::setUp(std::vector<t_serv>& s)
 
 
 
-        std::vector<int> sockets_to_remove = {};// Check connected client sockets for incoming data and handle them separately
+        std::vector<int> sockets_to_remove;// Check connected client sockets for incoming data and handle them separately
         for (size_t i = listenfds.size(); i < pollfds.size(); ++i)
 		{
             // std::cerr << "\nIN THE LOOP" << '\n';
