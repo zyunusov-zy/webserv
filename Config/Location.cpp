@@ -6,7 +6,7 @@ void Location::initLoc()
 	path = "";
 	root = "";
 	index = "";
-	autoindex = "off";
+	autoindex = "of";
 	limit_client_size = -1;
 	methods["GET"] = true;
 	methods["DELETE"] = true;
@@ -18,7 +18,7 @@ void Location::setPath(std::string v)
 {
 	if (v == "")
 	{
-		std::cerr << "Check path value of the location:" << this->path << std::endl;
+		throw ErrorException(0, "Check path value of the location");
 		exit(1);
 	}
 	this->path = v;
@@ -50,8 +50,7 @@ void Location::setAutoInd(std::string v)
 {
 	if (v == "")
 	{
-		std::cerr << "Check autoindex value of the location:" << this->path << std::endl;
-		exit(1);
+		ErrorException(0, "Check autoindex value of the location")
 	}
 	this->autoindex = v;
 }
@@ -65,8 +64,7 @@ void Location::setRoot(std::string v)
 {
 	if (v == "")
 	{
-		std::cerr << "Check root value of the location:" << this->path << std::endl;
-		exit(1);
+        throw ErrorException(0, "Check root value of the location");
 	}
 	if (v[v.length() - 1] != '/')
 		v.push_back('/');
@@ -82,8 +80,7 @@ void Location::setIndex(std::string v)
 {
 	if (v == "")
 	{
-		std::cerr << "Check index value of the location:" << this->path << std::endl;
-		exit(1);
+		throw ErrorException(0, "Check index value of the location");
 	}
 	if (this->index != "")
 	{
@@ -102,8 +99,7 @@ void Location::setRedir(std::string v, std::string p)
 {
 	if (v == "")
 	{
-		std::cerr << "Check return value of the location:" << this->path << std::endl;
-		exit(1);
+		throw ErrorException(0, "Check return value of the location");
 	}
 	this->redir = std::pair<int, std::string>(atoi(v.c_str()), p);
 }
@@ -117,8 +113,7 @@ void Location::setCGI(std::string k, std::string v)
 {
 	if (v == "")
 	{
-		std::cerr << "Check cgi_path value of the location:" << this->path << std::endl;
-		exit(1);
+		throw ErrorException(0, "Check cgi_path value of the location");
 	}
 	if (v[v.length() - 1] != '/')
 		v.push_back('/');

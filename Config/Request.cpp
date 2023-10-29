@@ -420,7 +420,7 @@ std::string Request::validateURI(std::string &fullPath, std::uint8_t mode)
 			_errorCode = 1;
 			return fullPath;
 		}
-		if (errno == EACCES)
+		if (errno == EACCES || _location->getAutoInd() == "off")
 			_errorCode = 403;
 		else
 			_errorCode = 404;

@@ -9,31 +9,38 @@
 
 int main(int argc, char** av)
 {
-	if (argc == 2)
-	{
-		Config _conf;
-		std::vector<t_serv> servers;
-		try{
-			_conf.parse(av[1], servers);
-		}catch(ErrorException &e)
-		{
-			std::cerr << e.what() << std::endl;
-			return (1);
-		}
+    Config _conf;
+    std::vector<t_serv> servers;
+    const char* configFile;
 
-		// std::cout << "SIZE_OF_VECTOR: " << servers.size() << std::endl;
-		// std::cout << "EEEEE" << servers[1].host << std::endl;
-		// serv.conf(av[1], servers);
-		Server serv;
+    // Check arguments
+    if (argc == 2)
+    {
+        configFile = av[1];
+    }
+    else if (argc == 1)
+    {
+        configFile = "/home/zyko/webserv/Config/test.conf"; // Put the path of your default config file here
+    }
+    else
+    {
+        std::cerr << RED << "Invalid number of arguments." << NORMAL << std::endl;
+        return (1);
+    }
 
-		// exit(1);
-    	// std::cout << "Server size:" << servers.size() << std::endl;
+    // Parse config
+    try
+    {
+        _conf.parse(configFile, servers);
+    }
+    catch(ErrorException &e)
+    {
+        std::cerr << e.what() << std::endl;
+        return (1);
+    }
 
-		serv.setUp(servers);
-	}
-	else
-	{
-		std::cerr << RED << "Invalid number of arguments." << NORMAL << std::endl;
-		return (1);
-	}
+    Server serv;
+    serv.setUp(servers);
+
+    return 0; // Assuming success if no exceptions were thrown
 }
