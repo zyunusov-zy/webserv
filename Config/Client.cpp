@@ -10,6 +10,11 @@ bool Client::getQuer()
 	return (_quer);
 }
 
+bool Client::getIsClosed()
+{
+	return (_isClosed);
+}
+
 // Request *Client::getPointReq()
 // {
 // 	return (&_req);
@@ -115,6 +120,8 @@ int  Client::checkError()
 	}
 	else
 		err = _req.getErrorCode();
+
+
 
 	std::cout << "ERRRORRRRR 00000000 " << err << std::endl;
 

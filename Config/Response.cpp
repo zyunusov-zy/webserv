@@ -14,10 +14,7 @@ Response::Response()
 
     header = "";
     body = "";
-    _status = "";
-    _chunking = "";
     content_type = "";
-    _date = "";
 	filename = "";
 	_target_fd = 0;
 

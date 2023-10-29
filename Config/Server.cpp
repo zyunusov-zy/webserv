@@ -236,8 +236,6 @@ bool Server::launchCgi(Client *client, int fd)
 
     // std::cerr << "\n\n ***** in CGI   \n";
 
-    // std::cerr << "\n kjrgkjnrjnrel " << client->getServ().errorPages[500] << std::endl;
-
 
     std::string string_filename = "output_file" + client->getClienIP();
 	client->getResp()->filename = string_filename;
@@ -247,13 +245,15 @@ bool Server::launchCgi(Client *client, int fd)
     int outfile = open(out_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
     if (outfile == -1) {
         std::cerr << "cgi: Error opening the outfile.\n";
-		returnError();
+		return 1;
+
     }
 
     int pipe_d[2];
     if (pipe(pipe_d) == -1) {
         std::cerr << "Pipe Error\n";
-		returnError();
+		return 1;
+
     }
 
     write(pipe_d[WRITE_END], client->getReq().getBody().c_str(), client->getReq().getBody().size());
@@ -264,7 +264,7 @@ bool Server::launchCgi(Client *client, int fd)
         close(pipe_d[READ_END]);
         close(outfile);
         std::cerr << "Error with fork\n";
-			returnError();
+		return 1;
     }
 
     if (cgi_pid == 0) {
@@ -298,13 +298,18 @@ bool Server::launchCgi(Client *client, int fd)
 
         if (sigaction(SIGALRM, &sa, NULL) == -1) {
             perror("sigaction");
-			returnError();
+			// client->getResp()->exec_err = true;
+			// throw(returnError());
+			return 1;
+
         }
         alarm(timeoutDuration);
 
         if ((execve(_args[0], _args, client->getReq().getENV())) == -1) {
             std::cerr << "\n cgi: error with execution\n";
-			returnError();
+			return 1;
+			// client->getResp()->exec_err = true;
+			// throw(returnError());
         }
 
         // std::cerr << "\n =====timeout value \n";
@@ -317,7 +322,9 @@ bool Server::launchCgi(Client *client, int fd)
     pid_t terminatedPid = waitpid(cgi_pid, &status, 0);
     if (terminatedPid == -1) {
         std::cerr << "cgi: error with process handling\n";
-		returnError();
+		// client->getResp()->exec_err = true;
+		// throw(returnError());
+		return 1;
     }
 
     if (WIFEXITED(status))
@@ -328,17 +335,10 @@ bool Server::launchCgi(Client *client, int fd)
     {
         std::cerr << "Child process terminated due to signal: " << WTERMSIG(status) << std::endl;
 
-        // string_filename = "/Users/kris/our_webserv2/error_pages/500.html";
-		// client->getReq().setErrorStatus(500);
 
-		// client->exec_err_code = 500;
-		// client->exec_err = true;
-
-		// client->getResp()->exec_err_code = 500;
-		client->getResp()->exec_err = true;
-		// client->checkError();
-		client->getResp()->response_complete = true;
-		throw(returnError());
+		// client->getResp()->exec_err = true;
+		// client->getResp()->response_complete = true;
+		// throw(returnError());
 
 
         // string_filename = client->getServ().errorPages[500];
@@ -418,20 +418,9 @@ void Server::setUp(std::vector<t_serv>& s)
 
 
     std::vector<int> listenfds;
-    struct sockaddr_in servaddr = {0};
-
-    // servaddr.sin_family = AF_INET;
-    // servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    // servaddr.sin_port = htons(port_numbers[i]);
-
+    struct sockaddr_in servaddr;
 
     std::vector<pollfd> pollfds;
-    // pollfds.fd = -1;
-    // pollfds.events = POLLOUT;
-    // pollfds.revents = 0;
-
-
-
     std::map<int, int> conn_to_listen;
 
     for (size_t i = 0; i < port_numbers.size(); ++i) {
@@ -470,11 +459,8 @@ void Server::setUp(std::vector<t_serv>& s)
 	{
 
 		// std::cerr << "in main LOOP" << '\n';
-		// std::cerr << pollfds.size() << '\n';
 
         int activity = poll(&pollfds[0], pollfds.size(), -1); // Wait indefinitely until an event occurs
-
-        // int activity = poll(&pollfds[0], pollfds.size(), -1); // Wait indefinitely until an event occurs
         if (activity < 0) {
             std::cerr << "Error in poll. errno: " << errno << std::endl;
             exit(EXIT_FAILURE);
@@ -503,11 +489,6 @@ void Server::setUp(std::vector<t_serv>& s)
         }
 		// std::unordered_map<int, Client>::iterator client_it;
 
-
-
-
-
-
         std::vector<int> sockets_to_remove;// Check connected client sockets for incoming data and handle them separately
         for (size_t i = listenfds.size(); i < pollfds.size(); ++i)
 		{
@@ -532,59 +513,69 @@ void Server::setUp(std::vector<t_serv>& s)
                     Client* myCl = new Client(pollfds[i].fd, client_ip, *serv_tmp);
                     Response* myResp = new Response();
                     myCl->_resp = myResp;
-                    // Client cl(pollfds[i].fd, client_ip, *serv_tmp);
 					fd_to_clients.insert(std::make_pair(pollfds[i].fd, myCl));
-
-                    try
+					if (myCl->getIsClosed() == true)
 					{
-						myCl->readRequest();
-						// myCl->print();
-						myCl->pollstruct = &(pollfds[i]);
-
-                    	if (myCl->checkError())
-                        {
-                            // std::cout << "I Am HERE \n";
-                            if (myCl->getReq().getCGIB())
-                                launchCgi(myCl, fd);
-                            else if (myCl->getReq().getMethod() == "GET")
-                                sendHTMLResponse(myCl, fd, myCl->getReq().getResource());
-                            else if (myCl->getReq().getMethod() == "POST")
-                                sendPostResponse(myCl, fd, myCl->getReq().getResource());
-                            else if (myCl->getReq().getMethod() == "DELETE")
-                                sendDeleteResponse(myCl, fd, myCl->getReq().getResource());
-                            pollfds[i].events = POLLOUT;
-							// std::cout << "1 FILEname  \n";
-                            // std::cout << myCl->getReq().getUriCGI().c_str() << "\n";
-                            myCl->getResp()->_target_fd = fd;
-                            // myCl->getResp().filename = myCl->fd;
-                            // std::cout << myCl->getResp()->_target_fd << "\n";
-                            // std::cout << "resp  \n";
-							// std::cout << myCl->getResp()->filename << std::endl;
-
-
-                        }
-                    }
-					catch (const std::exception& e)
+						//REMOVE THE CLIENT IF IS_CLOSED == TRUE
+						sockets_to_remove.push_back(pollfds[i].fd);
+					}
+					else
 					{
-                        std::cerr << e.what() << '\n';
-						myCl->checkError();
-						myCl->getResp()->response_complete = true;
 
+						try
+						{
 
-                    }
+							myCl->readRequest();
+							// myCl->print();
+							myCl->pollstruct = &(pollfds[i]);
+
+							if (myCl->checkError())
+							{
+								// std::cout << "I Am HERE \n";
+								if (myCl->getReq().getCGIB())
+								{
+									if (launchCgi(myCl, fd))
+									{
+										myCl->getResp()->exec_err = true;
+										remove(myCl->getResp()->filename.c_str());
+										throw(returnError());
+									}
+								}
+								else if (myCl->getReq().getMethod() == "GET")
+									sendHTMLResponse(myCl, fd, myCl->getReq().getResource());
+								else if (myCl->getReq().getMethod() == "POST")
+									sendPostResponse(myCl, fd, myCl->getReq().getResource());
+								else if (myCl->getReq().getMethod() == "DELETE")
+									sendDeleteResponse(myCl, fd, myCl->getReq().getResource());
+								
+								pollfds[i].events = POLLOUT;
+								myCl->getResp()->_target_fd = fd;
+
+							}
+						}
+						catch (const std::exception& e)
+						{
+							std::cerr << e.what() << '\n';
+							myCl->checkError();
+							sockets_to_remove.push_back(pollfds[i].fd);
+
+						}
+					}
                 }
             }
-			// else if (pollfds[i].revents & POLLOUT && !fd_to_clients[pollfds[i].fd].response_complete)
 			else if (pollfds[i].revents & POLLOUT)
             {
-                //can only send here
 
 				client_it  = this->fd_to_clients.find(fd);
 				if (client_it != this->fd_to_clients.end() && !client_it->second->getResp()->response_complete)
 				{
 					// std::cerr << "POLLOUTTTT send" << '\n';
                 	if (client_it->second->getResp()->sendResponse(client_it->second->getResp()->content_type) == 1)
+					{
 						client_it->second->checkError();
+						client_it->second->getResp()->response_complete = true;
+
+					}
 
 					client_it = fd_to_clients.end();
 					// exit(0);
@@ -595,14 +586,10 @@ void Server::setUp(std::vector<t_serv>& s)
 
 					if (client_it->second->getReq().getCGIB())
 					{
-						// std::cerr << "+_+_+_+_ cgi filenameeee " << '\n';
-
 						remove(client_it->second->getResp()->filename.c_str());
 						std::cerr << client_it->second->getResp()->filename.c_str() << '\n';
-
 					}
 					sockets_to_remove.push_back(pollfds[i].fd);
-					// std::cerr << sockets_to_remove.size() << '\n';
 
 				}
 
@@ -616,12 +603,7 @@ void Server::setUp(std::vector<t_serv>& s)
         	int fd = sockets_to_remove[i];
 			if (sockets_to_remove.size() > 1)
 				i--;
-			// std::cerr << pollfds.size() << '\n';
-			// std::cerr << listenfds.size() << '\n';
-
         	removeSocket(fd, connected_fds, sockets_to_remove, fd_to_clients, pollfds, listenfds);
-			// std::cerr << pollfds.size() << '\n';
-			// std::cerr << listenfds.size() << '\n';
             close(fd);
 
    		}

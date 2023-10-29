@@ -1,14 +1,6 @@
 #ifndef CLIENT_HPP
 # define CLIENT_HPP
 
-
-// #define BUFF_SIZE 9000
-
-
-// #define BUFF_SIZE 8192
-
-// #define BUFF_SIZE 16384
-
 // #include <iostream>
 // #include <map>
 // #include <string>
@@ -75,6 +67,7 @@ public:
 	int checkError();
 	std::string checkErrorMap(int err);
 	t_serv getServ();
+	bool getIsClosed();
 
 
 	// void sendResponse(std::string content_type);

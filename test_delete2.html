@@ -14,7 +14,7 @@
         // JavaScript code to send a DELETE request when the button is clicked
         document.getElementById("deleteButton").addEventListener("click", function() {
             // Specify the URL to delete the preset file
-            const url = "/delfile1";
+            const url = "/user_input.txt";
 
             // Create a new DELETE request using XMLHttpRequest
             const xhr = new XMLHttpRequest();
@@ -22,13 +22,13 @@
 
             // Set up a callback function to handle the response
             xhr.onload = function() {
-                if (xhr.status === 200) {
-                    // The file was successfully deleted
-                    alert("File deleted successfully.");
-                } else {
-                    // Handle the case where deletion failed
-                    alert("File deletion failed.");
-                }
+                // if (xhr.status === 200) {
+                //     // The file was successfully deleted
+                //     alert("File deleted successfully.");
+                // } else {
+                //     // Handle the case where deletion failed
+                //     alert("File deletion failed.");
+                // }
             };
 
             // Send the DELETE request
