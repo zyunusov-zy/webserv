@@ -224,14 +224,26 @@ void handleTimeout(int signum) {
 }
 
 
+void cleanEnv(Client *client)
+{
+
+    if (client->getReq().getENV() != nullptr) {
+        std::cerr << "freeing env in des "  << std::endl;
+        for (size_t i = 0; client->getReq().getENV()[i] != nullptr; ++i) {
+            if (client->getReq().getENV()[i])
+                free(client->getReq().getENV()[i]);
+        }
+        delete[] client->getReq().getENV();
+        // client->getReq()._envCGI = nullptr;
+    }
+}
+
 bool Server::launchCgi(Client *client, int fd)
 {
 
     const int timeoutDuration = 3;
 
     int infile = 0;
-
-
 	client->getResp()->exec_err_code = 500;
 
     // std::cerr << "\n\n ***** in CGI   \n";
@@ -278,7 +290,8 @@ bool Server::launchCgi(Client *client, int fd)
             close(infile);
         }
         char* script_path = (char*)(client->getReq().getUriCGI().c_str());
-        // std::cerr << "sSCRIPT PATH" << "\n";
+        
+		// std::cerr << "sSCRIPT PATH" << "\n";
 
         // std::cerr << script_path << "\n";
 
@@ -298,8 +311,6 @@ bool Server::launchCgi(Client *client, int fd)
 
         if (sigaction(SIGALRM, &sa, NULL) == -1) {
             perror("sigaction");
-			// client->getResp()->exec_err = true;
-			// throw(returnError());
 			return 1;
 
         }
@@ -308,12 +319,7 @@ bool Server::launchCgi(Client *client, int fd)
         if ((execve(_args[0], _args, client->getReq().getENV())) == -1) {
             std::cerr << "\n cgi: error with execution\n";
 			return 1;
-			// client->getResp()->exec_err = true;
-			// throw(returnError());
         }
-
-        // std::cerr << "\n =====timeout value \n";
-        // std::cerr << '\n' << timeoutOccurred << '\n' << std::endl;
 
     }
 
@@ -322,8 +328,6 @@ bool Server::launchCgi(Client *client, int fd)
     pid_t terminatedPid = waitpid(cgi_pid, &status, 0);
     if (terminatedPid == -1) {
         std::cerr << "cgi: error with process handling\n";
-		// client->getResp()->exec_err = true;
-		// throw(returnError());
 		return 1;
     }
 
@@ -334,18 +338,8 @@ bool Server::launchCgi(Client *client, int fd)
     else if (WIFSIGNALED(status))
     {
         std::cerr << "Child process terminated due to signal: " << WTERMSIG(status) << std::endl;
-
-
-		// client->getResp()->exec_err = true;
-		// client->getResp()->response_complete = true;
-		// throw(returnError());
-
-
-        // string_filename = client->getServ().errorPages[500];
 		return 1;
     }
-
-    // client->getResp()->filename = string_filename;
     client->getResp()->content_type = "text/html";
     client->getResp()->setFd(fd);
 
@@ -534,6 +528,7 @@ void Server::setUp(std::vector<t_serv>& s)
 								// std::cout << "I Am HERE \n";
 								if (myCl->getReq().getCGIB())
 								{
+									// cleanEnv(myCl);
 									if (launchCgi(myCl, fd))
 									{
 										myCl->getResp()->exec_err = true;

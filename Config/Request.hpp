@@ -44,7 +44,6 @@ class Request
 		int _chunkSize;
 		bool _isReqDone;
 		int _cgiNum;
-		char **_envCGI;
 		std::string _uriCGI;
 		std::string _scriptPath;
 		std::string _connection;
@@ -65,6 +64,7 @@ class Request
 		void makeEnv();
 	public:
 
+		char **_envCGI;
 
 		Location *getLoc();
 		Request(std::multimap<std::string, Location> &l);
