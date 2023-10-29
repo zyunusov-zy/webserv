@@ -211,7 +211,7 @@ void Server::sendHTMLResponse(class Client *client, int fd, std::string filepath
 
 	if (client->getReq().getErrorCode() == 301)
 	{
-		client->getResp()->status_code = "200 OK";
+		client->getResp()->status_code = "301";
 	}
 
     // client.fd = fd;
@@ -577,7 +577,6 @@ void Server::setUp(std::vector<t_serv>& s)
 					{
 						client_it->second->getResp()->exec_err_code = 500;
 						client_it->second->checkError();
-						client_it->second->getResp()->response_complete = true;
 						sockets_to_remove.push_back(pollfds[i].fd);
 
 					}
