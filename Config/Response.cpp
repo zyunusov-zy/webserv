@@ -6,8 +6,8 @@ Response::Response()
 	exec_err = false;
 	exec_err_code = 0;
 
-    status_code = "200 OK";
-    _proto = "HTTP/1.1";
+    status_code = "HTTP/1.1 200 OK";
+    // _proto = "HTTP/1.1";
     position = 0;
     response_complete = false;
     header_sent = false;
@@ -58,11 +58,7 @@ bool Response::sendResponse(std::string content_type)
     if (!header_sent)
     {
         std::cerr << "\nSending header " << filename << std::endl;
-        // snprintf(buff, sizeof(buff), "HTTP/1.1 %\r\n"
-        //                                  "Content-Type: %\r\n"
-        //                                  "Content-Length: %d\r\n"
-        //                                  "Connection: keep-alive\r\n"
-        //                                  "\r\n", status_code.c_str(), content_type.c_str(), conl);
+
         snprintf(buff, sizeof(buff), "HTTP/1.1 %s\r\n"
                                          "Content-Type: %s\r\n"
                                          "Content-Length: %d\r\n"
