@@ -31,6 +31,7 @@ private:
 	int findLoc(size_t i, std::vector<std::string> tokens);
 	void checkPathCGI(std::vector<t_serv>& servers);
 	void modifyCGIMap(const std::string& root, std::multimap<std::string, std::string>& cgiMap);
+	void confCheck(std::vector<t_serv>& servers);
 	// void checkServers(std::vector<t_serv>& servers); // checing IP/PORTS and Server_names;
 	// std::vector<t_serv> servers;
 	// std::map<int, std::string> errorPage;

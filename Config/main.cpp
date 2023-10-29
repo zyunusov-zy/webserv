@@ -34,7 +34,6 @@ int main(int argc, char** av)
     }
     catch(ErrorException &e)
     {
-		std::cerr << "Here tho" << std::endl;
         std::cerr << e.what() << std::endl;
         return (1);
     }

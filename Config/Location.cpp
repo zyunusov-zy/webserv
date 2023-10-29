@@ -62,10 +62,9 @@ std::string Location::getAutoInd() const
 
 void Location::setRoot(std::string v)
 {
-	std::cout << "Root in Loc: " << v << std::endl;
 	if (v == "")
 	{
-        throw ErrorException(0, "Check root value");
+        throw ErrorException(0, "Check root value there is not root value");
 	}
 	if (v[v.length() - 1] != '/')
 		v.push_back('/');

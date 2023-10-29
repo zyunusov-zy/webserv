@@ -119,11 +119,12 @@ void Config::valueForServer(std::vector<std::string> tokens, size_t end, size_t&
 		}
 		if (tokens[start].find("root:") != std::string::npos)
 		{
+			if (t.Mroot != "")
+				throw ErrorException(0, "Cannot be two or more roots");
 			std::string v = tokens[start].substr(tokens[start].find("root:") + strlen("root:"));
 			trim(v, ' ');
 			trim(v, ';');
 			t.Mroot = v;
-			std::cout << "Main root:" << t.Mroot << std::endl;
 		}
 		if (tokens[start].find("location:") != std::string::npos)
 			break;
@@ -145,15 +146,7 @@ void Config::parsLocation(std::vector<std::string> tokens, size_t end, size_t st
 			trim(v, ' ');
 			// std::cout <<  v << std::endl << std::endl;
 			l.setPath(v);
-		}
-		if (tokens[start].find("root:") != std::string::npos)
-		{
-			std::string v = tokens[start].substr(tokens[start].find("root:") + strlen("root:"));
-			trim(v, ' ');
-			trim(v, ';');
-			// std::cout <<  v << std::endl << std::endl;
 			l.setRoot(server.Mroot);
-			// l.setRoot(v);
 		}
 		if (tokens[start].find("autoi:") != std::string::npos)
 		{
@@ -269,37 +262,57 @@ t_serv Config::parseTokens(size_t& i, std::vector<std::string>& tokens)
 
 void Config::modifyCGIMap(const std::string& root, std::multimap<std::string, std::string>& cgiMap)
 {
-	for(auto it = cgiMap.begin(); it != cgiMap.end(); ++it)
-	{
-		if (!it->second.empty() && (it->second[0] != '/' && root[root.length() - 1] !='/'))
-		{
-			it->second.insert(0, "/");
-		}
-		if (it->second.find(root) == std::string::npos)
-		{
-			it->second.insert(0, root); // prepend the root
-		}
-		if (it->second.find("//") != std::string::npos)
-		{
-			it->second.replace(it->second.find("//"), 2, "/");
-		}
-	}
+    for(std::multimap<std::string, std::string>::iterator it = cgiMap.begin(); it != cgiMap.end(); ++it)
+    {
+        if (!it->second.empty() && (it->second[0] != '/' && root[root.length() - 1] !='/'))
+        {
+            it->second.insert(0, "/");
+        }
+        if (it->second.find(root) == std::string::npos)
+        {
+            it->second.insert(0, root); // prepend the root
+        }
+        if (it->second.find("//") != std::string::npos)
+        {
+            it->second.replace(it->second.find("//"), 2, "/");
+        }
+    }
 }
+
 
 void Config::checkPathCGI(std::vector<t_serv>& servers)
 {
 	for(size_t i = 0; i < servers.size(); i++)
 	{
-		for(auto& v : servers[i].loc)
+		for(std::multimap<std::string, Location>::iterator v = servers[i].loc.begin(); v != servers[i].loc.end(); v++)
 		{
 			if (servers[i].Mroot.empty())
 				continue;
 
-			std::multimap<std::string, std::string>& cgiMap = v.second.getCGI();
+			std::multimap<std::string, std::string>& cgiMap = v->second.getCGI();
 			if (cgiMap.empty())
 				continue;
-			std::cout << "Root of the location:" << servers[i].Mroot << std::endl;
 			modifyCGIMap(servers[i].Mroot, cgiMap);
+		}
+	}
+}
+
+void Config::confCheck(std::vector<t_serv>& servers)
+{
+	for (size_t i = 0; i < servers.size(); i++)
+	{
+		if (servers[i].host == "")
+			throw ErrorException(0, "There is not IP(host) on this server");
+		if (servers[i].Mroot == "")
+			throw ErrorException(0, "There is not root in server");
+		if (servers[i].port.size() <= 0)
+			throw ErrorException(0, "There is not ports on this server");
+		for(std::multimap<std::string, Location>::iterator v = servers[i].loc.begin(); v != servers[i].loc.end(); ++v)
+		{
+			if (v->second.getPath() == "")
+			{
+				throw ErrorException(0, "No path in one of the locations");
+			}
 		}
 	}
 }
@@ -342,6 +355,15 @@ int Config::parse(std::string fileName, std::vector<t_serv>& servers)
 	
 	}
 	checkPathCGI(servers);
+
+	// errorcheck function
+	try{
+		confCheck(servers);
+	}
+	catch(ErrorException &e)
+    {
+		throw ErrorException(0, e.what());
+    }
 
 	for(size_t i = 0; i < servers.size(); i++)
 	{
