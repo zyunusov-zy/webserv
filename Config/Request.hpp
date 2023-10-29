@@ -49,6 +49,7 @@ class Request
 		std::string _scriptPath;
 		std::string _connection;
 		bool _con;
+		int _maxBodySize;
 
 		void	resetRequest();
 		void	saveStartLineHeaders(std::string &data);

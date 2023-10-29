@@ -4,7 +4,7 @@ Request::Request(std::multimap<std::string, Location> &l): _q(false), _errorCode
 _cgi(false), _buf(new char[RECV_BUFFER_SIZE + 1]), 
 _parseStat(STARTL), _bodySize(0), _isChunkSize(false),
 _chunkSize(0), _isReqDone(false), _locationMap(l), _cgiNum(0), 
-_envCGI(NULL), _scriptPath(""), _connection(""), _con(false)
+_envCGI(NULL), _scriptPath(""), _connection(""), _con(false), _maxBodySize(0)
 {
 }
 
@@ -63,8 +63,9 @@ bool Request::getCon()
 
 void Request::resetRequest()
 {
+	_maxBodySize = 0;
 	_headers.clear();
-	_bodySize = -1;
+	_bodySize = 0;
 	_chunkSize = 0;
 	_parseStat = STARTL;
 	_transEn.clear();
@@ -207,7 +208,7 @@ void	Request::validateStartLine(void)
 		throw ErrorException(400, "Bad Request");
 	if (_version != "HTTP/1.1")
 		throw ErrorException(505, "Http Version Not Supported");
-	_bodySize = _location->getBodySize();
+	_maxBodySize = _location->getBodySize();
 	parseUri();
 }
 
@@ -359,11 +360,12 @@ void	Request::saveSimpleBody(std::string &data)
 	size_t bodySize;
 
 	bodySize = static_cast<size_t>(std::atol(_headers["Content-Length"].c_str()));
-	if (bodySize > this->_bodySize)
+	std::cerr<< "BOdy_size:" << bodySize << std::endl;
+	std::cerr << "Max Body size: " << _maxBodySize << std::endl;
+	if (bodySize > this->_maxBodySize)
 		throw ErrorException(413, "Request Entity Too Large");
-	if (_body.length() + data.length() > this->_bodySize)
+	if (_body.length() + data.length() > this->_maxBodySize)
 		throw ErrorException(413, "Request Entity Too Large");
-	
 	_body.append(data);
 	data.clear();
 	if (_body.length() == bodySize)
