@@ -179,7 +179,7 @@ void Config::parsLocation(std::vector<std::string> tokens, size_t end, size_t st
 			std::string v = tokens[start].substr(tokens[start].find("limits_client_body_size:") + strlen("limits_client_body_size:"));
 			trim(v, ' ');
 			trim(v, ';');
-			l.setBodySize(atoi(v.c_str()));
+			l.setBodySize(v);
 		}
 		if (tokens[start].find("allow_methods:") != std::string::npos)
 		{

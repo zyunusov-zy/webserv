@@ -35,7 +35,7 @@ struct Location
 	const std::pair<int, std::string>& getRedir() const;
 	void setCGI(std::string k, std::string v);
 	std::multimap<std::string, std::string>& getCGI();
-	void setBodySize(int num);
+	void setBodySize(std::string num);
 	int getBodySize() const;
 };
 

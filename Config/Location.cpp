@@ -1,4 +1,5 @@
 #include "Location.hpp"
+#include "ErrorCodes.hpp"
 
 void Location::initLoc()
 {
@@ -28,14 +29,17 @@ std::string Location::getPath() const
 	return this->path;
 }
 
-void Location::setBodySize(int num)
+void Location::setBodySize(std::string num)
 {
-	if (num <= 0)
-	{
-		std::cerr << "Body size cant be 0 or negative numbers of the location:" << this->path << std::endl;
-		exit(1);
-	}
-	limit_client_size = num;
+	std::istringstream iss(num);
+    long long value;
+
+    if (!(iss >> value) || value <= 0 || value > std::numeric_limits<int>::max()) {
+        throw ErrorException(0, "Invalid or Negative Body Size or Overflow");
+    }
+
+    limit_client_size = static_cast<int>(value);
+
 }
 int  Location::getBodySize() const
 {
