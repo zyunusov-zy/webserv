@@ -110,6 +110,7 @@ void Server::sendPostResponse(class Client *client, int fd, std::string filepath
 
     tmp = client->getReq().getHeaders();
     std::string requestBody = client->getReq().getBody();
+
     // std::cerr << "filename" << "\n";
     // std::cerr << filename << "\n";
     // std::cerr << boundary << "\n";
@@ -129,9 +130,12 @@ void Server::sendPostResponse(class Client *client, int fd, std::string filepath
 	else
 	{
 		client->getResp()->exec_err_code = 500;
+		dmm.close();
 		throw(returnError());
 
 	}
+	dmm.close();
+
 
 
 
@@ -205,10 +209,15 @@ void Server::sendHTMLResponse(class Client *client, int fd, std::string filepath
     client->getResp()->content_type = content_type;
     client->getResp()->filename = filepath;
 
+	if (client->getReq().getErrorCode() == 301)
+	{
+		client->getResp()->status_code = "200 OK";
+	}
+
     // client.fd = fd;
     // client.sendResponse(content_type);
 
-    // file.close();
+    file.close();
 	// std::cerr << client->filename << std::endl;
 
     // std::cerr << "\n after file closing\n" << std::endl;
@@ -341,7 +350,6 @@ bool Server::launchCgi(Client *client, int fd)
 		return 1;
     }
     client->getResp()->content_type = "text/html";
-    client->getResp()->setFd(fd);
 
     alarm(0);
 	return 0;
@@ -567,8 +575,10 @@ void Server::setUp(std::vector<t_serv>& s)
 					// std::cerr << "POLLOUTTTT send" << '\n';
                 	if (client_it->second->getResp()->sendResponse(client_it->second->getResp()->content_type) == 1)
 					{
+						client_it->second->getResp()->exec_err_code = 500;
 						client_it->second->checkError();
 						client_it->second->getResp()->response_complete = true;
+						sockets_to_remove.push_back(pollfds[i].fd);
 
 					}
 
