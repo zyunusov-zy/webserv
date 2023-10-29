@@ -50,7 +50,7 @@ void Location::setAutoInd(std::string v)
 {
 	if (v == "")
 	{
-		ErrorException(0, "Check autoindex value of the location")
+		ErrorException(0, "Check autoindex value of the location");
 	}
 	this->autoindex = v;
 }
@@ -62,9 +62,10 @@ std::string Location::getAutoInd() const
 
 void Location::setRoot(std::string v)
 {
+	std::cout << "Root in Loc: " << v << std::endl;
 	if (v == "")
 	{
-        throw ErrorException(0, "Check root value of the location");
+        throw ErrorException(0, "Check root value");
 	}
 	if (v[v.length() - 1] != '/')
 		v.push_back('/');

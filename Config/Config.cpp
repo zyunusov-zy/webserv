@@ -117,6 +117,14 @@ void Config::valueForServer(std::vector<std::string> tokens, size_t end, size_t&
 			std::string subStr = tokens[start].substr(0, tokens[start].find(';'));
 			mapingErrorPage(t,key, subStr);
 		}
+		if (tokens[start].find("root:") != std::string::npos)
+		{
+			std::string v = tokens[start].substr(tokens[start].find("root:") + strlen("root:"));
+			trim(v, ' ');
+			trim(v, ';');
+			t.Mroot = v;
+			std::cout << "Main root:" << t.Mroot << std::endl;
+		}
 		if (tokens[start].find("location:") != std::string::npos)
 			break;
 	}
@@ -144,11 +152,12 @@ void Config::parsLocation(std::vector<std::string> tokens, size_t end, size_t st
 			trim(v, ' ');
 			trim(v, ';');
 			// std::cout <<  v << std::endl << std::endl;
-			l.setRoot(v);
+			l.setRoot(server.Mroot);
+			// l.setRoot(v);
 		}
-		if (tokens[start].find("autoindex:") != std::string::npos)
+		if (tokens[start].find("autoi:") != std::string::npos)
 		{
-			std::string v = tokens[start].substr(tokens[start].find("autoindex:") + strlen("autoindex:"));
+			std::string v = tokens[start].substr(tokens[start].find("autoi:") + strlen("autoi:"));
 			trim(v, ' ');
 			trim(v, ';');
 			// std::cout <<  v << std::endl << std::endl;
@@ -266,7 +275,6 @@ void Config::modifyCGIMap(const std::string& root, std::multimap<std::string, st
 		{
 			it->second.insert(0, "/");
 		}
-
 		if (it->second.find(root) == std::string::npos)
 		{
 			it->second.insert(0, root); // prepend the root
@@ -284,14 +292,14 @@ void Config::checkPathCGI(std::vector<t_serv>& servers)
 	{
 		for(auto& v : servers[i].loc)
 		{
-			if (v.second.getRoot().empty())
+			if (servers[i].Mroot.empty())
 				continue;
 
 			std::multimap<std::string, std::string>& cgiMap = v.second.getCGI();
 			if (cgiMap.empty())
 				continue;
-
-			modifyCGIMap(v.second.getRoot(), cgiMap);
+			std::cout << "Root of the location:" << servers[i].Mroot << std::endl;
+			modifyCGIMap(servers[i].Mroot, cgiMap);
 		}
 	}
 }
@@ -335,43 +343,43 @@ int Config::parse(std::string fileName, std::vector<t_serv>& servers)
 	}
 	checkPathCGI(servers);
 
-	// for(size_t i = 0; i < servers.size(); i++)
-	// {
-	// 	std::cout << "host:" << servers[i].host << std::endl;
-	// 	std::cout << "name:" << servers[i].name << std::endl;
-	// 	for(int j = 0; j < servers[i].port.size(); j++)
-	// 		std::cout << "port:" << servers[i].port[j] << std::endl;
-	// 	// std::cout << "hello" << std::endl;
-	// 	std::cout << "MAP: \n";
-	// 	for(auto t : servers[i].errorPages)
-	// 	{
-	// 		std::cout << t.first << ": " << t.second << std::endl;
-	// 	}
-	// 	std::cout << std::endl << std::endl<< "MAP of loc: \n";
-	// 	for(auto t : servers[i].loc)
-	// 	{
-	// 		std::cout << t.first << ": " << t.second.getPath() << std::endl;
-	// 		std::cout << t.second.getPath() << std::endl << std::endl;
-	// 		std::cout << t.second.getIndex() << std::endl << std::endl;
-	// 		std::cout << t.second.getAutoInd() << std::endl;
-	// 		std::cout << t.second.getRoot() << std::endl;
-	// 		std::cout << "Body_size: " << t.second.getBodySize() << std::endl;
-	// 		std::map<std::string , bool> tmp = t.second.getMethods();
-	// 		std::cout << "Methods: " << std::endl;
-	// 		for( auto s : tmp)
-	// 		{
-	// 			std::cout << s.first << ": " << s.second << std::endl;
-	// 		}
-	// 		std::cout << t.second.getRedir().first << ": " <<  t.second.getRedir().second <<  std::endl << std::endl;
-	// 		std::cout << "CGI_PATH: " << std::endl;
-	// 		std::multimap<std::string,std::string> s = t.second.getCGI();
-	// 		for(auto c : s)
-	// 		{
-	// 			std::cout << c.first << ":" << c.second << std::endl;
-	// 		}
-	// 		std::cout <<  std::endl << std::endl;
-	// 	}
-	// }
+	for(size_t i = 0; i < servers.size(); i++)
+	{
+		std::cout << "host:" << servers[i].host << std::endl;
+		std::cout << "name:" << servers[i].name << std::endl;
+		for(int j = 0; j < servers[i].port.size(); j++)
+			std::cout << "port:" << servers[i].port[j] << std::endl;
+		// std::cout << "hello" << std::endl;
+		std::cout << "MAP: \n";
+		for(auto t : servers[i].errorPages)
+		{
+			std::cout << t.first << ": " << t.second << std::endl;
+		}
+		std::cout << std::endl << std::endl<< "MAP of loc: \n";
+		for(auto t : servers[i].loc)
+		{
+			std::cout << t.first << ": " << t.second.getPath() << std::endl;
+			std::cout << t.second.getPath() << std::endl << std::endl;
+			std::cout << t.second.getIndex() << std::endl << std::endl;
+			std::cout << t.second.getAutoInd() << std::endl;
+			std::cout << t.second.getRoot() << std::endl;
+			std::cout << "Body_size: " << t.second.getBodySize() << std::endl;
+			std::map<std::string , bool> tmp = t.second.getMethods();
+			std::cout << "Methods: " << std::endl;
+			for( auto s : tmp)
+			{
+				std::cout << s.first << ": " << s.second << std::endl;
+			}
+			std::cout << t.second.getRedir().first << ": " <<  t.second.getRedir().second <<  std::endl << std::endl;
+			std::cout << "CGI_PATH: " << std::endl;
+			std::multimap<std::string,std::string> s = t.second.getCGI();
+			for(auto c : s)
+			{
+				std::cout << c.first << ":" << c.second << std::endl;
+			}
+			std::cout <<  std::endl << std::endl;
+		}
+	}
 	// tokens.clear();
 	return 0;
 }

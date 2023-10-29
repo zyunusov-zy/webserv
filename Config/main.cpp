@@ -20,14 +20,13 @@ int main(int argc, char** av)
     }
     else if (argc == 1)
     {
-        configFile = "/home/zyko/webserv/Config/test.conf"; // Put the path of your default config file here
+        configFile = "/home/zyko/webserv/Config/t.conf";
     }
     else
     {
         std::cerr << RED << "Invalid number of arguments." << NORMAL << std::endl;
         return (1);
     }
-
     // Parse config
     try
     {
@@ -35,6 +34,7 @@ int main(int argc, char** av)
     }
     catch(ErrorException &e)
     {
+		std::cerr << "Here tho" << std::endl;
         std::cerr << e.what() << std::endl;
         return (1);
     }

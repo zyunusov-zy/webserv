@@ -34,6 +34,7 @@ typedef struct s_serv
 	std::string								name;
 	std::string 							host;
 	std::vector<int>						port;
+	std::string								Mroot;
 	std::map<int, std::string>				errorPages;
 	std::multimap<std::string, Location>			loc;
 	std::vector<std::string>				ipPort;
