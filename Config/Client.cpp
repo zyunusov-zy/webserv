@@ -298,7 +298,7 @@ std::string	Client::genErrPage(int err)
 
 void Client::print()
 {
-	// _req.print();
+	_req.print();
 	std::cout << "Error_code: " << _req.getErrorCode() << std::endl;
 	std::cout << "Query: " << _req.getQ() << std::endl;
 	std::cout << "Server host: " << _serv.host << std::endl;

@@ -626,7 +626,7 @@ void Request::print()
 	HeaderMap tmp = getHeaders();
 	std::cout << "THISSS " << _errorCode << std::endl;
 
-	std::cout << "Headers: " << getBody() << "\n" << "\n";
+	std::cout << "Headers: " << std::endl;
 	for (auto header : tmp) {
         std::cout << header.first << " = " << header.second << "\n";
     }

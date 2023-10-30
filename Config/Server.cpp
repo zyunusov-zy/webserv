@@ -528,7 +528,7 @@ void Server::setUp(std::vector<t_serv>& s)
 						{
 
 							myCl->readRequest();
-							// myCl->print();
+							myCl->print();
 							myCl->pollstruct = &(pollfds[i]);
 
 							if (myCl->checkError())
