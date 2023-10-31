@@ -1,7 +1,7 @@
 #include "Request.hpp"
 
 Request::Request(std::multimap<std::string, Location> &l): _q(false), _errorCode(0), 
-_cgi(false), _buf(new char[RECV_BUFFER_SIZE + 1]), 
+_cgi(false), _buf(new char[RECV_BUFFER_SIZE + 1]), _bodyH(false), 
 _parseStat(STARTL), _bodySize(0), _isChunkSize(false),
 _chunkSize(0), _isReqDone(false), _locationMap(l), _cgiNum(0), 
 _envCGI(NULL), _scriptPath(""), _connection(""), _con(false), _maxBodySize(0)
@@ -16,6 +16,16 @@ void Request::setResource(std::string res)
 bool Request::getQ()
 {
 	return _q;
+}
+
+HeaderMap& Request::getBodyHeaders()
+{
+	return _bodyHeaders;
+}
+
+bool Request::getBodyH()
+{
+	return _bodyH;
 }
 
 char	*Request::getBuffer(void) const {
@@ -84,6 +94,8 @@ void Request::resetRequest()
 	_location = NULL;
 	_scriptPath.clear();
 	_boundary.clear();
+	_bodyH = false;
+	_bodyHeaders.clear();
 }
 
 int Request::getErrorCode()
@@ -392,6 +404,26 @@ void	Request::saveSimpleBody(std::string &data)
 		data.clear();
 	}
 
+	size_t headerEndPos = _body.find("\r\n\r\n");
+    if (headerEndPos != std::string::npos) {
+        // Extract and save the headers in a map
+        std::string headerData = _body.substr(0, headerEndPos);
+        std::istringstream headerStream(headerData);
+        std::string headerLine;
+        while (std::getline(headerStream, headerLine, '\n')) {
+            size_t colonPos = headerLine.find(':');
+            if (colonPos != std::string::npos) {
+                std::string key = headerLine.substr(0, colonPos);
+                std::string value = headerLine.substr(colonPos + 1);
+                // Remove leading and trailing whitespaces from the key and value
+                key = key.substr(0, key.find_last_not_of(" \t") + 1);
+                value = value.substr(value.find_first_not_of(" \t"));
+                _bodyHeaders[key] = value;
+				_bodyH = true;
+            }
+        }
+		_body = _body.substr(headerEndPos + 4);
+	}
 	if (_body.length() == bodySize)
 		_parseStat = END_STAT;
 }
@@ -670,6 +702,13 @@ void Request::print()
 	std::cout << "Headers: " << std::endl;
 	for (auto header : tmp) {
         std::cout << header.first << " = " << header.second << "\n";
+    }
+
+	HeaderMap tmp1 = getBodyHeaders();
+	std::cout << "Body Header Bool :" << getBodyH() << std::endl;
+	std::cout << "Body Header: " << std::endl;
+	for (auto h : tmp1) {
+        std::cout << h.first << " = " << h.second << "\n";
     }
 }
 

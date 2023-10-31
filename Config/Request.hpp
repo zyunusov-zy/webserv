@@ -50,6 +50,8 @@ class Request
 		bool _con;
 		int _maxBodySize;
 		std::string _boundary;
+		HeaderMap _bodyHeaders;
+		bool _bodyH;
 
 		void	resetRequest();
 		void	saveStartLineHeaders(std::string &data);
@@ -85,6 +87,8 @@ class Request
 		int getPortOfReq();
 		t_serv getServ();
 		HeaderMap& getHeaders();
+		HeaderMap& getBodyHeaders();
+		bool getBodyH();
 		char** getENV();
 		void print();
 		bool getCon();
