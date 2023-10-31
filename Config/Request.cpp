@@ -313,7 +313,7 @@ void	Request::parseChunkSize(std::string &data)
 		_parseStat = END_STAT;
 		return ;
 	}
-	pos = data.find("\n");
+	pos = data.find("\r\n");
 	if (pos == std::string::npos)
 		return ;
 	ss << std::hex << data.substr(0, pos);
@@ -321,7 +321,7 @@ void	Request::parseChunkSize(std::string &data)
 	if (!_chunkSize)
 		_parseStat = END_STAT;
 	_isChunkSize = true;
-	data.erase(0, pos + 1);
+	data.erase(0, pos + 2);
 }
 
 void	Request::parseChunkedBody(std::string &data)
@@ -398,6 +398,9 @@ void	Request::saveSimpleBody(std::string &data)
 
 std::string Request::extractBoundary()
 {
+	if (_headers.count("Content-Type") == 0) {
+        return "";
+    }
 	std::string contentType = _headers["Content-Type"];
 	size_t startPos = contentType.find("boundary=");
 	if (startPos == std::string::npos)
