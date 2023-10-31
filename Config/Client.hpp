@@ -68,6 +68,8 @@ public:
 	std::string checkErrorMap(int err);
 	t_serv getServ();
 	bool getIsClosed();
+	bool getToServe();
+
 
 
 	// void sendResponse(std::string content_type);

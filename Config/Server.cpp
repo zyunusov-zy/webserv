@@ -496,9 +496,26 @@ void Server::setUp(std::vector<t_serv>& s)
 		{
             // std::cerr << "\nIN THE LOOP" << '\n';
             int fd = pollfds[i].fd;
+			if (pollfds[i].revents & POLLIN & fd_to_clients.count(pollfds[i].fd) > 0)
+			{
+				try
+				{
+					fd_to_clients.find(fd)->second->readRequest();
+					if (fd_to_clients.find(fd)->second->getToServe() == true)
+						pollfds[i].events = POLLOUT;
+				}
+				catch(const std::exception& e)
+				{
+					std::cerr << e.what() << '\n';
+					fd_to_clients.find(fd)->second->checkError();
+					sockets_to_remove.push_back(pollfds[i].fd);
+				}
+				
 
-            if (pollfds[i].revents & POLLIN) 
+			}
+            else if (pollfds[i].revents & POLLIN & fd_to_clients.count(pollfds[i].fd) == 0) 
             {
+
                 char client_ip[INET_ADDRSTRLEN];
                 if(inet_ntop(AF_INET, &(servaddr.sin_addr), client_ip, INET_ADDRSTRLEN) == NULL)
                 {
@@ -551,7 +568,8 @@ void Server::setUp(std::vector<t_serv>& s)
 								else if (myCl->getReq().getMethod() == "DELETE")
 									sendDeleteResponse(myCl, fd, myCl->getReq().getResource());
 								
-								pollfds[i].events = POLLOUT;
+								if (myCl->getToServe() == true)
+									pollfds[i].events = POLLOUT;
 								myCl->getResp()->_target_fd = fd;
 
 							}
