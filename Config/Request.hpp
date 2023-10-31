@@ -49,6 +49,7 @@ class Request
 		std::string _connection;
 		bool _con;
 		int _maxBodySize;
+		std::string _boundary;
 
 		void	resetRequest();
 		void	saveStartLineHeaders(std::string &data);
@@ -63,6 +64,7 @@ class Request
 		void	saveSimpleBody(std::string &data);
 		void getUriEncodedBody();
 		void makeEnv();
+		std::string extractBoundary();
 	public:
 
 		char **_envCGI;

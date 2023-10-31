@@ -83,6 +83,7 @@ void Request::resetRequest()
 	_cgi = false;
 	_location = NULL;
 	_scriptPath.clear();
+	_boundary.clear();
 }
 
 int Request::getErrorCode()
@@ -362,14 +363,46 @@ void	Request::saveSimpleBody(std::string &data)
 	bodySize = static_cast<size_t>(std::atol(_headers["Content-Length"].c_str()));
 	std::cerr<< "BOdy_size:" << bodySize << std::endl;
 	std::cerr << "Max Body size: " << _maxBodySize << std::endl;
+
 	if (bodySize > this->_maxBodySize)
 		throw ErrorException(413, "Request Entity Too Large");
 	if (_body.length() + data.length() > this->_maxBodySize)
 		throw ErrorException(413, "Request Entity Too Large");
-	_body.append(data);
-	data.clear();
+    if (!_boundary.empty()) {
+        size_t startPos, endPos;
+        std::string endBoundary = "--" + _boundary + "--"; // The end boundary
+        std::string standardBoundary = "--" + _boundary; // The standard boundary
+
+        while ((startPos = data.find(standardBoundary)) != std::string::npos) {
+            // Append everything up to the boundary to _body
+            _body.append(data, 0, startPos);
+            
+            // Check for end boundary
+            if (data.substr(startPos, endBoundary.length()) == endBoundary) {
+                data.erase(startPos, endBoundary.length()); // Erase end boundary
+                break;
+            } else {
+                data.erase(startPos, standardBoundary.length()); // Erase standard boundary
+            }
+        }
+    } 
+	else {
+		// If there's no boundary, append the data directly
+		_body.append(data);
+		data.clear();
+	}
+
 	if (_body.length() == bodySize)
 		_parseStat = END_STAT;
+}
+
+std::string Request::extractBoundary()
+{
+	std::string contentType = _headers["Content-Type"];
+	size_t startPos = contentType.find("boundary=");
+	if (startPos == std::string::npos)
+		return "";
+	return contentType.substr(startPos + 9);
 }
 
 bool	Request::saveRequestData(ssize_t recv)
@@ -391,7 +424,10 @@ bool	Request::saveRequestData(ssize_t recv)
 	if (_parseStat == END_STAT)
 		resetRequest();
 	if (_parseStat == STARTL || _parseStat == HEADERL)
+	{
 		saveStartLineHeaders(data);
+		_boundary = extractBoundary();
+	}
 	if (_parseStat == BODYL)
 	{
 		if (_transEn == "chunked")
@@ -619,6 +655,8 @@ void Request::print()
 	// std::cout << "ScriptName: " << getScriptName() << "\n";
 	std::cout << "QueryString: " << getQueryString() << "\n" << "\n";
 
+
+	std::cout << "Boundary: " << _boundary << "\n" << "\n";
 	std::cout << "Body: " << getBody() << "\n" << "\n";
 	if (_location != NULL)
 		std::cout << "Location Path: " << _location->getPath() << "\n" << "\n";

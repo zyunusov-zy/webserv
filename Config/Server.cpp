@@ -118,7 +118,7 @@ void Server::sendPostResponse(class Client *client, int fd, std::string filepath
 
 
 
-    // std::cout << "Extracted Content:\n" << tmp << std::endl;
+    // std::cerr << "Extracted Content:\n" << tmp << std::endl;
     size_t file_size = requestBody.rfind("\r\n--" + boundary + "--") - upload_header_size;
 
     if (handleFileUpload(filename, requestBody, file_size, upload_header_size))
