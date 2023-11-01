@@ -5,7 +5,7 @@
 #include "mainIn.hpp"
 // #include "Location.hpp"
 
-#define RECV_BUFFER_SIZE 8192
+#define RECV_BUFFER_SIZE 4048
 #define STARTL 0
 #define HEADERL 1
 #define BODYL 2

@@ -86,7 +86,7 @@ class Request
 		bool getCGIB();
 		int getPortOfReq();
 		t_serv getServ();
-		HeaderMap& _bodyHeaders;
+		HeaderMap& getHeaders();
 		HeaderMap& getBodyHeaders();
 		bool getBodyH();
 		char** getENV();

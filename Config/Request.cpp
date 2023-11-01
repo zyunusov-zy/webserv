@@ -694,7 +694,7 @@ void Request::print()
 	std::cout << "Boundary: " << _boundary << "\n" << "\n";
 	std::cout << "Body: " << getBody() << "\n" << "\n";
 	if (_location != NULL)
-		std::cout << "Location Path: " << _location->getPath() << "\n" << "\n";
+		// std::cout << "Location Path: " << _location->getPath() << "\n" << "\n";
 	std::cout << "Error_code: " << _errorCode << std::endl;
 	HeaderMap tmp = getHeaders();
 	std::cout << "THISSS " << _errorCode << std::endl;
