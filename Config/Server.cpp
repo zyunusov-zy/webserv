@@ -22,33 +22,31 @@ Server::~Server(){
 #define WRITE_END 1
 #define READ_END 0
 
-int handleFileUpload(const std::string& filename, const std::string& fileContent, const size_t file_size, const size_t upload_header_size)
-{
-    std::string full_path = filename;
-    // std::cout << "PLOAD PATH " << std::endl;
+// int handleFileUpload(const std::string& filename, const std::string& fileContent, const size_t file_size, const size_t upload_header_size)
+// {
+//     std::string full_path = filename;
+//     // std::cout << "PLOAD PATH " << std::endl;
 
-    // std::cout << filename << std::endl;
+//     // std::cout << filename << std::endl;
 
-    std::ofstream outputFile(filename.c_str(), std::ios::binary | std::ios::trunc);
-    // std::ofstream outputFile(filename, std::ios::binary);
-    if (outputFile.is_open()) {
-        // outputFile << fileContent;
-    // size_t file_size = ds_clients.at(client_fd).request.rfind(boundary) - upload_header_size;
+//     std::ofstream outputFile(filename.c_str(), std::ios::binary | std::ios::trunc);
+//     // std::ofstream outputFile(filename, std::ios::binary);
+//     if (outputFile.is_open()) {
+//         // outputFile << fileContent;
+//     // size_t file_size = ds_clients.at(client_fd).request.rfind(boundary) - upload_header_size;
 
-    // Write the uploaded file data to the file
-    outputFile.write(fileContent.substr(upload_header_size, file_size).c_str(), file_size);
+//     // Write the uploaded file data to the file
+//     outputFile.write(fileContent.substr(upload_header_size, file_size).c_str(), file_size);
 
-        outputFile.close();
-        // std::cout << "File uploaded successfully.\n";
-        return (true);
-    } else {
-        std::cerr << "Failed to upload the file.\n";
-        return (false);
-    }
-}
+//         outputFile.close();
+//         // std::cout << "File uploaded successfully.\n";
+//         return (true);
+//     } else {
+//         std::cerr << "Failed to upload the file.\n";
+//         return (false);
+//     }
+// }
 
-// #include <iostream>
-// #include <string>
 
 std::string extractBoundary(const std::string& contentTypeHeader)
 {
@@ -89,39 +87,83 @@ std::string extractFilename(const std::string& contentDispositionHeader) {
     return filename;
 }
 
+// void Server::sendPostResponse(class Client *client, int fd, std::string filepath)
+//  {
+//     // std::cout << "IN POST RESP ----- \n\n";
+
+//     size_t upload_header_size;
+//     std::string upload_header;
+//     std::string filename = extractFilename(client->getReq().getBody());
+//     filename = client->getReq().getLoc()->root + filename;
+//     upload_header_size = client->getReq().getBody().find("\r\n\r\n") + 4;
+//     upload_header = client->getReq().getBody().substr(0, upload_header_size);
+
+//     // std::ofstream createFile(file_path.c_str(), std::ios::binary | std::ios::trunc);
+
+//     std::map<std::string, std::string> tmp;
+//     std::ifstream dmm(client->getReq().getBody());
+
+//     std::string boundary = extractBoundary(client->getReq().getHeaders()["Content-Type"]);
+
+
+//     tmp = client->getReq().getHeaders();
+//     std::string requestBody = client->getReq().getBody();
+
+//     size_t file_size = requestBody.rfind("\r\n--" + boundary + "--") - upload_header_size;
+
+//     if (handleFileUpload(filename, requestBody, file_size, upload_header_size))
+// 	{
+// 		client->getResp()->status_code = "201 Created";
+// 		client->getResp()->content_type = "text/plain";
+// 		client->getResp()->body = "File was uploaded succesfully";
+// 	}
+// 	else
+// 	{
+// 		client->getResp()->exec_err_code = 500;
+// 		dmm.close();
+// 		throw(returnError());
+
+// 	}
+// 	dmm.close();
+//     // client.sendResponse("text/plain");
+// }
+
+int handleFileUpload(const std::string& filename, const std::string& fileContent, const size_t file_size)
+{
+    // std::string full_path = filename;
+
+    std::ofstream outputFile(filename.c_str(), std::ios::binary | std::ios::trunc);
+    if (outputFile.is_open()) {
+
+    // Write the uploaded file data to the file
+    	outputFile.write(fileContent.c_str(), file_size);
+
+        outputFile.close();
+        // std::cout << "File uploaded successfully.\n";
+        return (true);
+    } else {
+        std::cerr << "Failed to upload the file.\n";
+        return (false);
+    }
+}
+
 void Server::sendPostResponse(class Client *client, int fd, std::string filepath)
  {
     // std::cout << "IN POST RESP ----- \n\n";
 
-    size_t upload_header_size;
-    std::string upload_header;
-    std::string filename = extractFilename(client->getReq().getBody());
-    filename = client->getReq().getLoc()->root + filename;
-    upload_header_size = client->getReq().getBody().find("\r\n\r\n") + 4;
-    upload_header = client->getReq().getBody().substr(0, upload_header_size);
-
     // std::ofstream createFile(file_path.c_str(), std::ios::binary | std::ios::trunc);
 
-    std::map<std::string, std::string> tmp;
-    std::ifstream dmm(client->getReq().getBody());
+    // std::ifstream dmm(client->getReq().getBody());
 
-    std::string boundary = extractBoundary(client->getReq().getHeaders()["Content-Type"]);
+    // std::string boundary = extractBoundary(client->getReq().getHeaders()["Content-Type"]);
 
 
-    tmp = client->getReq().getHeaders();
+	std::string filename = client->getReq().getBodyHeaders()["filename"];
     std::string requestBody = client->getReq().getBody();
 
-    // std::cerr << "filename" << "\n";
-    // std::cerr << filename << "\n";
-    // std::cerr << boundary << "\n";
+    // size_t file_size = requestBody.rfind("\r\n--" + boundary + "--") - upload_header_size;
 
-
-
-
-    // std::cerr << "Extracted Content:\n" << tmp << std::endl;
-    size_t file_size = requestBody.rfind("\r\n--" + boundary + "--") - upload_header_size;
-
-    if (handleFileUpload(filename, requestBody, file_size, upload_header_size))
+    if (handleFileUpload(filename, requestBody, requestBody.size()))
 	{
 		client->getResp()->status_code = "201 Created";
 		client->getResp()->content_type = "text/plain";
@@ -130,17 +172,12 @@ void Server::sendPostResponse(class Client *client, int fd, std::string filepath
 	else
 	{
 		client->getResp()->exec_err_code = 500;
-		dmm.close();
+		// dmm.close();
 		throw(returnError());
 
 	}
-	dmm.close();
-
-
-
-
+	// dmm.close();
     // client.sendResponse("text/plain");
-
 }
 
 bool Server::sendDeleteResponse(class Client *client, int fd, std::string filepath)
