@@ -192,6 +192,7 @@ void Server::sendPostResponse(class Client *client, int fd, std::string filepath
 		throw(returnError());
 
 	}
+	client->getResp()->response_complete = true;
 	// dmm.close();
     // client.sendResponse("text/plain");
 	std::cerr << "----END OF POST ---" << std::endl;
@@ -614,7 +615,7 @@ void Server::setUp(std::vector<t_serv>& s)
 
 							if (myCl->checkError())
 							{
-								// std::cout << "I Am HERE \n";
+								std::cout << "I Am HERE \n";
 								if (myCl->getReq().getCGIB())
 								{
 									// cleanEnv(myCl);
@@ -628,10 +629,12 @@ void Server::setUp(std::vector<t_serv>& s)
 								else if (myCl->getReq().getMethod() == "GET")
 									sendHTMLResponse(myCl, fd, myCl->getReq().getResource());
 								else if (myCl->getReq().getMethod() == "POST")
-									sendPostResponse(myCl, fd, myCl->getReq().getResource());
+								{
+									if (myCl->getToServe() == true)
+										sendPostResponse(myCl, fd, myCl->getReq().getResource());
+								}
 								else if (myCl->getReq().getMethod() == "DELETE")
 									sendDeleteResponse(myCl, fd, myCl->getReq().getResource());
-								
 								if (myCl->getToServe() == true)
 									pollfds[i].events = POLLOUT;
 								myCl->getResp()->_target_fd = fd;
@@ -652,7 +655,21 @@ void Server::setUp(std::vector<t_serv>& s)
             {
 
 				client_it  = this->fd_to_clients.find(fd);
-				if (client_it != this->fd_to_clients.end() && !client_it->second->getResp()->response_complete)
+
+				if(client_it->second->getReq().getMethod() == "POST")
+				{
+					try
+					{
+						sendPostResponse(client_it->second, fd, client_it->second->getReq().getResource());
+					}
+					catch(const std::exception& e)
+					{
+						fd_to_clients.find(fd)->second->checkError();
+						sockets_to_remove.push_back(pollfds[i].fd);
+					}
+
+				}
+				else if (client_it != this->fd_to_clients.end() && !client_it->second->getResp()->response_complete)
 				{
 					// std::cerr << "POLLOUTTTT send" << '\n';
                 	if (client_it->second->getResp()->sendResponse(client_it->second->getResp()->content_type) == 1)
