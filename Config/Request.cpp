@@ -380,6 +380,7 @@ void	Request::saveSimpleBody(std::string &data)
 		throw ErrorException(413, "Request Entity Too Large");
 	if (_body.length() + data.length() > this->_maxBodySize)
 		throw ErrorException(413, "Request Entity Too Large");
+	std::cout << "data: " << data << std::endl;
     if (!_boundary.empty()) {
         size_t startPos, endPos;
         std::string endBoundary = "--" + _boundary + "--"; // The end boundary
@@ -387,7 +388,6 @@ void	Request::saveSimpleBody(std::string &data)
 
         while ((startPos = data.find(standardBoundary)) != std::string::npos) {
             // Append everything up to the boundary to _body
-            _body.append(data, 0, startPos);
             
             // Check for end boundary
             if (data.substr(startPos, endBoundary.length()) == endBoundary) {
@@ -396,6 +396,7 @@ void	Request::saveSimpleBody(std::string &data)
             } else {
                 data.erase(startPos, standardBoundary.length()); // Erase standard boundary
             }
+            _body.append(data);
         }
     } 
 	else {
@@ -403,6 +404,24 @@ void	Request::saveSimpleBody(std::string &data)
 		_body.append(data);
 		data.clear();
 	}
+
+	std::cout << "BODy" << data << std::endl;
+
+	if (!_boundary.empty())
+	{
+		std::string sBoundary = "--" + _boundary;
+		std::string endBoundary = "--" + _boundary + "--";
+		size_t pos;
+		while((pos = _body.find(endBoundary)) != std::string::npos)
+		{
+			_body.erase(pos, endBoundary.length());
+		}
+		while((pos = _body.find(sBoundary)) != std::string::npos)
+		{
+			_body.erase(pos, sBoundary.length());
+		}
+	}
+
 
 	size_t headerEndPos = _body.find("\r\n\r\n");
     if (headerEndPos != std::string::npos) {
@@ -448,11 +467,11 @@ bool	Request::saveRequestData(ssize_t recv)
 
 	_buf[recv] = '\0';
 	data.append(_buf, recv);
-	if (_buf)
-	{
-		delete[] _buf;
-		_buf = nullptr;
-	}
+	// if (_buf)
+	// {
+	// 	delete[] _buf;
+	// 	_buf = nullptr;
+	// }
 	// std::cout << "HERE: " << std::endl << std::endl;
 	// std::cout << std::endl << data << std::endl;
 
