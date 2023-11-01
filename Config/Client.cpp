@@ -15,6 +15,11 @@ bool Client::getIsClosed()
 	return (_isClosed);
 }
 
+bool Client::getToServe()
+{
+	return (_toServe);
+}
+
 // Request *Client::getPointReq()
 // {
 // 	return (&_req);
