@@ -392,6 +392,7 @@ void	Request::saveSimpleBody(std::string &data)
             // Check for end boundary
             if (data.substr(startPos, endBoundary.length()) == endBoundary) {
                 data.erase(startPos, endBoundary.length()); // Erase end boundary
+				_parseStat = END_STAT;
                 break;
             } else {
                 data.erase(startPos, standardBoundary.length()); // Erase standard boundary
@@ -415,6 +416,7 @@ void	Request::saveSimpleBody(std::string &data)
 		while((pos = _body.find(endBoundary)) != std::string::npos)
 		{
 			_body.erase(pos, endBoundary.length());
+			_parseStat = END_STAT;
 		}
 		while((pos = _body.find(sBoundary)) != std::string::npos)
 		{
@@ -492,6 +494,8 @@ bool	Request::saveRequestData(ssize_t recv)
 	_tmpBuffer = data;
 	if (_parseStat == END_STAT)
 		_isReqDone = true;
+	std::cout << "Parse state: " << _parseStat << std::endl;
+	std::cout << "_isReqDone: " << _isReqDone << std::endl;
 	return _isReqDone;
 }
 
