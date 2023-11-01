@@ -156,9 +156,12 @@ void Server::sendPostResponse(class Client *client, int fd, std::string filepath
     // std::ifstream dmm(client->getReq().getBody());
 
     // std::string boundary = extractBoundary(client->getReq().getHeaders()["Content-Type"]);
-	std::string fn = "filename";
 	HeaderMap hm = client->getReq().getBodyHeaders();
-	std::string filename = hm[fn];
+    // std::string filename = extractFilename(hm["Content-Disposition"]);
+	std::string filename = "FLOWER.gif";
+
+	// std::string fn = "filename";
+	// std::string filename = hm[fn];
 	// if (fd_to_clients.count("filename") > 0) 
 	// {
     // // Key exists
@@ -191,6 +194,8 @@ void Server::sendPostResponse(class Client *client, int fd, std::string filepath
 	}
 	// dmm.close();
     // client.sendResponse("text/plain");
+	std::cerr << "----END OF POST ---" << std::endl;
+
 }
 
 bool Server::sendDeleteResponse(class Client *client, int fd, std::string filepath)
@@ -510,7 +515,7 @@ void Server::setUp(std::vector<t_serv>& s)
     while (1)
 	{
 
-		// std::cerr << "in main LOOP" << '\n';
+		std::cerr << "in main LOOP" << '\n';
 
         int activity = poll(&pollfds[0], pollfds.size(), -1); // Wait indefinitely until an event occurs
         if (activity < 0) {
@@ -544,15 +549,24 @@ void Server::setUp(std::vector<t_serv>& s)
         std::vector<int> sockets_to_remove;// Check connected client sockets for incoming data and handle them separately
         for (size_t i = listenfds.size(); i < pollfds.size(); ++i)
 		{
-            // std::cerr << "\nIN THE LOOP" << '\n';
             int fd = pollfds[i].fd;
 			if (pollfds[i].revents & POLLIN & fd_to_clients.count(pollfds[i].fd) > 0)
 			{
 				try
 				{
-					fd_to_clients.find(fd)->second->readRequest();
+            		std::cerr << "\nKEEP READING" << '\n';
 					if (fd_to_clients.find(fd)->second->getToServe() == true)
 						pollfds[i].events = POLLOUT;
+					else
+					{
+						fd_to_clients.find(fd)->second->readRequest();
+
+					}
+
+					if (fd_to_clients.find(fd)->second->getToServe() == true)
+						pollfds[i].events = POLLOUT;
+            		std::cerr << "\nEND KEEP READING" << '\n';
+
 				}
 				catch(const std::exception& e)
 				{
