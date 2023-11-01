@@ -157,8 +157,8 @@ void Server::sendPostResponse(class Client *client, int fd, std::string filepath
 
     // std::string boundary = extractBoundary(client->getReq().getHeaders()["Content-Type"]);
 	HeaderMap hm = client->getReq().getBodyHeaders();
-    // std::string filename = extractFilename(hm["Content-Disposition"]);
-	std::string filename = "FLOWER.gif";
+    std::string filename = extractFilename(hm["Content-Disposition"]);
+	// std::string filename = "FLOWER.gif";
 
 	// std::string fn = "filename";
 	// std::string filename = hm[fn];
@@ -630,6 +630,8 @@ void Server::setUp(std::vector<t_serv>& s)
 									sendHTMLResponse(myCl, fd, myCl->getReq().getResource());
 								else if (myCl->getReq().getMethod() == "POST")
 								{
+									std::cout << "BEFORE POST \n";
+
 									if (myCl->getToServe() == true)
 										sendPostResponse(myCl, fd, myCl->getReq().getResource());
 								}
