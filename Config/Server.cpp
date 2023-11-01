@@ -149,17 +149,30 @@ int handleFileUpload(const std::string& filename, const std::string& fileContent
 
 void Server::sendPostResponse(class Client *client, int fd, std::string filepath)
  {
-    // std::cout << "IN POST RESP ----- \n\n";
+    std::cout << "IN POST RESP ----- \n\n";
 
     // std::ofstream createFile(file_path.c_str(), std::ios::binary | std::ios::trunc);
 
     // std::ifstream dmm(client->getReq().getBody());
 
     // std::string boundary = extractBoundary(client->getReq().getHeaders()["Content-Type"]);
+	std::string fn = "filename";
+	HeaderMap hm = client->getReq().getBodyHeaders();
+	std::string filename = hm[fn];
+	// if (fd_to_clients.count("filename") > 0) 
+	// {
+    // // Key exists
+	// } else {
+	// 	// Key does not exist
+	// }
 
-
-	std::string filename = client->getReq().getBodyHeaders()["filename"];
     std::string requestBody = client->getReq().getBody();
+
+    std::cerr << filename << std::endl;
+	std::cerr << requestBody << std::endl;
+    // std::cerr << hm.end()->first << std::endl;
+
+
 
     // size_t file_size = requestBody.rfind("\r\n--" + boundary + "--") - upload_header_size;
 
