@@ -299,23 +299,41 @@ void Config::checkPathCGI(std::vector<t_serv>& servers)
 
 void Config::confCheck(std::vector<t_serv>& servers)
 {
-	for (size_t i = 0; i < servers.size(); i++)
-	{
-		if (servers[i].host == "")
-			throw ErrorException(0, "There is not IP(host) on this server");
-		if (servers[i].Mroot == "")
-			throw ErrorException(0, "There is not root in server");
-		if (servers[i].port.size() <= 0)
-			throw ErrorException(0, "There is not ports on this server");
-		for(std::multimap<std::string, Location>::iterator v = servers[i].loc.begin(); v != servers[i].loc.end(); ++v)
-		{
-			if (v->second.getPath() == "")
-			{
-				throw ErrorException(0, "No path in one of the locations");
-			}
-		}
-	}
+    std::set<int> seenPorts;  // Store unique port values
+
+    for (size_t i = 0; i < servers.size(); i++)
+    {
+        if (servers[i].host == "")
+            throw ErrorException(0, "There is no IP (host) on this server");
+
+        // Check for duplicate ports within the server's port vector
+        std::set<int> serverPorts;
+        for (size_t j = 0; j < servers[i].port.size(); j++)
+        {
+            int port = servers[i].port[j];
+            if (serverPorts.count(port) > 0)
+                throw ErrorException(0, "Duplicate port found in the configuration");
+            serverPorts.insert(port);
+
+            // Check if the port is already seen in the global context
+            if (seenPorts.count(port) > 0)
+                throw ErrorException(0, "Duplicate port found in the configuration");
+            seenPorts.insert(port);
+        }
+
+        // Your other checks...
+        if (servers[i].Mroot == "")
+            throw ErrorException(0, "There is no root in the server");
+        for (std::multimap<std::string, Location>::iterator v = servers[i].loc.begin(); v != servers[i].loc.end(); ++v)
+        {
+            if (v->second.getPath() == "")
+            {
+                throw ErrorException(0, "No path in one of the locations");
+            }
+        }
+    }
 }
+
 
 int Config::parse(std::string fileName, std::vector<t_serv>& servers)
 {

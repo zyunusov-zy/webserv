@@ -101,6 +101,10 @@ std::string Client::checkErrorMap(int err)
 	{
 		if (it->first == err)
 		{
+			if (it->second.find(_serv.Mroot) == std::string::npos)
+			{
+				it->second = _serv.Mroot + it->second;
+			}
 			std::ifstream inFile(it->second.c_str());
 			if (!inFile)
 			{
