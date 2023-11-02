@@ -169,17 +169,17 @@ void Server::sendPostResponse(class Client *client, int fd, std::string filepath
 	// 	// Key does not exist
 	// }
 
-    std::string requestBody = client->getReq().getBody();
+    // std::string requestBody = client->getReq().getBody();
 
     std::cerr << filename << std::endl;
-	std::cerr << requestBody << std::endl;
+	std::cerr << client->getReq().getBody() << std::endl;
     // std::cerr << hm.end()->first << std::endl;
 
 
 
     // size_t file_size = requestBody.rfind("\r\n--" + boundary + "--") - upload_header_size;
 
-    if (handleFileUpload(filename, requestBody, requestBody.size()))
+    if (handleFileUpload(filename, client->getReq().getBody(), client->getReq().getBody().size()))
 	{
 		client->getResp()->status_code = "201 Created";
 		client->getResp()->content_type = "text/plain";
@@ -192,7 +192,7 @@ void Server::sendPostResponse(class Client *client, int fd, std::string filepath
 		throw(returnError());
 
 	}
-	client->getResp()->response_complete = true;
+	// client->getResp()->response_complete = true;
 	// dmm.close();
     // client.sendResponse("text/plain");
 	std::cerr << "----END OF POST ---" << std::endl;
@@ -565,7 +565,12 @@ void Server::setUp(std::vector<t_serv>& s)
 					}
 
 					if (fd_to_clients.find(fd)->second->getToServe() == true)
+					{
+						std::cerr << "\nSTOP READING" << '\n';
+
+
 						pollfds[i].events = POLLOUT;
+					}
             		std::cerr << "\nEND KEEP READING" << '\n';
 
 				}
@@ -633,7 +638,11 @@ void Server::setUp(std::vector<t_serv>& s)
 									std::cout << "BEFORE POST \n";
 
 									if (myCl->getToServe() == true)
+									{
 										sendPostResponse(myCl, fd, myCl->getReq().getResource());
+										myCl->getResp()->post_done = true;
+
+									}
 								}
 								else if (myCl->getReq().getMethod() == "DELETE")
 									sendDeleteResponse(myCl, fd, myCl->getReq().getResource());
@@ -655,10 +664,11 @@ void Server::setUp(std::vector<t_serv>& s)
             }
 			else if (pollfds[i].revents & POLLOUT)
             {
+				std::cerr << "+++ GENERAL POLLOUTTTT" << '\n';
 
 				client_it  = this->fd_to_clients.find(fd);
 
-				if(client_it->second->getReq().getMethod() == "POST")
+				if (client_it->second->getReq().getMethod() == "POST" && client_it->second->getResp()->post_done == false)
 				{
 					try
 					{
@@ -671,9 +681,9 @@ void Server::setUp(std::vector<t_serv>& s)
 					}
 
 				}
-				else if (client_it != this->fd_to_clients.end() && !client_it->second->getResp()->response_complete)
+				if (client_it != this->fd_to_clients.end() && !client_it->second->getResp()->response_complete)
 				{
-					// std::cerr << "POLLOUTTTT send" << '\n';
+					std::cerr << "POLLOUTTTT send" << '\n';
                 	if (client_it->second->getResp()->sendResponse(client_it->second->getResp()->content_type) == 1)
 					{
 						client_it->second->getResp()->exec_err_code = 500;
@@ -682,12 +692,14 @@ void Server::setUp(std::vector<t_serv>& s)
 
 					}
 
-					client_it = fd_to_clients.end();
+					// client_it = fd_to_clients.end();
+					std::cerr << client_it->second->getResp()->response_complete << '\n';
+
 					// exit(0);
                 }
-				else
+				if (client_it != this->fd_to_clients.end() && client_it->second->getResp()->response_complete)
 				{
-					// std::cerr << "POLLOUTTTT remove" << '\n';
+					std::cerr << "POLLOUTTTT remove" << '\n';
 
 					if (client_it->second->getReq().getCGIB())
 					{
@@ -703,7 +715,7 @@ void Server::setUp(std::vector<t_serv>& s)
         }
  		for (size_t i = 0; i < sockets_to_remove.size(); ++i)
 		{
-        	// std::cerr << "in Removing" << '\n';
+        	std::cerr << "in Removing" << '\n';
 
         	int fd = sockets_to_remove[i];
 			if (sockets_to_remove.size() > 1)

@@ -46,7 +46,7 @@ public:
 		public:
 			virtual const char *what() const throw()
 			{
-				return ("exception: CGI\n");
+				return ("___exception___\n");
 			}
 	};
 	int error_code;

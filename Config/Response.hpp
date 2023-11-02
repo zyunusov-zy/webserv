@@ -30,6 +30,8 @@ public:
 
 	pollfd	*pollstruct;
 
+	bool post_done;
+
 	std::string	status_code;
 	std::string	content_type;
 	size_t	content_len;

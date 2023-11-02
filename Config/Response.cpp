@@ -6,6 +6,8 @@ Response::Response()
 	exec_err = false;
 	exec_err_code = 0;
 
+	post_done = false;
+
     status_code = "HTTP/1.1 200 OK";
     // _proto = "HTTP/1.1";
     position = 0;
