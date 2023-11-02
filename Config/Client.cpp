@@ -384,4 +384,6 @@ void Client::print()
 
 Client::~Client()
 {
+	std::cerr << "Client desctructor" << std::endl;
+	delete[] _req.getBuffer();
 }
