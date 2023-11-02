@@ -380,7 +380,6 @@ void	Request::saveSimpleBody(std::string &data)
 		throw ErrorException(413, "Request Entity Too Large");
 	if (_body.length() + data.length() > this->_maxBodySize)
 		throw ErrorException(413, "Request Entity Too Large");
-	std::cout << "data: " << data << std::endl;
     if (!_boundary.empty()) {
         size_t startPos, endPos;
         std::string endBoundary = "--" + _boundary + "--"; // The end boundary
@@ -393,6 +392,7 @@ void	Request::saveSimpleBody(std::string &data)
             if (data.substr(startPos, endBoundary.length()) == endBoundary) {
                 data.erase(startPos, endBoundary.length()); // Erase end boundary
 				_parseStat = END_STAT;
+				_body.append(data);
                 break;
             } else {
                 data.erase(startPos, standardBoundary.length()); // Erase standard boundary
@@ -406,7 +406,7 @@ void	Request::saveSimpleBody(std::string &data)
 		data.clear();
 	}
 
-	std::cout << "BODy" << data << std::endl;
+	std::cout << "Data: " << data << std::endl;
 
 	if (!_boundary.empty())
 	{
@@ -447,6 +447,7 @@ void	Request::saveSimpleBody(std::string &data)
 	}
 	if (_body.length() == bodySize)
 		_parseStat = END_STAT;
+	std::cout << "BODY: " << _body << std::endl;
 }
 
 std::string Request::extractBoundary()
