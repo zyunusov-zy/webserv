@@ -8,7 +8,7 @@ Response::Response()
 
 	post_done = false;
 
-    status_code = "HTTP/1.1 200 OK";
+    status_code = "200 OK";
     // _proto = "HTTP/1.1";
     position = 0;
     response_complete = false;

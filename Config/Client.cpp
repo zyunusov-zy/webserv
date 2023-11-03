@@ -281,6 +281,8 @@ std::string Client::errorMap(int err)
 		errMap.insert(std::pair<int, std::string>(500, " Internal Server Error"));
 		errMap.insert(std::pair<int, std::string>(502, " Bad Gateway"));
 		errMap.insert(std::pair<int, std::string>(503, " Service Unavailable"));
+		errMap.insert(std::pair<int, std::string>(504, " Gateway Timeout"));
+
 	}
 	return errMap[err];
 }

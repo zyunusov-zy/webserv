@@ -22,32 +22,6 @@ Server::~Server(){
 #define WRITE_END 1
 #define READ_END 0
 
-// int handleFileUpload(const std::string& filename, const std::string& fileContent, const size_t file_size, const size_t upload_header_size)
-// {
-//     std::string full_path = filename;
-//     // std::cout << "PLOAD PATH " << std::endl;
-
-//     // std::cout << filename << std::endl;
-
-//     std::ofstream outputFile(filename.c_str(), std::ios::binary | std::ios::trunc);
-//     // std::ofstream outputFile(filename, std::ios::binary);
-//     if (outputFile.is_open()) {
-//         // outputFile << fileContent;
-//     // size_t file_size = ds_clients.at(client_fd).request.rfind(boundary) - upload_header_size;
-
-//     // Write the uploaded file data to the file
-//     outputFile.write(fileContent.substr(upload_header_size, file_size).c_str(), file_size);
-
-//         outputFile.close();
-//         // std::cout << "File uploaded successfully.\n";
-//         return (true);
-//     } else {
-//         std::cerr << "Failed to upload the file.\n";
-//         return (false);
-//     }
-// }
-
-
 std::string extractBoundary(const std::string& contentTypeHeader)
 {
     std::string boundary;
@@ -87,53 +61,13 @@ std::string extractFilename(const std::string& contentDispositionHeader) {
     return filename;
 }
 
-// void Server::sendPostResponse(class Client *client, int fd, std::string filepath)
-//  {
-//     // std::cout << "IN POST RESP ----- \n\n";
-
-//     size_t upload_header_size;
-//     std::string upload_header;
-//     std::string filename = extractFilename(client->getReq().getBody());
-//     filename = client->getReq().getLoc()->root + filename;
-//     upload_header_size = client->getReq().getBody().find("\r\n\r\n") + 4;
-//     upload_header = client->getReq().getBody().substr(0, upload_header_size);
-
-//     // std::ofstream createFile(file_path.c_str(), std::ios::binary | std::ios::trunc);
-
-//     std::map<std::string, std::string> tmp;
-//     std::ifstream dmm(client->getReq().getBody());
-
-//     std::string boundary = extractBoundary(client->getReq().getHeaders()["Content-Type"]);
-
-
-//     tmp = client->getReq().getHeaders();
-//     std::string requestBody = client->getReq().getBody();
-
-//     size_t file_size = requestBody.rfind("\r\n--" + boundary + "--") - upload_header_size;
-
-//     if (handleFileUpload(filename, requestBody, file_size, upload_header_size))
-// 	{
-// 		client->getResp()->status_code = "201 Created";
-// 		client->getResp()->content_type = "text/plain";
-// 		client->getResp()->body = "File was uploaded succesfully";
-// 	}
-// 	else
-// 	{
-// 		client->getResp()->exec_err_code = 500;
-// 		dmm.close();
-// 		throw(returnError());
-
-// 	}
-// 	dmm.close();
-//     // client.sendResponse("text/plain");
-// }
-
 int handleFileUpload(const std::string& filename, const std::string& fileContent, const size_t file_size)
 {
     // std::string full_path = filename;
 
     std::ofstream outputFile(filename.c_str(), std::ios::binary | std::ios::trunc);
-    if (outputFile.is_open()) {
+    if (outputFile.is_open()) 
+	{
 
     // Write the uploaded file data to the file
     	outputFile.write(fileContent.c_str(), file_size);
@@ -158,19 +92,6 @@ void Server::sendPostResponse(class Client *client, int fd, std::string filepath
     // std::string boundary = extractBoundary(client->getReq().getHeaders()["Content-Type"]);
 	HeaderMap hm = client->getReq().getBodyHeaders();
     std::string filename = extractFilename(hm["Content-Disposition"]);
-	// std::string filename = "FLOWER.gif";
-
-	// std::string fn = "filename";
-	// std::string filename = hm[fn];
-	// if (fd_to_clients.count("filename") > 0) 
-	// {
-    // // Key exists
-	// } else {
-	// 	// Key does not exist
-	// }
-
-    // std::string requestBody = client->getReq().getBody();
-
     std::cerr << filename << std::endl;
 	std::cerr << client->getReq().getBody() << std::endl;
     // std::cerr << hm.end()->first << std::endl;
@@ -192,9 +113,7 @@ void Server::sendPostResponse(class Client *client, int fd, std::string filepath
 		throw(returnError());
 
 	}
-	// client->getResp()->response_complete = true;
-	// dmm.close();
-    // client.sendResponse("text/plain");
+
 	std::cerr << "----END OF POST ---" << std::endl;
 
 }
@@ -232,7 +151,7 @@ void Server::sendHTMLResponse(class Client *client, int fd, std::string filepath
     // std::cout << " \n In html \n";
     std::ifstream file(filepath);
     if (!file.is_open()) {
-        std::cerr << "Failed to open " << filepath << std::endl;
+		throw ErrorException("Failed to open a file");
     }
 
     std::string extention = filepath.substr(filepath.rfind(".") + 1);
@@ -270,13 +189,8 @@ void Server::sendHTMLResponse(class Client *client, int fd, std::string filepath
 		client->getResp()->status_code = "301";
 	}
 
-    // client.fd = fd;
-    // client.sendResponse(content_type);
-
     file.close();
-	// std::cerr << client->filename << std::endl;
 
-    // std::cerr << "\n after file closing\n" << std::endl;
 }
 
 static volatile sig_atomic_t timeoutOccurred = 0;
@@ -284,7 +198,6 @@ static volatile sig_atomic_t timeoutOccurred = 0;
 void handleTimeout(int signum) {
     (void)signum;
     // std::cerr << "\n\n ---- timeout handling   \n";
-
     timeoutOccurred = 1;
 }
 
@@ -387,6 +300,7 @@ bool Server::launchCgi(Client *client, int fd)
         }
 
     }
+	client->getResp()->exec_err_code = 504;
 
     close(pipe_d[READ_END]);
     int status;
@@ -515,7 +429,7 @@ void Server::setUp(std::vector<t_serv>& s)
     std::vector<int> connected_fds;
     while (1)
 	{
-
+		alarm(0);
 		std::cerr << "in main LOOP" << '\n';
 
         int activity = poll(&pollfds[0], pollfds.size(), -1); // Wait indefinitely until an event occurs
