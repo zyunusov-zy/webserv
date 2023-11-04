@@ -44,7 +44,7 @@ int handleFileUpload(const std::string& filename, const std::string& fileContent
     }
 }
 
-void Server::sendPostResponse(class Client *client, int fd, std::string filepath)
+void Server::sendPostResponse(class Client *client)
 {
     HeaderMap hm = client->getReq().getBodyHeaders();
     std::string filename = extractFilename(hm["Content-Disposition"]);
@@ -66,7 +66,7 @@ void Server::sendPostResponse(class Client *client, int fd, std::string filepath
 	}
 }
 
-bool Server::sendDeleteResponse(class Client *client, int fd, std::string filepath)
+bool Server::sendDeleteResponse(class Client *client, std::string filepath)
 {
 	int i = std::remove(filepath.c_str());
 	if (i != 0)
@@ -80,7 +80,7 @@ bool Server::sendDeleteResponse(class Client *client, int fd, std::string filepa
 	return 0;
 }
 
-void Server::sendHTMLResponse(class Client *client, int fd, std::string filepath)
+void Server::sendHTMLResponse(class Client *client, std::string filepath)
 {
     std::string content_type;
     std::ifstream file(filepath);
@@ -137,7 +137,7 @@ void cleanEnv(Client *client)
     }
 }
 
-bool Server::launchCgi(Client *client, int fd)
+bool Server::launchCgi(Client *client)
 {
     const int timeoutDuration = 3;
     int infile = 0;
@@ -269,7 +269,7 @@ void Server::setUp(std::vector<t_serv>& s)
     std::map<int, int> fd_to_port;
     std::map<int, t_serv*> port_to_serv;
 
-    int i, j;
+    size_t i, j;
 
     i = 0;
     while(i < servers.size())
@@ -414,7 +414,7 @@ void Server::setUp(std::vector<t_serv>& s)
                                 std::cout << "I Am HERE \n";
                                 if (myCl->getReq().getCGIB())
                                 {
-                                    if (launchCgi(myCl, fd))
+                                    if (launchCgi(myCl))
                                     {
                                         myCl->getResp()->exec_err = true;
                                         remove(myCl->getResp()->filename.c_str());
@@ -422,18 +422,18 @@ void Server::setUp(std::vector<t_serv>& s)
                                     }
                                 }
                                 else if (myCl->getReq().getMethod() == "GET")
-                                    sendHTMLResponse(myCl, fd, myCl->getReq().getResource());
+                                    sendHTMLResponse(myCl, myCl->getReq().getResource());
                                 else if (myCl->getReq().getMethod() == "POST")
                                 {
                                     std::cout << "BEFORE POST \n";
                                     if (myCl->getToServe() == true)
                                     {
-                                        sendPostResponse(myCl, fd, myCl->getReq().getResource());
+                                        sendPostResponse(myCl);
                                         myCl->getResp()->post_done = true;
                                     }
                                 }
                                 else if (myCl->getReq().getMethod() == "DELETE")
-                                    sendDeleteResponse(myCl, fd, myCl->getReq().getResource());
+                                    sendDeleteResponse(myCl, myCl->getReq().getResource());
                                 if (myCl->getToServe() == true)
                                     pollfds[i].events = POLLOUT;
                                 myCl->getResp()->_target_fd = fd;
@@ -456,7 +456,7 @@ void Server::setUp(std::vector<t_serv>& s)
                 {
                     try
                     {
-                        sendPostResponse(client_it->second, fd, client_it->second->getReq().getResource());
+                        sendPostResponse(client_it->second);
                     }
                     catch(const std::exception& e)
                     {

@@ -35,7 +35,6 @@ bool Response::sendResponse(std::string content_type)
 	int	conl = 0;
 
     char buff[BUFF_SIZE];
-	char bodybuff[BUFF_SIZE];
 
     std::string head;
 	std::ifstream file(filename.c_str(), std::ios::binary);
@@ -90,8 +89,6 @@ bool Response::sendResponse(std::string content_type)
 
     file.seekg(position);
     file.read(buff, sizeof(buff));
-    std::streampos currentPos = file.tellg();
-
 
     int bytesRead = file.gcount();
     if (bytesRead > 0) 

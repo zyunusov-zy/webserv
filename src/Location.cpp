@@ -32,7 +32,9 @@ std::string Location::getPath() const
 void Location::setBodySize(std::string num)
 {
 	std::istringstream iss(num);
-    long long value;
+    // long long value;
+	long value;
+
 
     if (!(iss >> value) || value <= 0 || value > INT_MAX) {
         throw ErrorException(0, "Invalid or Negative Body Size or Overflow");
