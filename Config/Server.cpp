@@ -327,7 +327,7 @@ void Server::setUp(std::vector<t_serv>& s)
         alarm(0);
         std::cerr << "in main LOOP" << '\n';
 
-        int activity = poll(&pollfds[0], pollfds.size(), -1);
+        int activity = poll(&pollfds[0], pollfds.size(), 0);
         if (activity < 0) {
             std::cerr << "Error in poll. errno: " << errno << std::endl;
             exit(EXIT_FAILURE);
