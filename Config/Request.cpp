@@ -397,7 +397,7 @@ void	Request::saveSimpleBody(std::string &data)
             } else {
                 data.erase(startPos, standardBoundary.length()); // Erase standard boundary
             }
-            _body.append(data);
+            // _body.append(data);
         }
     } 
 	else {
