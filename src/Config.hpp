@@ -27,7 +27,7 @@ public:
 	Config(/* args */);
 	~Config();
 	int parse(std::string fileName, std::vector<t_serv>& servers);
-	void print1();
+	void print1(std::vector<t_serv>& servers);
 };
 
 #endif

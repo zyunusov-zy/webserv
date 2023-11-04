@@ -353,7 +353,7 @@ int Config::parse(std::string fileName, std::vector<t_serv>& servers)
 	return 0;
 }
 
-void Config::print1()
+void Config::print1(std::vector<t_serv>& servers)
 {
 		for (size_t i = 0; i < servers.size(); i++) {
 		std::cout << "host:" << servers[i].host << std::endl;
