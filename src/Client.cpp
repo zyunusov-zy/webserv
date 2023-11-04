@@ -40,8 +40,8 @@ t_serv	Client::getServ()
 	return (_serv);
 }
 
-Client::Client(int new_socket, char *clien_ip, t_serv s): _serv(s),
-	 _req(_serv.loc), _c(false)
+Client::Client(int new_socket, char *clien_ip, t_serv s):
+	 _req(_serv.loc), _c(false), _serv(s)
 {
 	// std::cout << std::endl << std::endl << "_*)*)*)*)*)*)Client constructor _*_*_*_*_*_*" << std::endl << std::endl;
 	_clienIP = clien_ip;

@@ -1,7 +1,7 @@
 CXX = g++
-CXXFLAGS = -std=c++98
+CXXFLAGS = -std=c++98 -Wall -Wextra -Werror
 
-SRC_DIR = Config
+SRC_DIR = src
 BUILD_DIR = build
 
 SOURCES = $(wildcard $(SRC_DIR)/*.cpp)

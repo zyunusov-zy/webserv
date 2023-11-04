@@ -387,7 +387,7 @@ int Config::parse(std::string fileName, std::vector<t_serv>& servers)
 		std::cout << "host:" << servers[i].host << std::endl;
 		std::cout << "name:" << servers[i].name << std::endl;
 
-		for (int j = 0; j < servers[i].port.size(); j++) {
+		for (size_t j = 0; j < servers[i].port.size(); j++) {
 			std::cout << "port:" << servers[i].port[j] << std::endl;
 		}
 
