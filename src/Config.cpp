@@ -248,7 +248,7 @@ t_serv Config::parseTokens(size_t& i, std::vector<std::string>& tokens)
 		valueForServer(tokens, pos, i, server);
 		for(; i < pos; i++)
 		{
-			if ((locEnd = findLoc(i, tokens)) != -1)
+			if ((locEnd = findLoc(i, tokens)) != (size_t)-1)
 			{
 				// std::cout << i << "      " << locEnd << std::endl << std::endl;
 				parsLocation(tokens, locEnd, i, server);

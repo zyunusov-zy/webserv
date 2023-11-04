@@ -1,2 +1,2 @@
 # c++ -g -fsanitize=address main.cpp Client.cpp Server.cpp Config.cpp Location.cpp ErrorCodes.cpp Request.cpp Response.cpp -o webserv
-c++ -g main.cpp Client.cpp Server.cpp Config.cpp Location.cpp ErrorCodes.cpp Request.cpp Response.cpp -o webserv
+c++ -g -std=c++98 -Wall -Wextra -Werror main.cpp Client.cpp Config.cpp Location.cpp ErrorCodes.cpp Request.cpp Response.cpp Server.cpp -o webserv

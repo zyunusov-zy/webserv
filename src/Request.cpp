@@ -1,10 +1,10 @@
 #include "Request.hpp"
 
-Request::Request(std::multimap<std::string, Location> &l): _q(false), _errorCode(0), 
-_cgi(false), _buf(new char[RECV_BUFFER_SIZE + 1]), _bodyH(false), 
-_parseStat(STARTL), _bodySize(0), _isChunkSize(false),
-_chunkSize(0), _isReqDone(false), _locationMap(l), _cgiNum(0), 
-_envCGI(NULL), _scriptPath(""), _connection(""), _con(false), _maxBodySize(0)
+Request::Request(std::multimap<std::string, Location> &l): _q(false), 
+_cgi(false), _buf(new char[RECV_BUFFER_SIZE + 1]),_parseStat(STARTL),
+ _errorCode(0), _locationMap(l), _bodySize(0), _isChunkSize(false),
+_chunkSize(0), _isReqDone(false),  _cgiNum(0), _con(false),
+ _maxBodySize(0),  _bodyH(false), _envCGI(NULL)
 {
 }
 
@@ -125,19 +125,25 @@ Location *Request::getLoc()
 	for(size_t i = 0; i < len; i++)
 	{
 		std::multimap<std::string, Location>::iterator j = _locationMap.begin();
-		for(; j != _locationMap.end(); j++)
-		{
-			if (!tmp.length())
+		for (; j != _locationMap.end(); j++) {
+			if (!tmp.length()) {
 				tmp = "/";
-				(j->first != "/" && j->first[j->first.length() - 1] == '/') ?
-					tmp1 = j->first.substr(0, j->first.find_last_of("/")) : tmp1 = j->first;
-				if (tmp == tmp1)
-				{
-					if (isLastSlash)
-						_uri.erase(_uri.size() - 1);
-					return &j->second;
+			}
+			
+			if (j->first != "/" && j->first[j->first.length() - 1] == '/') {
+				tmp1 = j->first.substr(0, j->first.find_last_of("/"));
+			} else {
+				tmp1 = j->first;
+			}
+			
+			if (tmp == tmp1) {
+				if (isLastSlash) {
+					_uri.erase(_uri.size() - 1);
 				}
+				return &j->second;
+			}
 		}
+
 		lastSlash = tmp.find_last_of("/", lastSlash);
 		tmp = tmp.substr(0, lastSlash);
 	}
@@ -340,12 +346,12 @@ void	Request::parseChunkedBody(std::string &data)
 {
 	size_t i = 0;
 
-	while(i < data.length() && _chunkSize)
-	{
-		if (data[i] == '\n' && (i - 1 >= 0 && data[i - 1] == '\r'))
+	while (i < data.length() && _chunkSize) {
+		if (i > 0 && data[i] == '\n' && data[i - 1] == '\r') {
 			_body.push_back('\n');
-		else if (data[i] != '\r')
+		} else if (data[i] != '\r') {
 			_body.push_back(data[i]);
+		}
 		i++;
 		_chunkSize--;
 	}
@@ -381,7 +387,7 @@ void	Request::saveSimpleBody(std::string &data)
 	if (_body.length() + data.length() > this->_maxBodySize)
 		throw ErrorException(413, "Request Entity Too Large");
     if (!_boundary.empty()) {
-        size_t startPos, endPos;
+        size_t startPos;
         std::string endBoundary = "--" + _boundary + "--"; // The end boundary
         std::string standardBoundary = "--" + _boundary; // The standard boundary
 

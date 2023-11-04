@@ -48,7 +48,7 @@ class Request
 		std::string _scriptPath;
 		std::string _connection;
 		bool _con;
-		int _maxBodySize;
+		size_t _maxBodySize;
 		std::string _boundary;
 		HeaderMap _bodyHeaders;
 		bool _bodyH;
