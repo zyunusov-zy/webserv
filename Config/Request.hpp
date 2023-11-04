@@ -100,7 +100,7 @@ class Request
 		void	setErrorStatus(const int s);
 		bool  checkCGI();
 		std::string getURI();
-		std::string validateURI(std::string &fullPath, std::uint8_t mode);
+		std::string validateURI(std::string &fullPath, uint8_t mode);
 };
 
 #endif

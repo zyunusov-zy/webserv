@@ -37,6 +37,6 @@ bool	isCharWhiteSpace(unsigned char c);
 std::size_t	skipWhiteSpaces(std::string const &str, std::size_t start);
 void trim(std::string& s, char c);
 void trimBegin(std::string & v);
-std::uint8_t isDirOrFile(const char *path);
+uint8_t isDirOrFile(const char *path);
 
 #endif

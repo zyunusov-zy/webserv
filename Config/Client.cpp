@@ -96,6 +96,10 @@ std::string Client::checkErrorMap(int err)
 	{
 		if (it->first == err)
 		{
+			if (it->second.find(_serv.Mroot) == std::string::npos)
+			{
+				it->second = _serv.Mroot + it->second;
+			}
 			std::ifstream inFile(it->second.c_str());
 			if (!inFile)
 			{
@@ -287,9 +291,9 @@ std::string	Client::genErrPage(int err)
 	// std::cerr << " MB HERE????? \n";
 	std::stringstream buff;
 	buff <<  "<html>\n";
-	buff <<  "<head><title>" + std::to_string(err) + errorMap(err) + "</title></head>\n";
+	buff <<  "<head><title>" << err << errorMap(err) << "</title></head>\n";
 	buff <<  "<body>\n";
-	buff <<	"<div><h1>" + std::to_string(err) + errorMap(err) + "</h1>\n";
+	buff <<	"<div><h1>" << err << errorMap(err) << "</h1>\n";
 	buff << "</body>\n";
 	buff <<  "</html>\n";
 
@@ -314,4 +318,6 @@ void Client::print()
 
 Client::~Client()
 {
+	std::cerr << "Client desctructor" << std::endl;
+	delete[] _req.getBuffer();
 }

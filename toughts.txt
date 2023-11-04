@@ -1,2 +1,0 @@
-Do i need to send index.html if there is index in config file while cgi request done ?
-Need to change index and autoindex cuz find will return autoindex while index needed.

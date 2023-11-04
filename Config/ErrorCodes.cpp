@@ -26,7 +26,7 @@ void trimBegin(std::string & v)
 							 std::bind1st(std::not_equal_to<char>(), '\t')));
 }
 
-std::uint8_t isDirOrFile(const char *path)
+uint8_t isDirOrFile(const char *path)
 {
 	std::cout << "CGI_PPPP: " << path << std::endl; 
 	struct stat s;
