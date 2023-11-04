@@ -383,43 +383,46 @@ int Config::parse(std::string fileName, std::vector<t_serv>& servers)
 		throw ErrorException(0, e.what());
     }
 
-	for(size_t i = 0; i < servers.size(); i++)
-	{
+	for (size_t i = 0; i < servers.size(); i++) {
 		std::cout << "host:" << servers[i].host << std::endl;
 		std::cout << "name:" << servers[i].name << std::endl;
-		for(int j = 0; j < servers[i].port.size(); j++)
+
+		for (int j = 0; j < servers[i].port.size(); j++) {
 			std::cout << "port:" << servers[i].port[j] << std::endl;
-		// std::cout << "hello" << std::endl;
-		std::cout << "MAP: \n";
-		for(auto t : servers[i].errorPages)
-		{
-			std::cout << t.first << ": " << t.second << std::endl;
 		}
-		std::cout << std::endl << std::endl<< "MAP of loc: \n";
-		for(auto t : servers[i].loc)
-		{
-			std::cout << t.first << ": " << t.second.getPath() << std::endl;
-			std::cout << t.second.getPath() << std::endl << std::endl;
-			std::cout << t.second.getIndex() << std::endl << std::endl;
-			std::cout << t.second.getAutoInd() << std::endl;
-			std::cout << t.second.getRoot() << std::endl;
-			std::cout << "Body_size: " << t.second.getBodySize() << std::endl;
-			std::map<std::string , bool> tmp = t.second.getMethods();
+
+		std::cout << "MAP: \n";
+		for (std::map<int, std::string>::iterator it = servers[i].errorPages.begin(); it != servers[i].errorPages.end(); ++it) {
+			std::cout << it->first << ": " << it->second << std::endl;
+		}
+
+		std::cout << std::endl << std::endl << "MAP of loc: \n";
+		for (std::multimap<std::string, Location>::iterator it = servers[i].loc.begin(); it != servers[i].loc.end(); ++it) {
+			std::cout << it->first << ": " << it->second.getPath() << std::endl;
+			std::cout << it->second.getPath() << std::endl << std::endl;
+			std::cout << it->second.getIndex() << std::endl << std::endl;
+			std::cout << it->second.getAutoInd() << std::endl;
+			std::cout << it->second.getRoot() << std::endl;
+			std::cout << "Body_size: " << it->second.getBodySize() << std::endl;
+
+			std::map<std::string, bool> tmp = it->second.getMethods();
 			std::cout << "Methods: " << std::endl;
-			for( auto s : tmp)
-			{
-				std::cout << s.first << ": " << s.second << std::endl;
+			for (std::map<std::string, bool>::iterator sit = tmp.begin(); sit != tmp.end(); ++sit) {
+				std::cout << sit->first << ": " << sit->second << std::endl;
 			}
-			std::cout << t.second.getRedir().first << ": " <<  t.second.getRedir().second <<  std::endl << std::endl;
+
+			std::pair<int, std::string> redir = it->second.getRedir();
+			std::cout << redir.first << ": " << redir.second << std::endl << std::endl;
+
 			std::cout << "CGI_PATH: " << std::endl;
-			std::multimap<std::string,std::string> s = t.second.getCGI();
-			for(auto c : s)
-			{
-				std::cout << c.first << ":" << c.second << std::endl;
+			std::multimap<std::string, std::string> s = it->second.getCGI();
+			for (std::multimap<std::string, std::string>::iterator cit = s.begin(); cit != s.end(); ++cit) {
+				std::cout << cit->first << ":" << cit->second << std::endl;
 			}
-			std::cout <<  std::endl << std::endl;
+			std::cout << std::endl << std::endl;
 		}
 	}
+
 	// tokens.clear();
 	return 0;
 }

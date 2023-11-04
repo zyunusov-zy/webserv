@@ -34,7 +34,7 @@ void Location::setBodySize(std::string num)
 	std::istringstream iss(num);
     long long value;
 
-    if (!(iss >> value) || value <= 0 || value > std::numeric_limits<int>::max()) {
+    if (!(iss >> value) || value <= 0 || value > INT_MAX) {
         throw ErrorException(0, "Invalid or Negative Body Size or Overflow");
     }
 

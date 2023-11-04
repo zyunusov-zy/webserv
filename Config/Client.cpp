@@ -294,9 +294,9 @@ std::string	Client::genErrPage(int err)
 	// std::cerr << " MB HERE????? \n";
 	std::stringstream buff;
 	buff <<  "<html>\n";
-	buff <<  "<head><title>" + std::to_string(err) + errorMap(err) + "</title></head>\n";
+	buff <<  "<head><title>" << err << errorMap(err) << "</title></head>\n";
 	buff <<  "<body>\n";
-	buff <<	"<div><h1>" + std::to_string(err) + errorMap(err) + "</h1>\n";
+	buff <<	"<div><h1>" << err << errorMap(err) << "</h1>\n";
 	buff << "</body>\n";
 	buff <<  "</html>\n";
 

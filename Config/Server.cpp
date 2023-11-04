@@ -230,7 +230,7 @@ void Server::sendHTMLResponse(class Client *client, int fd, std::string filepath
     std::string content_type;
     // Read the content of the HTML file
     // std::cout << " \n In html \n";
-    std::ifstream file(filepath);
+    std::ifstream file(filepath.c_str());
     if (!file.is_open()) {
         std::cerr << "Failed to open " << filepath << std::endl;
     }
@@ -292,9 +292,9 @@ void handleTimeout(int signum) {
 void cleanEnv(Client *client)
 {
 
-    if (client->getReq().getENV() != nullptr) {
+    if (client->getReq().getENV() != NULL) {
         std::cerr << "freeing env in des "  << std::endl;
-        for (size_t i = 0; client->getReq().getENV()[i] != nullptr; ++i) {
+        for (size_t i = 0; client->getReq().getENV()[i] != NULL; ++i) {
             if (client->getReq().getENV()[i])
                 free(client->getReq().getENV()[i]);
         }
@@ -365,7 +365,7 @@ bool Server::launchCgi(Client *client, int fd)
         // char* script_path = "/Users/kris/our_webserv2/Config/cgi-bin/script_timeout.py"; // warning
 
 
-        char* _args[] = {const_cast<char*>(path_to_py), const_cast<char*>(script_path), nullptr};
+        char* _args[] = {const_cast<char*>(path_to_py), const_cast<char*>(script_path), NULL};
 
         dup2(pipe_d[READ_END], STDIN_FILENO);
         close(pipe_d[READ_END]);

@@ -20,6 +20,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <set>
+#include <climits>
 
 // #include "Server.hpp"
 // #include "Request.hpp"

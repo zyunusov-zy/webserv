@@ -134,7 +134,7 @@ Location *Request::getLoc()
 				if (tmp == tmp1)
 				{
 					if (isLastSlash)
-						_uri.pop_back();
+						_uri.erase(_uri.size() - 1);
 					return &j->second;
 				}
 		}
@@ -268,10 +268,10 @@ void	Request::saveHeaderLine(std::string headerLine)
 	// std::cout << headerLine << std::endl;
 	if (!headerLine.length())
 	{
-		if (_headers.find("Host") == std::end(_headers))
+		if (_headers.find("Host") == _headers.end())
 			throw ErrorException(400, "Bad Request");
-		if (_headers.find("Transfer-Encoding") == std::end(_headers)
-			&& _headers.find("Content-Length") == std::end(_headers))
+		if (_headers.find("Transfer-Encoding") == _headers.end()
+			&& _headers.find("Content-Length") == _headers.end())
 			_parseStat = END_STAT;
 		else
 			_parseStat = BODYL;
@@ -500,7 +500,7 @@ bool	Request::saveRequestData(ssize_t recv)
 	return _isReqDone;
 }
 
-std::string Request::validateURI(std::string &fullPath, std::uint8_t mode)
+std::string Request::validateURI(std::string &fullPath, uint8_t mode)
 {
 	std::string tmp;
 	if (mode == 2)// dir
@@ -542,7 +542,7 @@ std::string Request::validateURI(std::string &fullPath, std::uint8_t mode)
 std::string Request::getURI()
 {
 	std::string	fullPath;
-	std::uint8_t mode;
+	uint8_t mode;
 	std::string tmp;
 
 	if (_location && _location->redir.second.length())
@@ -580,7 +580,7 @@ std::string Request::getURI()
 			fullPath.erase(i + 1, 1);
 	}
 	if (fullPath[fullPath.length() - 1] == '/')
-		fullPath.pop_back();
+		fullPath.erase(fullPath.size() - 1);
 	mode = isDirOrFile(fullPath.c_str());
 	if (mode == 0 && _method != "POST")
 	{
@@ -720,20 +720,21 @@ void Request::print()
 	if (_location != NULL)
 		// std::cout << "Location Path: " << _location->getPath() << "\n" << "\n";
 	std::cout << "Error_code: " << _errorCode << std::endl;
+
 	HeaderMap tmp = getHeaders();
 	std::cout << "THISSS " << _errorCode << std::endl;
 
 	std::cout << "Headers: " << std::endl;
-	for (auto header : tmp) {
-        std::cout << header.first << " = " << header.second << "\n";
-    }
+	for (HeaderMap::iterator it = tmp.begin(); it != tmp.end(); ++it) {
+		std::cout << it->first << " = " << it->second << "\n";
+	}
 
 	HeaderMap tmp1 = getBodyHeaders();
 	std::cout << "Body Header Bool :" << getBodyH() << std::endl;
 	std::cout << "Body Header: " << std::endl;
-	for (auto h : tmp1) {
-        std::cout << h.first << " = " << h.second << "\n";
-    }
+	for (HeaderMap::iterator it = tmp1.begin(); it != tmp1.end(); ++it) {
+		std::cout << it->first << " = " << it->second << "\n";
+	}
 }
 
 std::string& Request::getMethod()
