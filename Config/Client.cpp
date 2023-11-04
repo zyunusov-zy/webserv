@@ -20,11 +20,6 @@ bool Client::getToServe()
 	return (_toServe);
 }
 
-// Request *Client::getPointReq()
-// {
-// 	return (&_req);
-// }
-
 Request Client::getReq()
 {
 	return (_req);
@@ -316,73 +311,6 @@ void Client::print()
 	// }
 	// std::cout << "hello222" << std::endl;
 }
-
-// int calculateContentLength(std::ifstream& file) {
-//         file.seekg(0, std::ios::end);
-//         int length = static_cast<int>(file.tellg());
-//         file.seekg(0, std::ios::beg);
-//         return length;
-//     }
-
-// void Client::sendResponse(std::string content_type) 
-// {
-//     // std::cerr << "\n in response" << filename << "\n";
-//     std::string chunk = "";
-// 	int _target_fd = _fdSock;
-
-//     char buff[BUFF_SIZE];
-//     std::string head;
-    
-//     std::ifstream file(filename.c_str(), std::ios::binary);
-//     if (!file.is_open()) 
-//     {
-//         std::cerr << "Failed to open " << filename << std::endl;
-//     }
-//     if (!header_sent)
-//     {
-//         // createHeader();
-//         // chunk += header;
-//         std::cerr << "\nSending header " << filename << std::endl;
-
-//         snprintf(buff, sizeof(buff), "HTTP/1.1 200 OK\r\n"
-//                                          "Content-Type: %\r\n"
-//                                          "Content-Length: %d\r\n"
-//                                          "Connection: keep-alive\r\n"
-//                                         //  "Transfer-Encoding: chunked\r\n"
-//                                          "\r\n", content_type.c_str(), calculateContentLength(file));
-
-// 	    send(_target_fd, buff, strlen(buff), 0);
-//         header_sent = true;
-//     }
-
-//     file.seekg(position);
-//     file.read(buff, sizeof(buff));
-//     std::streampos currentPos = file.tellg();
-
-
-//     int bytesRead = file.gcount();
-//     if (bytesRead > 0) 
-//     {
-//         // std::cerr << "*******READING " << filename << std::endl;
-
-//         int bytesSent = send(_target_fd, buff, bytesRead, 0);
-//         if (bytesSent < 0) {
-//             std::cerr << "Send error" << std::endl;
-//         }
-// 		response_complete = false;
-//     }
-// 	else if (file.eof() || bytesRead == 0)
-// 	// else if (bytesRead == 0)
-// 	{
-//         std::cerr << "*******EOF " << filename << std::endl;
-
-// 		file.close();
-// 		response_complete = true;
-//         std::cerr << "all read " << filename << std::endl;
-// 	}
-// 	position = file.tellg();
-// 	// close(_target_fd);
-// }
 
 Client::~Client()
 {

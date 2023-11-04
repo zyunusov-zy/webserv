@@ -1,3 +1,0 @@
-/Users/cgreenpo/our_webserv/cmake-build-debug/CMakeFiles/our_webserv.dir
-/Users/cgreenpo/our_webserv/cmake-build-debug/CMakeFiles/edit_cache.dir
-/Users/cgreenpo/our_webserv/cmake-build-debug/CMakeFiles/rebuild_cache.dir

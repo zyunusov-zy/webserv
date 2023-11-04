@@ -28,7 +28,6 @@
 class Server
 {
 private:
-	// Config _conf;
 	std::string readFile(const std::string & filename);
 	std::vector<t_serv> servers;
 
@@ -48,15 +47,11 @@ public:
 
 	std::map<int, Client*> fd_to_clients;
 	std::map<int, Client*>::iterator client_it;
-	// void conf(std::string filename,std::vector<t_serv>& servers);
 	void setUp(std::vector<t_serv>& s);
 	bool launchCgi(Client *client, int fd);
     void sendHTMLResponse(Client *client, int fd, std::string filepath);
 	bool sendDeleteResponse(class Client *client, int fd, std::string filepath);
 	void sendPostResponse(class Client *client, int fd, std::string filepath);
 
-	//-----
-	
-	//-----
 };
 #endif

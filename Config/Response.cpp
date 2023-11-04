@@ -5,11 +5,9 @@ Response::Response()
 
 	exec_err = false;
 	exec_err_code = 0;
-
 	post_done = false;
 
     status_code = "200 OK";
-    // _proto = "HTTP/1.1";
     position = 0;
     response_complete = false;
     header_sent = false;
@@ -37,6 +35,8 @@ bool Response::sendResponse(std::string content_type)
 	int	conl = 0;
 
     char buff[BUFF_SIZE];
+	char bodybuff[BUFF_SIZE];
+
     std::string head;
 	std::ifstream file(filename.c_str(), std::ios::binary);
     // std::cerr << "\n+++++++BODY CONTENT =======  " << std::endl;
@@ -76,12 +76,15 @@ bool Response::sendResponse(std::string content_type)
 	    send(_target_fd, buff, strlen(buff), 0);
         header_sent = true;
     }
-
+	
 	if (body.length())
 	{
+		snprintf(buff, sizeof(buff), "%s", body.c_str());
+		std::cerr << "\n BODYYY " << std::endl;
+		std::cerr << body << std::endl;
+		// exit(1);
 		send(_target_fd, buff, strlen(buff), 0);
 		response_complete = true;
-		// std::cerr << "\n out of sndinggggg " << std::endl;
 		return 0;
 	}
 

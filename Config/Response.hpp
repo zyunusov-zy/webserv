@@ -10,7 +10,6 @@
 #include <sys/socket.h>
 #include <poll.h>
 
-// #include "Server.hpp" 
 
 #define BUFF_SIZE 8000
 
@@ -18,8 +17,6 @@
 class Response {
 public:
     Response();
-
-	void assembleHeader(); // needs to be created
 
     void setStatus(int statusCode);
     void setHeader(const std::string& key, const std::string& value);
@@ -47,19 +44,6 @@ public:
     std::string filename;
 	bool exec_err;
 	int	exec_err_code;
-
-private:
-
-
-	std::string _header;
-    std::string _body;
-    std::string _status;
-
-	std::string	_date;
-	std::string	_proto;
-	std::string	_status_code;
-	std::string _chunking;
-	std::string	_content_type;
 
 };
 
