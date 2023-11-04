@@ -40,7 +40,6 @@ bool Request::getCGIB()
 
 void	Request::setErrorStatus(const int s) {
 	_errorCode = s;
-	printf("STATUSSS %i\n", _errorCode);
 }
 
 
@@ -207,14 +206,11 @@ void	Request::validateStartLine(void)
 	_location = getLoc();
 	if (_location == NULL)
 	{
-		// std::cout << "HERE!!!" << std::endl;
 		throw ErrorException(404, "Not Found");
 	}
-	//need to get location;
 	if (_version != "HTTP/1.1")
 		throw ErrorException(505, "Http Version Not Supported");
 	std::map<std::string, bool>::const_iterator i = _location->methods.begin();
-	// std::cout << "hello" << std::endl;
 	for(; i != _location->methods.end(); i++)
 	{
 		if (i->first == _method){
@@ -235,9 +231,6 @@ void	Request::saveStartLine(std::string startLine)
 {
 	size_t pos;
 
-	// std::cout << startLine << std::endl << std::endl;
-
-
 	if (!startLine.length())
 		throw ErrorException(400, "Bad Request! No Header of the request!");
 	pos = startLine.find(' ');
@@ -257,9 +250,7 @@ void	Request::saveStartLine(std::string startLine)
 
 
 	validateStartLine();
-	// std::cout << "heeeeee212121" <<std::endl;
 	_parseStat = HEADERL;
-	// std::cout << _parseStat << std::endl;
 }
 
 void	Request::saveHeaderLine(std::string headerLine)
@@ -270,8 +261,6 @@ void	Request::saveHeaderLine(std::string headerLine)
 
 	headerLine.erase(std::remove_if(headerLine.begin(),
 		headerLine.end(), &isCharWhiteSpace), headerLine.end());
-	// std::cout << "hello" << std::endl;
-	// std::cout << headerLine << std::endl;
 	if (!headerLine.length())
 	{
 		if (_headers.find("Host") == _headers.end())
@@ -379,9 +368,6 @@ void	Request::saveSimpleBody(std::string &data)
 	size_t bodySize;
 
 	bodySize = static_cast<size_t>(std::atol(_headers["Content-Length"].c_str()));
-	std::cerr<< "BOdy_size:" << bodySize << std::endl;
-	std::cerr << "Max Body size: " << _maxBodySize << std::endl;
-
 	if (bodySize > this->_maxBodySize)
 		throw ErrorException(413, "Request Entity Too Large");
 	if (_body.length() + data.length() > this->_maxBodySize)
@@ -403,16 +389,12 @@ void	Request::saveSimpleBody(std::string &data)
             } else {
                 data.erase(startPos, standardBoundary.length()); // Erase standard boundary
             }
-            // _body.append(data);
         }
     } 
 	else {
-		// If there's no boundary, append the data directly
 		_body.append(data);
 		data.clear();
 	}
-
-	std::cout << "Data: " << data << std::endl;
 
 	if (!_boundary.empty())
 	{
@@ -453,7 +435,6 @@ void	Request::saveSimpleBody(std::string &data)
 	}
 	if (_body.length() == bodySize)
 		_parseStat = END_STAT;
-	std::cout << "BODY: " << _body << std::endl;
 }
 
 std::string Request::extractBoundary()
@@ -476,13 +457,6 @@ bool	Request::saveRequestData(ssize_t recv)
 
 	_buf[recv] = '\0';
 	data.append(_buf, recv);
-	// if (_buf)
-	// {
-	// 	delete[] _buf;
-	// 	_buf = nullptr;
-	// }
-	// std::cout << "HERE: " << std::endl << std::endl;
-	// std::cout << std::endl << data << std::endl;
 
 	if (_parseStat == END_STAT)
 		resetRequest();
@@ -501,8 +475,6 @@ bool	Request::saveRequestData(ssize_t recv)
 	_tmpBuffer = data;
 	if (_parseStat == END_STAT)
 		_isReqDone = true;
-	std::cout << "Parse state: " << _parseStat << std::endl;
-	std::cout << "_isReqDone: " << _isReqDone << std::endl;
 	return _isReqDone;
 }
 
@@ -564,7 +536,6 @@ std::string Request::getURI()
 	{
 		if (_scriptPath.find(_location->getRoot()) == std::string::npos)
 		{
-			std::cout << "HEEEEEE:" << std::endl;
 			fullPath = _location->getRoot() + _scriptPath;
 		}
 		else
@@ -630,19 +601,10 @@ void Request::makeEnv()
 bool  Request::checkCGI()
 {
 	std::multimap<std::string,std::string> tmp = _location->getCGI();
-	// std::cout << "URI: "  << _uri << std::endl;
-	// std::cout << _location->getRoot() << std::endl;
-	// std::cout << _location->getCGI().empty() << std::endl;
 	std::string ext = "";
 	if (_uri.find(".") != std::string::npos)
 		ext = "." + _uri.substr(_uri.find_last_of('.') + 1);
 	std::string _scriptName =  _uri.substr(_uri.find_last_of('/') + 1);
-	// std::cout << "EXTENSION: "  << ext << std::endl;
-	// std::cout << tmp.empty() << std::endl;
-	// for(auto v : tmp)
-	// {
-		// std::cout << v.first << ": " << v.second << std::endl;
-	// }
 	if (tmp.empty() && ext == ".py") {
     	_cgi = false;
         throw ErrorException(500, "Server configuration error: File is present but not configured in CGI map.");
@@ -653,9 +615,7 @@ bool  Request::checkCGI()
 		if (ext == i->first)
 		{
 			_scriptPath = i->second + _scriptName;
-			// std::cout <<  "path for script: " <<_scriptPath << "]" << std::endl;
 			int n = access(_scriptPath.c_str(), X_OK);
-			// std::cout << "ACEES: " << n << std::endl;
 			if (n == -1)
 			{
 				std::cerr << "Error: " << strerror(errno) << std::endl;
@@ -665,14 +625,11 @@ bool  Request::checkCGI()
 			_cgiNum++;
 		}
 	}
-	// std::cout << "NUM: "  << _cgiNum << std::endl;
 	if (_cgiNum > 0)
 	{
 		_cgi = true;
 		_uriCGI = getURI();
-		// std::cout << "CGI_PPPP: " << _uriCGI << std::endl;
-		// std::cout << "MBHERE" << std::endl; 
-		getUriEncodedBody();//need to code
+		getUriEncodedBody();
 		_headers.insert(std::pair<std::string, std::string>("QUERY_STRING", _queryString));
 		_headers.insert(std::pair<std::string, std::string>("REQUEST_METHOD", _method));
 		_headers.insert(std::pair<std::string, std::string>("PATH_INFO", _uriCGI));
@@ -686,13 +643,9 @@ bool  Request::checkCGI()
 	}
 	else
 	{
-		// std::cout << " HERE: " << _uri << std::endl;
 		_cgi = false;
-		// std::cout << " HERECGI: " << _cgi << std::endl;
 		_errorCode = 200;
 		_uri = getURI();
-		// std::cout << " HERECGI: " << _cgi << std::endl;
-		// std::cout << " HERE2: " << _uri << std::endl;
 		if (_uri.find(_location->getRoot()) == std::string::npos)
 			_uri = _location->getRoot() + _uri;
 		for(size_t i = 0; i < _uri.length() - 1; i++)
@@ -701,12 +654,10 @@ bool  Request::checkCGI()
 				_uri.erase(i + 1, 1);
 		}
 	}
-	// std::cout << "CONNECTION:" << _connection << std::endl;
 	if (_connection == "close")
 	{
 		_con = true;
 	}
-	// std::cout << (_cgi ? "TRUE" : "FALSE") << std::endl;
 	return _cgi;
 }
 
@@ -716,15 +667,11 @@ void Request::print()
 	std::cout << "Method: " << getMethod() << "\n";
     std::cout << "Resource: " << getResource() << "\n";
     std::cout << "Version: " << getVersion() << "\n";
-	// std::cout << "PATH_INFO: " << getPathInfo() << "\n";
-	// std::cout << "ScriptName: " << getScriptName() << "\n";
 	std::cout << "QueryString: " << getQueryString() << "\n" << "\n";
 
 
 	std::cout << "Boundary: " << _boundary << "\n" << "\n";
 	std::cout << "Body: " << getBody() << "\n" << "\n";
-	if (_location != NULL)
-		// std::cout << "Location Path: " << _location->getPath() << "\n" << "\n";
 	std::cout << "Error_code: " << _errorCode << std::endl;
 
 	HeaderMap tmp = getHeaders();

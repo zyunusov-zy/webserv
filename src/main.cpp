@@ -13,7 +13,6 @@ int main(int argc, char** av)
     std::vector<t_serv> servers;
     const char* configFile;
 
-    // Check arguments
     if (argc == 2)
     {
         configFile = av[1];
@@ -41,5 +40,5 @@ int main(int argc, char** av)
     Server serv;
     serv.setUp(servers);
 
-    return 0; // Assuming success if no exceptions were thrown
+    return 0;
 }

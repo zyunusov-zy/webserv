@@ -43,7 +43,6 @@ t_serv	Client::getServ()
 Client::Client(int new_socket, char *clien_ip, t_serv s):
 	 _req(_serv.loc), _c(false), _serv(s)
 {
-	// std::cout << std::endl << std::endl << "_*)*)*)*)*)*)Client constructor _*_*_*_*_*_*" << std::endl << std::endl;
 	_clienIP = clien_ip;
 	_fdSock = new_socket;
 	_serv = s;
@@ -60,7 +59,6 @@ Client::Client(int new_socket, char *clien_ip, t_serv s):
 bool Client::readRequest()
 {
 	ssize_t res = recv(_fdSock, _req.getBuffer(), RECV_BUFFER_SIZE, 0);
-		// std::cout << "Hello" << std::endl;
 	if (res == 0)
 	{
 		_isClosed = true;
@@ -77,7 +75,6 @@ bool Client::readRequest()
 			env_var = _req.getENV();
 		if (_req.getCon())
 			_isClosed = true;
-		// std::cout << "ISCLOSED: " << _isClosed ? "TRUE" : "FALSE";
 	}
 	catch(ErrorException &e)
 	{
@@ -125,11 +122,6 @@ int  Client::checkError()
 	else
 		err = _req.getErrorCode();
 
-
-
-	std::cout << "ERRRORRRRR 00000000 " << err << std::endl;
-
-	// std::cout << "ERRRRRRORRRR!!!:" << err << std::endl;
 	if (err == 301 || err == 200 || err == 0 || err == 201)
 		return 1;
 	if (err == 1)
@@ -143,15 +135,12 @@ int  Client::checkError()
 		std::cout << indexAuto << std::endl << std::endl;
 		if (err == 200)
 		{
-			std::cout << "HERE AUTOINDEX 2222222222222222222" << std::endl;
 			sendErrHTML(indexAuto, err);
 			return 0;
 		}
-			//call function to send html
 	}
 	std::string errorPath = "";
 	errorPath = checkErrorMap(err);
-	// std::cout << "Hhhhhhhhhhhhasdfjasfajskf" << errorPath << std::endl;
 	if (errorPath != "")
 	{
 		_req.setResource(errorPath);
@@ -159,8 +148,6 @@ int  Client::checkError()
 	}
 	else if (errorPath == "")
 	{
-		// std::cerr << " MB HERE????? \n";
-		// std::cout << "ERRRRRRORRRR!!!:" << err << std::endl;
 		std::string _errPage = genErrPage(err);
 		sendErrHTML(_errPage, err); // function to send generated error pages
 	}
@@ -174,15 +161,9 @@ static std::string buildPath(std::string &path, const Location *loc, std::string
 	size_t pos;
 
 	std::cout << std::endl << std::endl;
-	std::cout << "FILENAME: " << fileName << std::endl;
-	std::cout << "PATH: " << path << std::endl;
-
-	std::cout << "Location: " << loc->root << std::endl;
 	pos = path.rfind(loc->root);
-	std::cout << pos << std::endl;
 	if (fileName == "." || fileName == ".." || pos == std::string::npos)
 	{
-		std::cout << "HERE1" << std::endl;
 		return ".";
 	}
 	tmp = path.substr(pos + loc->root.length());
@@ -194,7 +175,6 @@ static std::string buildPath(std::string &path, const Location *loc, std::string
 	std::cout << tmp << std::endl;
 	if (pos == std::string::npos)
 	{
-		std::cout << "HERE2" << std::endl;
 		return ".";
 	}
 	if (tmp == "/")
@@ -228,7 +208,6 @@ std::string Client::fileList(std::string path, int &err, const Location *loc)
 	while(dirent)
 	{
 		pathToFile = buildPath(path, loc, dirent->d_name);
-		std::cout << "Path TO FILE: " << pathToFile << std::endl;
 		if (pathToFile != ".")
 		{
 			htmlB  += "<div><a href=\"" + pathToFile + "\"><h2>"
@@ -288,7 +267,6 @@ std::string Client::errorMap(int err)
 
 std::string	Client::genErrPage(int err)
 {
-	// std::cerr << " MB HERE????? \n";
 	std::stringstream buff;
 	buff <<  "<html>\n";
 	buff <<  "<head><title>" << err << errorMap(err) << "</title></head>\n";
@@ -298,7 +276,6 @@ std::string	Client::genErrPage(int err)
 	buff <<  "</html>\n";
 
 	std::string res = buff.str();
-	std::cout << res << std::endl;// test
 	return res;
 }
 
@@ -308,16 +285,9 @@ void Client::print()
 	std::cout << "Error_code: " << _req.getErrorCode() << std::endl;
 	std::cout << "Query: " << _req.getQ() << std::endl;
 	std::cout << "Server host: " << _serv.host << std::endl;
-	// std::cout << "hello" << std::endl;
-	// for (int i = 0; env_var[i] != NULL; ++i)
-	// {
-	// 	std::cout << env_var[i] << std::endl;
-	// }
-	// std::cout << "hello222" << std::endl;
 }
 
 Client::~Client()
 {
-	std::cerr << "Client desctructor" << std::endl;
 	delete[] _req.getBuffer();
 }

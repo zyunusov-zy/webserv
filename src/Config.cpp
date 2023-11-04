@@ -6,13 +6,6 @@ Config::Config(/* args */)
 
 Config::~Config()
 {
-
-	// for(int i = 0; i < servers.size(); i++)
-	// {
-	// 	servers[i].errorPages.clear();
-	// 	servers[i].loc.clear();
-	// }
-	// servers.clear();
 }
 
 
@@ -38,7 +31,6 @@ std::vector<std::string> Config::configRead(std::string fileName)
 	while (token != NULL) {
 		std::string l = token;
 		tokens.push_back(l);
-		// delete[] token;
 		token = std::strtok(NULL, "\n\t");
 	}
 	for (size_t i = 0; i < tokens.size(); i++) {
@@ -58,8 +50,6 @@ void Config::initServer(t_serv &t)
 {
 	t.name = "";
 	t.host = "";
-	// t.port = 0;
-	// t.logFile = "";
 }
 
 size_t Config::findNth(const std::vector<std::string> s, size_t i)
@@ -68,7 +58,6 @@ size_t Config::findNth(const std::vector<std::string> s, size_t i)
 	{
 		if (s[i] == "server")
 		{
-			// std::cout << s[i] << std::endl;
 			return (i - 1);
 		}
 	}
@@ -90,7 +79,6 @@ void Config::valueForServer(std::vector<std::string> tokens, size_t end, size_t&
 			trim(v, ' ');
 			trim(v, ';');
 			t.host = v;
-			// std::cout << "HERE" << t.host << std::endl << std::endl;
 		}
 		if (tokens[start].find("server_name:") != std::string::npos)
 		{
@@ -133,18 +121,15 @@ void Config::valueForServer(std::vector<std::string> tokens, size_t end, size_t&
 
 void Config::parsLocation(std::vector<std::string> tokens, size_t end, size_t start, t_serv& server)
 {
-	// std::cout << start << " = " << tokens[start] << " " << end << std::endl;
 	Location l;
 	l.initLoc();
 
 	for(; start < end; start++)
 	{
-		// std::cout << tokens[start] << std::endl;
 		if (tokens[start].find("location:") != std::string::npos)
 		{
 			std::string v = tokens[start].substr(tokens[start].find("location:") + strlen("location:"));
 			trim(v, ' ');
-			// std::cout <<  v << std::endl << std::endl;
 			l.setPath(v);
 			l.setRoot(server.Mroot);
 		}
@@ -153,7 +138,6 @@ void Config::parsLocation(std::vector<std::string> tokens, size_t end, size_t st
 			std::string v = tokens[start].substr(tokens[start].find("autoi:") + strlen("autoi:"));
 			trim(v, ' ');
 			trim(v, ';');
-			// std::cout <<  v << std::endl << std::endl;
 			l.setAutoInd(v);
 		}
 		if (tokens[start].find("index:") != std::string::npos)
@@ -161,12 +145,10 @@ void Config::parsLocation(std::vector<std::string> tokens, size_t end, size_t st
 			std::string v = tokens[start].substr(tokens[start].find("index:") + strlen("index:"));
 			trim(v, ' ');
 			trim(v, ';');
-			// std::cout <<  v << std::endl << std::endl;
 			l.setIndex(v);
 		}
 		if (tokens[start].find("return:") != std::string::npos)
 		{
-			// std::cout << "HERE!" <<std::endl;
 			std::string v = tokens[start].substr(tokens[start].find("return:") + strlen("return:"));
 			trimBegin(v);
 			trim(v, ';');
@@ -209,19 +191,15 @@ void Config::parsLocation(std::vector<std::string> tokens, size_t end, size_t st
 				}
 				trim(value, ' ');
 				trim(value, '\t');
-				// std::cout << key << "          " << value << std::endl;
 				l.setCGI(key, value);
 			}
 		}
 	}
-	// std::cout << l.getPath() << std::endl;
 	if (l.getPath() != "")
 	{
-		// std::cout << " helloooo " << std::endl;
 		server.loc.insert(std::pair<std::string, Location>(l.getPath(), l));
 	}
 
-	// exit(0);
 }
 
 int Config::findLoc(size_t i, std::vector<std::string> tokens)
@@ -240,7 +218,6 @@ t_serv Config::parseTokens(size_t& i, std::vector<std::string>& tokens)
 	t_serv server;
 	initServer(server);
 
-	// std::string blockServ;
 	size_t pos;
 	size_t locEnd;
 	if ((pos = findNth(tokens, i)))
@@ -250,7 +227,6 @@ t_serv Config::parseTokens(size_t& i, std::vector<std::string>& tokens)
 		{
 			if ((locEnd = findLoc(i, tokens)) != (size_t)-1)
 			{
-				// std::cout << i << "      " << locEnd << std::endl << std::endl;
 				parsLocation(tokens, locEnd, i, server);
 				i = locEnd;
 			}
@@ -338,11 +314,6 @@ void Config::confCheck(std::vector<t_serv>& servers)
 int Config::parse(std::string fileName, std::vector<t_serv>& servers)
 {
 	std::vector<std::string> tokens = configRead(fileName);
-	// for(size_t i = 0; i < tokens.size(); i++)
-	// {
-	// 	std::cout << tokens[i] << std::endl;
-	// }
-	// exit(1);
 	for(size_t i = 0; i < tokens.size(); i++)
 	{
 		if (tokens[i] == "server")
@@ -355,15 +326,12 @@ int Config::parse(std::string fileName, std::vector<t_serv>& servers)
 			}
 			++i;
 			t_serv server = parseTokens(i, tokens);
-			// std::cout << tokens[i] << i << std::endl;
 			if (tokens[i] != "}")
 			{
 				std::cerr << RED << "Error: expected '}' after server directive." << NORMAL << std::endl;
 				exit(1);
 			}
 			servers.push_back(server);
-			// std::cout << "hello";
-			// exit(1);
 		}
 		else
 		{
@@ -374,7 +342,6 @@ int Config::parse(std::string fileName, std::vector<t_serv>& servers)
 	}
 	checkPathCGI(servers);
 
-	// errorcheck function
 	try{
 		confCheck(servers);
 	}
@@ -383,7 +350,12 @@ int Config::parse(std::string fileName, std::vector<t_serv>& servers)
 		throw ErrorException(0, e.what());
     }
 
-	for (size_t i = 0; i < servers.size(); i++) {
+	return 0;
+}
+
+void Config::print1()
+{
+		for (size_t i = 0; i < servers.size(); i++) {
 		std::cout << "host:" << servers[i].host << std::endl;
 		std::cout << "name:" << servers[i].name << std::endl;
 
@@ -422,7 +394,4 @@ int Config::parse(std::string fileName, std::vector<t_serv>& servers)
 			std::cout << std::endl << std::endl;
 		}
 	}
-
-	// tokens.clear();
-	return 0;
 }

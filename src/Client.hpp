@@ -1,12 +1,7 @@
 #ifndef CLIENT_HPP
 # define CLIENT_HPP
 
-// #include <iostream>
-// #include <map>
-// #include <string>
-// #include "Request.hpp"
 #include "Response.hpp"
-// #include "ErrorCodes.hpp"
 #include "mainIn.hpp"
 #include "Request.hpp"
 #include <dirent.h>
@@ -17,7 +12,6 @@ class Client
 {
 private:
 	Request _req;
-	// int error_code;
 	char **env_var;
 	bool _quer;
 	bool _c;
@@ -36,7 +30,6 @@ private:
 	std::string	genErrPage(int err);
 	std::string errorMap(int err);
 	void sendErrHTML(std::string _errPage, int err);
-	// static std::string buildPath(std::string &path, const Location *loc, std::string fileName);
 	std::string fileList(std::string path, int &err, const Location *loc);
 
 public:
@@ -70,9 +63,6 @@ public:
 	bool getIsClosed();
 	bool getToServe();
 
-
-
-	// void sendResponse(std::string content_type);
 
 	int _statusCode;
 	int fd;

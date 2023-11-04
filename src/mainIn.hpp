@@ -22,13 +22,8 @@
 #include <set>
 #include <climits>
 
-// #include "Server.hpp"
-// #include "Request.hpp"
-// #include "Client.hpp"
-// #include "Response.hpp"
 #include "ErrorCodes.hpp"
 #include "Location.hpp"
-// #include "Config.hpp"
 
 
 typedef struct s_serv

@@ -1,8 +1,6 @@
 #ifndef LOCATION_HPP
 #define LOCATION_HPP
 
-// #include "Config.hpp"
-// #include "mainIn.hpp"
 #include <string>
 #include <map>
 #include <iostream>

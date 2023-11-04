@@ -1,18 +1,7 @@
 #ifndef REQUEST_HPP
 # define REQUEST_HPP
 
-// #include <iostream>
-// #include <sstream>
-// #include <map>
-// #include <cerrno>
-// #include <cstring>
-// #include <fstream>
-// #include "Config.hpp"
 #include "mainIn.hpp"
-// #include "ErrorCodes.hpp"
-// #include "Location.hpp"
-
-
 
 typedef std::map<std::string, std::string> HeaderMap;
 

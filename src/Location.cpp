@@ -32,7 +32,6 @@ std::string Location::getPath() const
 void Location::setBodySize(std::string num)
 {
 	std::istringstream iss(num);
-    // long long value;
 	long value;
 
 
@@ -150,11 +149,6 @@ std::map<std::string , bool> Location::getMethods() const
 
 int Location::checkLoc()
 {
-	// if (this->autoindex != "off" || this->autoindex != "on")
-	// {
-	// 	std::cout << " helloooo " << std::endl;
-	// 	return 0;
-	// }
 	if (this->path == "")
 		return 0;
 	return 1;

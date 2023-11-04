@@ -1,9 +1,7 @@
 #ifndef ERROR_CODES_HPP
 #define ERROR_CODES_HPP
 
-// #include "Server.hpp"
 #include "mainIn.hpp"
-// #include "Location.hpp"
 
 #define RECV_BUFFER_SIZE 4048
 #define STARTL 0
