@@ -19,7 +19,7 @@ int main(int argc, char** av)
     }
     else if (argc == 1)
     {
-        configFile = "/home/zyko/webserv/root/cFiles/default_conf.conf";
+        configFile = "/Users/kris/our_webserv2/root/cFiles/default_conf.conf";
     }
     else
     {

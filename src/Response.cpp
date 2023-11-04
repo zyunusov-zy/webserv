@@ -31,12 +31,9 @@ int calculateContentLength(std::ifstream& file) {
 bool Response::sendResponse(std::string content_type) 
 {
     // std::cerr << "\n in response" << filename << "\n";
-    std::string chunk = "";
 	int	conl = 0;
 
     char buff[BUFF_SIZE];
-
-    std::string head;
 	std::ifstream file(filename.c_str(), std::ios::binary);
     // std::cerr << "\n+++++++BODY CONTENT =======  " << std::endl;
 	// std::cerr << body << std::endl;
@@ -50,7 +47,8 @@ bool Response::sendResponse(std::string content_type)
 	{
 		if (!file.is_open()) 
 		{
-			std::cerr << "Failed to open " << filename << std::endl;
+			std::cerr << "Failed to open." << filename << std::endl;
+			return 1;
 		}
 		conl = calculateContentLength(file);
 
@@ -67,22 +65,19 @@ bool Response::sendResponse(std::string content_type)
                                          "\r\n", status_code.c_str(), content_type.c_str(), conl);
         // std::cerr << "\nSending header " << content_type << std::endl;
         // std::cerr << "\nSending header " << _target_fd << std::endl;
-
-		// exit (0);
-
-
-
-	    send(_target_fd, buff, strlen(buff), 0);
+	    int check = send(_target_fd, buff, strlen(buff), 0);
+		if (check <= 0)
+			return 1;
         header_sent = true;
     }
 	
 	if (body.length())
 	{
 		snprintf(buff, sizeof(buff), "%s", body.c_str());
-		std::cerr << "\n BODYYY " << std::endl;
 		std::cerr << body << std::endl;
-		// exit(1);
-		send(_target_fd, buff, strlen(buff), 0);
+		int check = send(_target_fd, buff, strlen(buff), 0);
+		if (check <= 0)
+			return 1;
 		response_complete = true;
 		return 0;
 	}
@@ -96,18 +91,14 @@ bool Response::sendResponse(std::string content_type)
         // std::cerr << "*******READING " << filename << std::endl;
 
         int bytesSent = send(_target_fd, buff, bytesRead, 0);
-        if (bytesSent < 0) {
-            std::cerr << "Send error" << std::endl;
-			exec_err_code = 500;
-			exec_err = true;
-			response_complete = true;
+        if (bytesSent <= 0) 
+		{
+			file.close();
 			return 1;
-			// checkError();
         }
 		response_complete = false;
     }
 	else if (file.eof() || bytesRead == 0)
-	// else if (bytesRead == 0)
 	{
         // std::cerr << "*******EOF " << filename << std::endl;
 
@@ -117,7 +108,6 @@ bool Response::sendResponse(std::string content_type)
 	}
 	position = file.tellg();
 	return 0;
-	// close(_target_fd);
 }
 
 void Response::setFd(int fd) {

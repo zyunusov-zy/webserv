@@ -21,9 +21,9 @@ void trim(std::string& s, char c)
 void trimBegin(std::string & v)
 {
 	v.erase(v.begin(), std::find_if(v.begin(), v.end(),
-							 std::bind1st(std::not_equal_to<char>(), ' ')));
+							 bind1st(std::not_equal_to<char>(), ' ')));
 	v.erase(v.begin(), std::find_if(v.begin(), v.end(),
-							 std::bind1st(std::not_equal_to<char>(), '\t')));
+							 bind1st(std::not_equal_to<char>(), '\t')));
 }
 
 uint8_t isDirOrFile(const char *path)

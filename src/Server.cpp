@@ -469,11 +469,12 @@ void Server::setUp(std::vector<t_serv>& s)
                     std::cerr << "POLLOUTTTT send" << '\n';
                     if (client_it->second->getResp()->sendResponse(client_it->second->getResp()->content_type) == 1)
                     {
+						std::cerr << "Error: Sending." << std::endl;
+
                         client_it->second->getResp()->exec_err_code = 500;
                         client_it->second->checkError();
                         sockets_to_remove.push_back(pollfds[i].fd);
                     }
-                    std::cerr << client_it->second->getResp()->response_complete << '\n';
                 }
                 if (client_it != this->fd_to_clients.end() && client_it->second->getResp()->response_complete)
                 {
