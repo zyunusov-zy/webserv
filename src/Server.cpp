@@ -369,15 +369,25 @@ void Server::setUp(std::vector<t_serv>& s)
                         pollfds[i].events = POLLOUT;
                     else
                     {
-                        fd_to_clients.find(fd)->second->readRequest();
+						try
+						{
+							fd_to_clients.find(fd)->second->readRequest();
+						}
+						catch(const std::exception& e)
+						{
+							std::cerr << e.what() << '\n';
+							// fd_to_clients.find(fd)->second->getResp()->post_done = true;
+							sockets_to_remove.push_back(pollfds[i].fd);
+						}
                     }
-
 					if (fd_to_clients.find(fd)->second->getIsClosed() == true)
 						sockets_to_remove.push_back(pollfds[i].fd);
                     if (fd_to_clients.find(fd)->second->getToServe() == true)
                     {
                         std::cerr << "\nSTOP READING" << '\n';
-                        pollfds[i].events = POLLOUT;
+                        // pollfds[i].events = POLLOUT;
+						// fd_to_clients.find(fd)->second->getResp()->post_done = true;
+						sockets_to_remove.push_back(pollfds[i].fd);
                     }
                     std::cerr << "\nEND KEEP READING" << '\n';
                 }
