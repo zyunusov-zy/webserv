@@ -81,6 +81,7 @@ bool Client::readRequest()
 		_toServe = true;
 		std::cout << e.what() << std::endl;
 		_req.setErrorStatus(e.getStatus());
+		throw ErrorException(_req.getErrorCode(), "Error 413\n");
 	}
 	return (_toServe);
 }
@@ -114,6 +115,10 @@ int  Client::checkError()
 
 	int err;
 
+	std::cout << "IN CHECK ERROR" << std::endl;
+
+
+
 	if (getResp()->exec_err_code > 0)
 	{
 		err = getResp()->exec_err_code;
@@ -121,6 +126,8 @@ int  Client::checkError()
 	}
 	else
 		err = _req.getErrorCode();
+
+	std::cout << err << std::endl;
 
 	if (err == 301 || err == 200 || err == 0 || err == 201)
 		return 1;

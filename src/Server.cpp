@@ -66,6 +66,8 @@ void Server::sendPostResponse(class Client *client)
 
 		client->getResp()->body = "Failed to upload the file.";
         client->getResp()->post_done = true;
+        client->getResp()->response_complete;
+        // exit(1);
 
 		// throw(returnError());
 	}
@@ -443,30 +445,48 @@ void Server::setUp(std::vector<t_serv>& s)
                         try
                         {
                             myCl->readRequest();
+                            // int e = myCl->getReq().getErrorCode();
+                            // std::cout << "EEeeeee \n";
+                            // std::cout << e << "\n";
+                            // exit(1);
+
+                            // if (e != 301 || e != 200 || e != 0 || e != 201 || e != 1)
+                            //     throw ErrorException(e, "Error occured");
                             // myCl->print();
                             myCl->pollstruct = &(pollfds[i]);
                             if (myCl->checkError())
                             {
                                 std::cout << "I Am HERE \n";
                                 if (myCl->getReq().getCGIB())
-                                {
+                                {   
+                                    myCl->getResp()->post_done = true;
+                                    std::cout << "in CGI______ \n";
+                                    // exit(1);
                                     if (launchCgi(myCl))
                                     {
+                                        
                                         myCl->getResp()->exec_err = true;
                                         remove(myCl->getResp()->filename.c_str());
                                         throw(returnError());
                                     }
+                                    myCl->getResp()->post_done = true;
+
                                 }
                                 else if (myCl->getReq().getMethod() == "GET")
                                     sendHTMLResponse(myCl, myCl->getReq().getResource());
                                 else if (myCl->getReq().getMethod() == "POST")
                                 {
+                                    // int e = myCl->getReq().getErrorCode();
+
+                                    // if (e != 301 || e != 200 || e != 0 || e != 201 || e != 1)
+                                    //     throw ErrorException(e, "Error occured");
                                     std::cout << "BEFORE POST \n";
-                                    if (myCl->getToServe() == true)
+                                    if ((myCl->getToServe() == true) && (myCl->getReq().getErrorCode() != 413))
                                     {
                                         sendPostResponse(myCl);
                                         myCl->getResp()->post_done = true;
                                     }
+                                    
                                 }
                                 else if (myCl->getReq().getMethod() == "DELETE")
                                     sendDeleteResponse(myCl, myCl->getReq().getResource());
@@ -477,9 +497,15 @@ void Server::setUp(std::vector<t_serv>& s)
                         }
                         catch (const std::exception& e)
                         {
+                            std::cout << "CATCH \n";
+
                             std::cerr << e.what() << '\n';
                             myCl->checkError();
+                             
+                            myCl->getResp()->post_done = true;
                             sockets_to_remove.push_back(pollfds[i].fd);
+
+                            // exit(1);
                         }
                     }
                 }
@@ -488,7 +514,7 @@ void Server::setUp(std::vector<t_serv>& s)
             {
                 std::cerr << "+++ GENERAL POLLOUTTTT" << '\n';
                 client_it  = this->fd_to_clients.find(fd);
-                if (client_it->second->getReq().getMethod() == "POST" && client_it->second->getResp()->post_done == false)
+                if (client_it->second->getReq().getMethod() == "POST" && client_it->second->getResp()->post_done == false && client_it->second->getReq().getErrorCode() != 413)
                 {
                     try
                     {
