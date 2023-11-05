@@ -339,7 +339,6 @@ void Server::setUp(std::vector<t_serv>& s)
     std::vector<int> connected_fds;
     while (1)
     {
-        std::cerr << "in main LOOP" << '\n';
 
         int activity = poll(&pollfds[0], pollfds.size(), 0);
         if (activity < 0) {
@@ -395,7 +394,6 @@ void Server::setUp(std::vector<t_serv>& s)
                 // }
 				try
                 {
-                    std::cerr << "\nKEEP READING" << '\n';
                     if (fd_to_clients.find(fd)->second->getToServe() == true)
                         pollfds[i].events = POLLOUT;
                     else
@@ -405,12 +403,10 @@ void Server::setUp(std::vector<t_serv>& s)
 
                     if (fd_to_clients.find(fd)->second->getToServe() == true)
                     {
-                        std::cerr << "\nSTOP READING" << '\n';
                         pollfds[i].events = POLLOUT;
                     }
 					if (fd_to_clients.find(fd)->second->getIsClosed() == true)
 						sockets_to_remove.push_back(pollfds[i].fd);
-                    std::cerr << "\nEND KEEP READING" << '\n';
                 }
                 catch(const std::exception& e)
                 {
@@ -445,23 +441,14 @@ void Server::setUp(std::vector<t_serv>& s)
                         try
                         {
                             myCl->readRequest();
-                            // int e = myCl->getReq().getErrorCode();
-                            // std::cout << "EEeeeee \n";
-                            // std::cout << e << "\n";
-                            // exit(1);
 
-                            // if (e != 301 || e != 200 || e != 0 || e != 201 || e != 1)
-                            //     throw ErrorException(e, "Error occured");
                             // myCl->print();
                             myCl->pollstruct = &(pollfds[i]);
                             if (myCl->checkError())
                             {
-                                std::cout << "I Am HERE \n";
                                 if (myCl->getReq().getCGIB())
                                 {   
                                     myCl->getResp()->post_done = true;
-                                    std::cout << "in CGI______ \n";
-                                    // exit(1);
                                     if (launchCgi(myCl))
                                     {
                                         
@@ -476,11 +463,6 @@ void Server::setUp(std::vector<t_serv>& s)
                                     sendHTMLResponse(myCl, myCl->getReq().getResource());
                                 else if (myCl->getReq().getMethod() == "POST")
                                 {
-                                    // int e = myCl->getReq().getErrorCode();
-
-                                    // if (e != 301 || e != 200 || e != 0 || e != 201 || e != 1)
-                                    //     throw ErrorException(e, "Error occured");
-                                    std::cout << "BEFORE POST \n";
                                     if ((myCl->getToServe() == true) && (myCl->getReq().getErrorCode() != 413))
                                     {
                                         sendPostResponse(myCl);
@@ -497,22 +479,17 @@ void Server::setUp(std::vector<t_serv>& s)
                         }
                         catch (const std::exception& e)
                         {
-                            std::cout << "CATCH \n";
-
                             std::cerr << e.what() << '\n';
                             myCl->checkError();
                              
                             myCl->getResp()->post_done = true;
                             sockets_to_remove.push_back(pollfds[i].fd);
-
-                            // exit(1);
                         }
                     }
                 }
             }
             else if (pollfds[i].revents & POLLOUT)
             {
-                std::cerr << "+++ GENERAL POLLOUTTTT" << '\n';
                 client_it  = this->fd_to_clients.find(fd);
                 if (client_it->second->getReq().getMethod() == "POST" && client_it->second->getResp()->post_done == false && client_it->second->getReq().getErrorCode() != 413)
                 {
@@ -528,11 +505,8 @@ void Server::setUp(std::vector<t_serv>& s)
                 }
                 if (client_it != this->fd_to_clients.end() && !client_it->second->getResp()->response_complete)
                 {
-                    std::cerr << "POLLOUTTTT send" << '\n';
                     if (client_it->second->getResp()->sendResponse(client_it->second->getResp()->content_type) == 1)
                     {
-						std::cerr << "Error: Sending." << std::endl;
-
                         client_it->second->getResp()->exec_err_code = 500;
                         client_it->second->checkError();
                         sockets_to_remove.push_back(pollfds[i].fd);
@@ -540,7 +514,6 @@ void Server::setUp(std::vector<t_serv>& s)
                 }
                 if (client_it != this->fd_to_clients.end() && client_it->second->getResp()->response_complete)
                 {
-                    std::cerr << "POLLOUTTTT remove" << '\n';
                     if (client_it->second->getReq().getCGIB())
                     {
                         remove(client_it->second->getResp()->filename.c_str());
@@ -552,7 +525,6 @@ void Server::setUp(std::vector<t_serv>& s)
         }
         for (size_t i = 0; i < sockets_to_remove.size(); ++i)
         {
-            std::cerr << "in Removing" << '\n';
             int fd = sockets_to_remove[i];
             if (sockets_to_remove.size() > 1)
                 i--;

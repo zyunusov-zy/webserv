@@ -115,10 +115,6 @@ int  Client::checkError()
 
 	int err;
 
-	std::cout << "IN CHECK ERROR" << std::endl;
-
-
-
 	if (getResp()->exec_err_code > 0)
 	{
 		err = getResp()->exec_err_code;
@@ -167,7 +163,6 @@ static std::string buildPath(std::string &path, const Location *loc, std::string
 	std::string tmp;
 	size_t pos;
 
-	std::cout << std::endl << std::endl;
 	pos = path.rfind(loc->root);
 	if (fileName == "." || fileName == ".." || pos == std::string::npos)
 	{

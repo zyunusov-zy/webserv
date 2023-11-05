@@ -85,7 +85,7 @@ void Location::setIndex(std::string v)
 	}
 	if (this->index != "")
 	{
-		std::cout << "already has a value\n";
+		// std::cout << "already has a value\n";
 		return ;
 	}
 	this->index = v;
