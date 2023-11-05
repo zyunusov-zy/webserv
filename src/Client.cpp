@@ -101,7 +101,7 @@ std::string Client::checkErrorMap(int err)
 			std::ifstream inFile(it->second.c_str());
 			if (!inFile)
 			{
-				std::cout << "Could not open an Error_page need to generate it" << std::endl;
+				std::cerr << "Could not open an Error_page need to generate it" << std::endl;
 				break;
 			}
 			return it->second;
@@ -123,7 +123,6 @@ int  Client::checkError()
 	else
 		err = _req.getErrorCode();
 
-	std::cout << err << std::endl;
 
 	if (err == 301 || err == 200 || err == 0 || err == 201)
 		return 1;
@@ -132,10 +131,8 @@ int  Client::checkError()
 		std::string urr = _req.getURI();
 		if (urr[urr.length() - 1] != '/')
 			urr.push_back('/');
-		std::cout << urr << std::endl << std::endl;
 		std::string indexAuto = fileList(urr, err, _req.getLocation());
 
-		std::cout << indexAuto << std::endl << std::endl;
 		if (err == 200)
 		{
 			sendErrHTML(indexAuto, err);
@@ -174,7 +171,6 @@ static std::string buildPath(std::string &path, const Location *loc, std::string
 	if (tmp[0] != '/')
 		tmp.insert(tmp.begin(), '/');
 	pos = tmp.find(loc->path);
-	std::cout << tmp << std::endl;
 	if (pos == std::string::npos)
 	{
 		return ".";

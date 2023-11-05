@@ -50,8 +50,8 @@ void Server::sendPostResponse(class Client *client)
     std::string filename = extractFilename(hm["Content-Disposition"]);
 	filename = client->getServ().Mroot + filename;
 
-    std::cerr << filename << std::endl;
-    std::cerr << client->getReq().getBody() << std::endl;
+    // std::cerr << filename << std::endl;
+    // std::cerr << client->getReq().getBody() << std::endl;
 
     if (handleFileUpload(filename, client->getReq().getBody(), client->getReq().getBody().size()))
 	{

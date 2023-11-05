@@ -56,7 +56,7 @@ bool Response::sendResponse(std::string content_type)
 
     if (!header_sent)
     {
-        std::cerr << "\nSending header " << filename << std::endl;
+        // std::cerr << "\nSending header " << filename << std::endl;
 
         snprintf(buff, sizeof(buff), "HTTP/1.1 %s\r\n"
                                          "Content-Type: %s\r\n"
