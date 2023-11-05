@@ -83,7 +83,7 @@ bool Server::sendDeleteResponse(class Client *client, std::string filepath)
 void Server::sendHTMLResponse(class Client *client, std::string filepath)
 {
     std::string content_type;
-    std::ifstream file(filepath);
+    std::ifstream file(filepath.c_str());
     if (!file.is_open()) {
         throw ErrorException("Failed to open a file");
     }
@@ -134,8 +134,8 @@ void handleTimeout(int signum) {
 
 void cleanEnv(Client *client)
 {
-    if (client->getReq().getENV() != nullptr) {
-        for (size_t i = 0; client->getReq().getENV()[i] != nullptr; ++i) {
+    if (client->getReq().getENV() != NULL) {
+        for (size_t i = 0; client->getReq().getENV()[i] != NULL; ++i) {
             if (client->getReq().getENV()[i])
                 free(client->getReq().getENV()[i]);
         }
@@ -189,7 +189,7 @@ bool Server::launchCgi(Client *client)
         }
         char* script_path = (char*)(client->getReq().getUriCGI().c_str());
         const char* path_to_py = "/usr/local/bin/python3";
-        char* _args[] = {const_cast<char*>(path_to_py), const_cast<char*>(script_path), nullptr};
+        char* _args[] = {const_cast<char*>(path_to_py), const_cast<char*>(script_path), NULL};
 
         dup2(pipe_d[READ_END], STDIN_FILENO);
         close(pipe_d[READ_END]);
@@ -330,7 +330,6 @@ void Server::setUp(std::vector<t_serv>& s)
     std::vector<int> connected_fds;
     while (1)
     {
-        alarm(0);
         std::cerr << "in main LOOP" << '\n';
 
         int activity = poll(&pollfds[0], pollfds.size(), 0);
@@ -361,7 +360,7 @@ void Server::setUp(std::vector<t_serv>& s)
         for (size_t i = listenfds.size(); i < pollfds.size(); ++i)
         {
             int fd = pollfds[i].fd;
-            if (pollfds[i].revents & POLLIN & fd_to_clients.count(pollfds[i].fd) > 0)
+            if (pollfds[i].revents & POLLIN & (fd_to_clients.count(pollfds[i].fd) > 0))
             {
                 try
                 {
@@ -389,7 +388,7 @@ void Server::setUp(std::vector<t_serv>& s)
                     sockets_to_remove.push_back(pollfds[i].fd);
                 }
             }
-            else if (pollfds[i].revents & POLLIN & fd_to_clients.count(pollfds[i].fd) == 0) 
+            else if (pollfds[i].revents & POLLIN & (fd_to_clients.count(pollfds[i].fd) == 0)) 
             {
                 char client_ip[INET_ADDRSTRLEN];
                 if(inet_ntop(AF_INET, &(servaddr.sin_addr), client_ip, INET_ADDRSTRLEN) == NULL)
