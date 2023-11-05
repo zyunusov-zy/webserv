@@ -193,7 +193,9 @@ bool Server::launchCgi(Client *client)
             close(infile);
         }
         char* script_path = (char*)(client->getReq().getUriCGI().c_str());
-        const char* path_to_py = "/usr/local/bin/python3";
+        // const char* path_to_py = "/usr/local/bin/python3";
+        const char* path_to_py = "/home/codespace/.python/current/bin/python";
+
         char* _args[] = {const_cast<char*>(path_to_py), const_cast<char*>(script_path), NULL};
 
         dup2(pipe_d[READ_END], STDIN_FILENO);

@@ -20,7 +20,7 @@ int main(int argc, char** av)
     else if (argc == 1)
     {
         // configFile = "/workspaces/webserv/root/cFiles/default_conf.conf";
-		configFile = "/Users/kris/our_webserv2/root/cFiles/default_conf.conf";
+		configFile = "/workspaces/webserv/root/cFiles/codespace.conf";
 
     }
     else
