@@ -98,7 +98,8 @@ bool Response::sendResponse(std::string content_type)
         }
 		response_complete = false;
     }
-	else if (file.eof() || bytesRead == 0)
+	// else if (file.eof() || bytesRead == 0)
+	else
 	{
         // std::cerr << "*******EOF " << filename << std::endl;
 
@@ -107,6 +108,7 @@ bool Response::sendResponse(std::string content_type)
         // std::cerr << "all read " << filename << std::endl;
 	}
 	position = file.tellg();
+
 	return 0;
 }
 

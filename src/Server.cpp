@@ -116,6 +116,12 @@ void Server::sendHTMLResponse(class Client *client, std::string filepath)
 
     client->getResp()->content_type = content_type;
     client->getResp()->filename = filepath;
+
+	if (client->getReq().getErrorCode() == 301)
+	{
+		client->getResp()->status_code = "301";
+	}
+
     file.close();
 }
 
@@ -367,6 +373,8 @@ void Server::setUp(std::vector<t_serv>& s)
                         fd_to_clients.find(fd)->second->readRequest();
                     }
 
+					if (fd_to_clients.find(fd)->second->getIsClosed() == true)
+						sockets_to_remove.push_back(pollfds[i].fd);
                     if (fd_to_clients.find(fd)->second->getToServe() == true)
                     {
                         std::cerr << "\nSTOP READING" << '\n';
