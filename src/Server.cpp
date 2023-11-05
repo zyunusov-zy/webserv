@@ -57,12 +57,17 @@ void Server::sendPostResponse(class Client *client)
 	{
 		client->getResp()->status_code = "201 Created";
 		client->getResp()->content_type = "text/plain";
-		client->getResp()->body = "File was uploaded successfully";
+		client->getResp()->body = "File was uploaded successfully.";
 	}
 	else
 	{
-		client->getResp()->exec_err_code = 500;
-		throw(returnError());
+		// client->getResp()->exec_err_code = 500;
+		// client->getResp()->status_code = "201 Created";
+
+		client->getResp()->body = "Failed to upload the file.";
+        client->getResp()->post_done = true;
+
+		// throw(returnError());
 	}
 }
 
@@ -362,33 +367,45 @@ void Server::setUp(std::vector<t_serv>& s)
             int fd = pollfds[i].fd;
             if (pollfds[i].revents & POLLIN & (fd_to_clients.count(pollfds[i].fd) > 0))
             {
-                try
+                // try
+                // {
+                //     std::cerr << "\nKEEP READING" << '\n';
+                //     if (fd_to_clients.find(fd)->second->getToServe() == true)
+                //         pollfds[i].events = POLLOUT;
+                //     else
+                //     {
+				// 		fd_to_clients.find(fd)->second->readRequest();
+
+                //     }
+				// 	// if (fd_to_clients.find(fd)->second->getIsClosed() == true)
+				// 	// 	sockets_to_remove.push_back(pollfds[i].fd);
+                //     // else 
+				// 	if (fd_to_clients.find(fd)->second->getToServe() == true)
+                //     {
+                //         std::cerr << "\nSTOP READING" << '\n';
+                //         pollfds[i].events = POLLOUT;
+				// 		// fd_to_clients.find(fd)->second->getResp()->post_done = true;
+				// 		sockets_to_remove.push_back(pollfds[i].fd);
+                //     }
+                //     std::cerr << "\nEND KEEP READING" << '\n';
+                // }
+				try
                 {
                     std::cerr << "\nKEEP READING" << '\n';
                     if (fd_to_clients.find(fd)->second->getToServe() == true)
                         pollfds[i].events = POLLOUT;
                     else
                     {
-						try
-						{
-							fd_to_clients.find(fd)->second->readRequest();
-						}
-						catch(const std::exception& e)
-						{
-							std::cerr << e.what() << '\n';
-							// fd_to_clients.find(fd)->second->getResp()->post_done = true;
-							sockets_to_remove.push_back(pollfds[i].fd);
-						}
+                        fd_to_clients.find(fd)->second->readRequest();
                     }
-					if (fd_to_clients.find(fd)->second->getIsClosed() == true)
-						sockets_to_remove.push_back(pollfds[i].fd);
+
                     if (fd_to_clients.find(fd)->second->getToServe() == true)
                     {
                         std::cerr << "\nSTOP READING" << '\n';
-                        // pollfds[i].events = POLLOUT;
-						// fd_to_clients.find(fd)->second->getResp()->post_done = true;
-						sockets_to_remove.push_back(pollfds[i].fd);
+                        pollfds[i].events = POLLOUT;
                     }
+					if (fd_to_clients.find(fd)->second->getIsClosed() == true)
+						sockets_to_remove.push_back(pollfds[i].fd);
                     std::cerr << "\nEND KEEP READING" << '\n';
                 }
                 catch(const std::exception& e)
